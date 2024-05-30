@@ -3,5 +3,11 @@ resolver = "2"
 
 members = [
     "crates/*",
+    "gui",
     "tui",
+]
+
+default-members = [
+    "crates/*",
+    "gui",
 ]
