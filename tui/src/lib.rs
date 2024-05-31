@@ -2,4 +2,7 @@
 //
 // SPDX-License-Identifier: MPL-2.0
 
-pub mod screen;
+mod screen;
+
+pub use screen::install_eyre_hooks;
+pub use screen::Screen;

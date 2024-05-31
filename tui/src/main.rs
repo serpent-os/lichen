@@ -4,11 +4,24 @@
 
 //! TUI frontend for lichen
 
-use tui::screen;
+use ratatui::{widgets::Paragraph, Frame};
+use tui::Screen;
+
+fn draw_ui(frame: &mut Frame) {
+    let area = frame.size();
+    let widget = Paragraph::new("I is a paragraph");
+    frame.render_widget(widget, area)
+}
 
 fn main() -> color_eyre::Result<()> {
-    screen::install_eyre_hooks()?;
+    tui::install_eyre_hooks()?;
 
-    let _ = screen::init()?;
+    let mut screen = Screen::new()?;
+    screen.clear()?;
+
+    loop {
+        screen.draw(draw_ui)?;
+        break;
+    }
     todo!()
 }
