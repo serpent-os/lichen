@@ -13,3 +13,4 @@ default-members = [
 
 [workspace.dependencies]
 thiserror = "1.0.61"
+log = "0.4.21"

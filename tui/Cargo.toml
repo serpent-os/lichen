@@ -8,4 +8,5 @@ edition = "2021"
 [dependencies]
 color-eyre = { version = "0.6.3", features = ["issue-url"] }
 crossterm = "0.27.0"
+log.workspace = true
 ratatui = { version = "0.26.3", features = ["all-widgets", "macros", "document-features", "crossterm"] }
