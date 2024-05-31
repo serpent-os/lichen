@@ -4,6 +4,11 @@
 
 //! TUI frontend for lichen
 
-fn main() {
+use tui::screen;
+
+fn main() -> color_eyre::Result<()> {
+    screen::install_eyre_hooks()?;
+
+    let _ = screen::init()?;
     todo!()
 }
