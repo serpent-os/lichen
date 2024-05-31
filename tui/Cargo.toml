@@ -6,5 +6,6 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+color-eyre = { version = "0.6.3", features = ["issue-url"] }
 crossterm = "0.27.0"
 ratatui = { version = "0.26.3", features = ["all-widgets", "macros", "document-features", "crossterm"] }
