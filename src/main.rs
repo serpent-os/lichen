@@ -4,17 +4,43 @@
 
 //! TUI frontend for lichen
 
-use lichen::{Event, Screen};
-use ratatui::{
-    widgets::{Block, Paragraph},
-    Frame,
-};
+use crossterm::event::KeyCode;
+use lichen::{Action, Component, Event, Screen};
+use ratatui::widgets::{self};
 
-/// Test drawing
-fn draw_ui(frame: &mut Frame) {
-    let area = frame.size();
-    let widget = Paragraph::new("Welcome to Lichen").block(Block::bordered());
-    frame.render_widget(widget, area)
+struct App {
+    redraw: bool,
+    quit: bool,
+}
+
+impl Component for App {
+    fn widget(&self) -> impl ratatui::prelude::Widget {
+        widgets::Paragraph::new("Welcome to Lichen")
+    }
+
+    fn update(&self, _: Action) -> Option<Action> {
+        None
+    }
+}
+
+impl App {
+    fn handle(&mut self, event: Event) -> Option<Action> {
+        match event {
+            Event::Key(e) => {
+                if e.code == KeyCode::Char('q') {
+                    self.quit = true;
+                    Some(Action::Quit)
+                } else {
+                    Some(Action::Key(e))
+                }
+            }
+            Event::Render => {
+                self.redraw = true;
+                None
+            }
+            _ => None,
+        }
+    }
 }
 
 #[tokio::main]
@@ -24,28 +50,28 @@ async fn main() -> color_eyre::Result<()> {
     let mut screen = Screen::new()?;
     screen.run();
 
-    let mut redraw = true;
-    let mut quit = false;
+    let mut app = App {
+        redraw: false,
+        quit: false,
+    };
 
     loop {
-        if redraw {
-            screen.draw(draw_ui)?;
-            redraw = false;
+        if app.redraw {
+            screen.draw(|f| {
+                let area = f.size();
+                f.render_widget(app.widget(), area)
+            })?;
+            app.redraw = false;
         }
 
         if let Some(event) = screen.next_event().await {
-            match event {
-                Event::Key(_) => {
-                    quit = true;
-                }
-                Event::Render => {
-                    redraw = true;
-                }
-                _ => {}
+            let mut act = app.handle(event);
+            while let Some(action) = act {
+                act = app.update(action);
             }
         }
 
-        if quit {
+        if app.quit {
             break;
         }
     }
