@@ -4,24 +4,51 @@
 
 //! TUI frontend for lichen
 
-use ratatui::{widgets::Paragraph, Frame};
-use tui::Screen;
+use ratatui::{
+    widgets::{Block, Paragraph},
+    Frame,
+};
+use tui::{Event, Screen};
 
+/// Test drawing
 fn draw_ui(frame: &mut Frame) {
     let area = frame.size();
-    let widget = Paragraph::new("I is a paragraph");
+    let widget = Paragraph::new("Welcome to Lichen").block(Block::bordered());
     frame.render_widget(widget, area)
 }
 
-fn main() -> color_eyre::Result<()> {
+#[tokio::main]
+async fn main() -> color_eyre::Result<()> {
     tui::install_eyre_hooks()?;
 
     let mut screen = Screen::new()?;
-    screen.clear()?;
+    screen.run();
+
+    let mut redraw = true;
+    let mut quit = false;
 
     loop {
-        screen.draw(draw_ui)?;
-        break;
+        if redraw {
+            screen.draw(draw_ui)?;
+            redraw = false;
+        }
+
+        if let Some(event) = screen.next_event().await {
+            match event {
+                Event::Key(_) => {
+                    quit = true;
+                }
+                Event::Render => {
+                    redraw = true;
+                }
+                _ => {}
+            }
+        }
+
+        if quit {
+            break;
+        }
     }
-    todo!()
+    screen.stop();
+    Ok(())
 }

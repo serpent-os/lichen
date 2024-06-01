@@ -3,39 +3,147 @@
 // SPDX-License-Identifier: MPL-2.0
 
 //! Screen management
+//! Heavily inspired by https://ratatui.rs/recipes/apps/terminal-and-event-handler/
 
 use std::{
     io::{self, stdout},
     ops::{Deref, DerefMut},
-    panic,
+    panic, thread,
+    time::Duration,
 };
 
 use crossterm::{
-    cursor, execute,
+    cursor,
+    event::KeyEvent,
+    execute,
     terminal::{
         disable_raw_mode, enable_raw_mode, is_raw_mode_enabled, EnterAlternateScreen,
         LeaveAlternateScreen,
     },
     ExecutableCommand,
 };
+
+use futures::{FutureExt, StreamExt};
 use ratatui::{backend::CrosstermBackend, Terminal};
+use serde::{Deserialize, Serialize};
+use tokio::{
+    sync::mpsc::{unbounded_channel, UnboundedReceiver, UnboundedSender},
+    task::JoinHandle,
+};
+use tokio_util::sync::CancellationToken;
 
 pub struct Screen {
     terminal: Terminal<CrosstermBackend<io::Stdout>>,
+
+    // Event processing
+    events_in: UnboundedReceiver<Event>,
+    events_out: UnboundedSender<Event>,
+    task: JoinHandle<()>,
+    cancel: CancellationToken,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum Event {
+    Init,
+    Key(KeyEvent),
+    Render,
+    Tick, // update from input etc
 }
 
 impl Screen {
+    /// Create screen management and init the screen.
     pub fn new() -> Result<Self, io::Error> {
         execute!(stdout(), EnterAlternateScreen, cursor::Hide)?;
         enable_raw_mode()?;
         let term = Terminal::new(CrosstermBackend::new(stdout()))?;
-        Ok(Self { terminal: term })
-    }
-}
 
-impl Drop for Screen {
-    fn drop(&mut self) {
-        end_tty().expect("Failed to end tty use")
+        let (events_out, events_in) = unbounded_channel::<Event>();
+        let task = tokio::spawn(async {});
+        let cancel = CancellationToken::new();
+        Ok(Self {
+            terminal: term,
+            events_in,
+            events_out,
+            task,
+            cancel,
+        })
+    }
+
+    /// Stop screen management immediately
+    pub fn stop(&self) {
+        self.cancel.cancel();
+        let mut tries = 0;
+        while !self.task.is_finished() {
+            thread::sleep(Duration::from_millis(1));
+            if tries > 100 {
+                self.task.abort();
+            }
+            if tries > 500 {
+                log::error!("Failed to abort render task");
+                break;
+            }
+            tries += 1;
+        }
+        end_tty().unwrap();
+    }
+
+    // Run the screen handling loop (events, etc)
+    pub fn run(&mut self) {
+        self.cancel.cancel();
+        self.cancel = CancellationToken::new();
+
+        let cancel = self.cancel.clone();
+        let events_out = self.events_out.clone();
+
+        self.task = tokio::spawn(async move {
+            let mut reader = crossterm::event::EventStream::new();
+            let mut renders = tokio::time::interval(Duration::from_secs_f64(1.0 / 30.0));
+            let mut ticker = tokio::time::interval(Duration::from_secs_f64(1.0 / 4.0));
+            events_out.send(Event::Init).unwrap();
+
+            loop {
+                let render = renders.tick();
+                let input = ticker.tick();
+                let cterm = reader.next().fuse();
+
+                tokio::select! {
+                    event = cterm => {
+                        match event {
+                            Some(Ok(event)) => {
+                                log::trace!("Got an event: {event:?}");
+                                match event {
+                                    crossterm::event::Event::FocusGained => {},
+                                    crossterm::event::Event::FocusLost => {},
+                                    crossterm::event::Event::Key(key) => events_out.send(Event::Key(key)).unwrap(),
+                                    crossterm::event::Event::Mouse(_) => {},
+                                    crossterm::event::Event::Paste(_) => {},
+                                    crossterm::event::Event::Resize(_, _) => {},
+                                }
+                            },
+                            Some(Err(err)) => {
+                                log::error!("Got an error: {err}");
+                            },
+                            None => {},
+                        }
+                    },
+                    // render timeout
+                    _ = cancel.cancelled() => {
+                        break;
+                    }
+                    _ = input => {
+                        events_out.send(Event::Tick).unwrap();
+                    }
+                    _ = render => {
+                        events_out.send(Event::Render).unwrap();
+                    }
+                }
+            }
+        });
+    }
+
+    /// Yield the next possible event
+    pub async fn next_event(&mut self) -> Option<Event> {
+        self.events_in.recv().await
     }
 }
 
