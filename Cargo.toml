@@ -1,16 +1,17 @@
-[workspace]
-resolver = "2"
+[package]
+name = "lichen"
+version = "0.1.0"
+edition = "2021"
 
-members = [
-    "crates/*",
-    "tui",
-]
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-default-members = [
-    "crates/*",
-    "tui",
-]
-
-[workspace.dependencies]
-thiserror = "1.0.61"
+[dependencies]
+color-eyre = { version = "0.6.3", features = ["issue-url"] }
+crossterm = { version = "0.27.0", features = ["serde", "event-stream"] }
+futures = "0.3.30"
 log = "0.4.21"
+ratatui = { version = "0.26.3", features = ["all-widgets", "macros", "document-features", "crossterm", "serde"] }
+serde = { version = "1.0.203", features = ["derive"] }
+tokio = { version = "1.38.0", features = ["full"] }
+tokio-util = "0.7.11"
+

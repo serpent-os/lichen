@@ -373,6 +373,16 @@ checksum = "97b3888a4aecf77e811145cadf6eef5901f4782c53886191b2f693f24761847c"
 [[package]]
 name = "lichen"
 version = "0.1.0"
+dependencies = [
+ "color-eyre",
+ "crossterm",
+ "futures",
+ "log",
+ "ratatui",
+ "serde",
+ "tokio",
+ "tokio-util",
+]
 
 [[package]]
 name = "litrs"
@@ -866,20 +876,6 @@ dependencies = [
  "sharded-slab",
  "thread_local",
  "tracing-core",
-]
-
-[[package]]
-name = "tui"
-version = "0.1.0"
-dependencies = [
- "color-eyre",
- "crossterm",
- "futures",
- "log",
- "ratatui",
- "serde",
- "tokio",
- "tokio-util",
 ]
 
 [[package]]

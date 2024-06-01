@@ -4,11 +4,11 @@
 
 //! TUI frontend for lichen
 
+use lichen::{Event, Screen};
 use ratatui::{
     widgets::{Block, Paragraph},
     Frame,
 };
-use tui::{Event, Screen};
 
 /// Test drawing
 fn draw_ui(frame: &mut Frame) {
@@ -19,7 +19,7 @@ fn draw_ui(frame: &mut Frame) {
 
 #[tokio::main]
 async fn main() -> color_eyre::Result<()> {
-    tui::install_eyre_hooks()?;
+    lichen::install_eyre_hooks()?;
 
     let mut screen = Screen::new()?;
     screen.run();
