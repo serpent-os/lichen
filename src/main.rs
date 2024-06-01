@@ -6,16 +6,17 @@
 
 use crossterm::event::KeyCode;
 use lichen::{pages::users::Users, Action, Component, Event, Screen};
+use ratatui::layout::Rect;
 
-struct App<'a> {
+struct App {
     redraw: bool,
     quit: bool,
-    page: Users<'a>,
+    page: Users,
 }
 
-impl<'a> Component for App<'a> {
-    fn render(&self, frame: &mut ratatui::prelude::Frame) {
-        self.page.render(frame)
+impl Component for App {
+    fn render(&self, frame: &mut ratatui::prelude::Frame, area: Rect) {
+        self.page.render(frame, area)
     }
 
     fn update(&mut self, action: Action) -> Option<Action> {
@@ -23,7 +24,7 @@ impl<'a> Component for App<'a> {
     }
 }
 
-impl<'a> App<'a> {
+impl App {
     fn handle(&mut self, event: Event) -> Option<Action> {
         match event {
             Event::Key(e) => {
@@ -59,7 +60,7 @@ async fn main() -> color_eyre::Result<()> {
 
     loop {
         if app.redraw {
-            screen.draw(|f| app.render(f))?;
+            screen.draw(|f| app.render(f, f.size()))?;
             app.redraw = false;
         }
 

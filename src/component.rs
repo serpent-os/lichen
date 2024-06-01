@@ -5,7 +5,7 @@
 //! Component APIs
 
 use crossterm::event::{KeyEvent, MouseEvent};
-use ratatui::Frame;
+use ratatui::{layout::Rect, Frame};
 
 #[derive(Debug, Clone, Copy)]
 pub enum Action {
@@ -17,6 +17,6 @@ pub enum Action {
 }
 
 pub trait Component {
-    fn render(&self, frame: &mut Frame);
+    fn render(&self, frame: &mut Frame, area: Rect);
     fn update(&mut self, action: Action) -> Option<Action>;
 }
