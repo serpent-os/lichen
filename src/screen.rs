@@ -14,13 +14,12 @@ use std::{
 
 use crossterm::{
     cursor,
-    event::KeyEvent,
+    event::{DisableMouseCapture, EnableMouseCapture, KeyEvent, MouseEvent},
     execute,
     terminal::{
         disable_raw_mode, enable_raw_mode, is_raw_mode_enabled, EnterAlternateScreen,
         LeaveAlternateScreen,
     },
-    ExecutableCommand,
 };
 
 use futures::{FutureExt, StreamExt};
@@ -46,6 +45,7 @@ pub struct Screen {
 pub enum Event {
     Init,
     Key(KeyEvent),
+    Mouse(MouseEvent),
     Render,
     Tick, // update from input etc
 }
@@ -53,7 +53,12 @@ pub enum Event {
 impl Screen {
     /// Create screen management and init the screen.
     pub fn new() -> Result<Self, io::Error> {
-        execute!(stdout(), EnterAlternateScreen, cursor::Hide)?;
+        execute!(
+            stdout(),
+            EnterAlternateScreen,
+            EnableMouseCapture,
+            cursor::Hide
+        )?;
         enable_raw_mode()?;
         let term = Terminal::new(CrosstermBackend::new(stdout()))?;
 
@@ -115,7 +120,7 @@ impl Screen {
                                     crossterm::event::Event::FocusGained => {},
                                     crossterm::event::Event::FocusLost => {},
                                     crossterm::event::Event::Key(key) => events_out.send(Event::Key(key)).unwrap(),
-                                    crossterm::event::Event::Mouse(_) => {},
+                                    crossterm::event::Event::Mouse(m) => events_out.send(Event::Mouse(m)).unwrap(),
                                     crossterm::event::Event::Paste(_) => {},
                                     crossterm::event::Event::Resize(_, _) => {},
                                 }
@@ -164,7 +169,12 @@ impl DerefMut for Screen {
 /// Finish terminal integrations
 fn end_tty() -> Result<(), io::Error> {
     if is_raw_mode_enabled()? {
-        stdout().execute(LeaveAlternateScreen)?;
+        execute!(
+            stdout(),
+            LeaveAlternateScreen,
+            DisableMouseCapture,
+            cursor::Show
+        )?;
         disable_raw_mode()?;
     }
     Ok(())

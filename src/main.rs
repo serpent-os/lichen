@@ -5,25 +5,25 @@
 //! TUI frontend for lichen
 
 use crossterm::event::KeyCode;
-use lichen::{Action, Component, Event, Screen};
-use ratatui::widgets::{self};
+use lichen::{pages::users::Users, Action, Component, Event, Screen};
 
-struct App {
+struct App<'a> {
     redraw: bool,
     quit: bool,
+    page: Users<'a>,
 }
 
-impl Component for App {
-    fn widget(&self) -> impl ratatui::prelude::Widget {
-        widgets::Paragraph::new("Welcome to Lichen")
+impl<'a> Component for App<'a> {
+    fn render(&self, frame: &mut ratatui::prelude::Frame) {
+        self.page.render(frame)
     }
 
-    fn update(&self, _: Action) -> Option<Action> {
-        None
+    fn update(&mut self, action: Action) -> Option<Action> {
+        self.page.update(action)
     }
 }
 
-impl App {
+impl<'a> App<'a> {
     fn handle(&mut self, event: Event) -> Option<Action> {
         match event {
             Event::Key(e) => {
@@ -34,6 +34,7 @@ impl App {
                     Some(Action::Key(e))
                 }
             }
+            Event::Mouse(m) => Some(Action::Mouse(m)),
             Event::Render => {
                 self.redraw = true;
                 None
@@ -53,14 +54,12 @@ async fn main() -> color_eyre::Result<()> {
     let mut app = App {
         redraw: false,
         quit: false,
+        page: Users::new(),
     };
 
     loop {
         if app.redraw {
-            screen.draw(|f| {
-                let area = f.size();
-                f.render_widget(app.widget(), area)
-            })?;
+            screen.draw(|f| app.render(f))?;
             app.redraw = false;
         }
 

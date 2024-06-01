@@ -14,4 +14,5 @@ ratatui = { version = "0.26.3", features = ["all-widgets", "macros", "document-f
 serde = { version = "1.0.203", features = ["derive"] }
 tokio = { version = "1.38.0", features = ["full"] }
 tokio-util = "0.7.11"
+tui-textarea = "0.4.0"
 

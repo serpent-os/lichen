@@ -4,18 +4,19 @@
 
 //! Component APIs
 
-use crossterm::event::KeyEvent;
-use ratatui::widgets::Widget;
+use crossterm::event::{KeyEvent, MouseEvent};
+use ratatui::Frame;
 
-
+#[derive(Debug, Clone, Copy)]
 pub enum Action {
     Key(KeyEvent),
+    Mouse(MouseEvent),
     Quit,
     Redraw,
     Noop,
 }
 
 pub trait Component {
-    fn widget(&self) -> impl Widget;
-    fn update(&self, action: Action) -> Option<Action>;
+    fn render(&self, frame: &mut Frame);
+    fn update(&mut self, action: Action) -> Option<Action>;
 }
