@@ -6,7 +6,7 @@
 
 use ratatui::{
     style::{Style, Stylize},
-    text::{Line},
+    text::Line,
     widgets::{self, Wrap},
 };
 
