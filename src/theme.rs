@@ -4,10 +4,15 @@
 
 //! Theme definitions
 
+use std::env;
 use std::sync::OnceLock;
 
 use ratatui::style::palette::tailwind;
 use ratatui::style::Color;
+
+/// Add terminals to this list that don't report TERM=xterm-256color but
+/// actually do support full features..
+static SILLY_BUGGERS: [&str; 1] = ["alacritty"];
 
 pub struct Icons {
     // Represent a username
@@ -63,6 +68,13 @@ pub fn current() -> &'static Theme {
     static RES: OnceLock<&'static Theme> = OnceLock::new();
     RES.get_or_init(|| match crossterm::style::available_color_count() {
         x if x > 255 => &REFINED,
-        _ => &BASIC,
+        _ => {
+            let term = env::var("TERM").unwrap_or_default();
+            if SILLY_BUGGERS.iter().any(|s| *s == term) {
+                &REFINED
+            } else {
+                &BASIC
+            }
+        }
     })
 }
