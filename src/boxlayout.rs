@@ -5,7 +5,7 @@
 //! BoxLayout ...
 
 use crossterm::event::{KeyCode, KeyEventKind, KeyModifiers};
-use ratatui::layout::{Constraint, Layout, Rect};
+use ratatui::layout::{Flex, Layout, Rect};
 
 use crate::{
     component::{Orientation, State},
@@ -16,6 +16,7 @@ pub struct BoxLayout {
     orientation: Orientation,
     children: Vec<Box<dyn Component>>,
     selected: usize,
+    flex: Flex,
 }
 
 impl Default for BoxLayout {
@@ -24,6 +25,7 @@ impl Default for BoxLayout {
             orientation: Orientation::Horizontal,
             children: Vec::new(),
             selected: 0,
+            flex: Flex::Legacy,
         }
     }
 }
@@ -34,9 +36,14 @@ impl BoxLayout {
             orientation: Orientation::Horizontal,
             children,
             selected: 0,
+            flex: Flex::Legacy,
         };
         s.update_states();
         s
+    }
+
+    pub fn flex(self, flex: Flex) -> Self {
+        Self { flex, ..self }
     }
 
     pub fn push(&mut self, child: Box<dyn Component>) {
@@ -94,12 +101,18 @@ impl BoxLayout {
 impl Component for BoxLayout {
     fn render(&self, frame: &mut ratatui::prelude::Frame, area: Rect) {
         let layout = match self.orientation {
-            Orientation::Horizontal => {
-                Layout::horizontal(self.children.iter().map(|_| Constraint::Length(10)))
-            }
-            Orientation::Vertical => {
-                Layout::vertical(self.children.iter().map(|_| Constraint::Length(3)))
-            }
+            Orientation::Horizontal => Layout::horizontal(
+                self.children
+                    .iter()
+                    .map(|c| c.constraints(self.orientation)),
+            )
+            .flex(self.flex),
+            Orientation::Vertical => Layout::vertical(
+                self.children
+                    .iter()
+                    .map(|c| c.constraints(self.orientation)),
+            )
+            .flex(self.flex),
         }
         .spacing(1)
         .split(area);
