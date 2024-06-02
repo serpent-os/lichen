@@ -56,8 +56,6 @@ impl BoxLayout {
             return None;
         }
 
-        let old = self.selected;
-
         if self.selected + 1 >= self.children.len() {
             self.selected = 0;
         } else {
