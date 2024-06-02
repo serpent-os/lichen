@@ -47,10 +47,10 @@ impl TextBox {
     fn style_from_state(&mut self) {
         let style = if self.state.contains(State::ACTIVE) {
             self.area.set_cursor_style(Style::default().reversed());
-            Style::default().fg(theme::current().color_text)
+            Style::default()
         } else {
             self.area.set_cursor_style(Style::default());
-            Style::default().fg(theme::current().color_text).dim()
+            Style::default().fg(theme::current().color_inactive)
         };
         let styled = if self.area.mask_char().is_some() {
             style.bold()
@@ -81,8 +81,8 @@ impl TextBox {
                 .block()
                 .unwrap()
                 .clone()
-                .border_style(Style::default().fg(theme::current().color_inactive).dim())
-                .title_style(Style::default().fg(theme::current().color_inactive).dim())
+                .border_style(Style::default().fg(theme::current().color_inactive))
+                .title_style(Style::default().fg(theme::current().color_inactive))
         };
         self.area.set_block(block);
     }
