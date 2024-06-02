@@ -5,9 +5,7 @@
 //! User management page
 //! NOTE: TOTAL hack right now!
 
-use ratatui::{
-    layout::Rect,
-};
+use ratatui::layout::Rect;
 
 use crate::{boxlayout::BoxLayout, textbox::TextBox, Component};
 
@@ -34,7 +32,8 @@ impl Default for Users {
 impl Users {
     pub fn new() -> Self {
         let name = TextBox::new("Username");
-        let password = TextBox::new("Password");
+        let mut password = TextBox::new("Password");
+        password.set_hide_chars();
         let vbox = BoxLayout::new(vec![Box::new(name), Box::new(password)])
             .orientation(crate::boxlayout::Orientation::Vertical);
         Self { vbox }

@@ -32,6 +32,11 @@ impl TextBox {
 
         Self { area: text }
     }
+
+    /// Set as a password field
+    pub fn set_hide_chars(&mut self) {
+        self.area.set_mask_char('*')
+    }
 }
 
 impl Component for TextBox {
