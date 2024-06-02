@@ -19,7 +19,7 @@ pub struct TextBox {
 }
 
 impl TextBox {
-    pub fn new(title: &str) -> Self {
+    pub fn new(title: impl AsRef<str>) -> Self {
         let mut text = TextArea::default();
         text.set_cursor_line_style(Style::default());
         text.set_style(Style::default());
@@ -28,7 +28,7 @@ impl TextBox {
                 .borders(Borders::ALL)
                 .border_type(BorderType::Rounded)
                 .border_style(Style::default().fg(theme::current().color_inactive))
-                .title(title.to_string())
+                .title(title.as_ref().to_string())
                 .title_style(Style::default().fg(theme::current().color_inactive)),
         );
 
