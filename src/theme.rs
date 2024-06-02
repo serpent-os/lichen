@@ -9,6 +9,14 @@ use std::sync::OnceLock;
 use ratatui::style::palette::tailwind;
 use ratatui::style::Color;
 
+pub struct Icons {
+    // Represent a username
+    pub user: &'static str,
+
+    /// Represent a password.
+    pub password: &'static str,
+}
+
 pub struct Theme {
     /// Text colour
     pub color_text: Color,
@@ -21,6 +29,9 @@ pub struct Theme {
 
     /// Inactive (not-focused) colour
     pub color_inactive: Color,
+
+    /// Icon set
+    pub icons: Icons,
 }
 
 /// Basic theme for tty/non-256/emoji use
@@ -29,6 +40,10 @@ pub static BASIC: Theme = Theme {
     color_selection: Color::LightBlue,
     color_highlight: Color::White,
     color_inactive: Color::DarkGray,
+    icons: Icons {
+        user: " + ",
+        password: " # ",
+    },
 };
 
 /// Refined theme for desktop use
@@ -37,6 +52,10 @@ pub static REFINED: Theme = Theme {
     color_selection: tailwind::BLUE.c300,
     color_highlight: tailwind::SLATE.c400,
     color_inactive: tailwind::SLATE.c500,
+    icons: Icons {
+        user: " 👤 ",
+        password: " 🔑 ",
+    },
 };
 
 /// Access the default theme

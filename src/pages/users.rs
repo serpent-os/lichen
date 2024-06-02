@@ -11,7 +11,7 @@ use crate::{
     boxlayout::BoxLayout,
     component::{Orientation, State},
     textbox::TextBox,
-    Component,
+    theme, Component,
 };
 
 pub struct Users {
@@ -44,11 +44,14 @@ impl Default for Users {
 
 impl Users {
     pub fn new() -> Self {
-        let name = TextBox::new(" 👤 Username ");
-        let mut password = TextBox::new(" 🔑 Password ");
+        let name = TextBox::new(format!("{}Username ", theme::current().icons.user));
+        let mut password = TextBox::new(format!("{}Password ", theme::current().icons.password));
         password.set_hide_chars();
 
-        let mut confirm_password = TextBox::new(" 🔑 Confirm password ");
+        let mut confirm_password = TextBox::new(format!(
+            "{}Confirm password ",
+            theme::current().icons.password
+        ));
         confirm_password.set_hide_chars();
         let vbox = BoxLayout::new(vec![
             Box::new(name),
