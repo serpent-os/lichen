@@ -125,8 +125,8 @@ impl Component for BoxLayout {
         if let Action::Key(k) = action {
             if k.kind == KeyEventKind::Press {
                 match k.code {
-                    KeyCode::Tab => return self.traverse_tab(),
-                    KeyCode::BackTab => return self.traverse_tab_r(),
+                    KeyCode::Tab | KeyCode::Down => return self.traverse_tab(),
+                    KeyCode::BackTab | KeyCode::Up => return self.traverse_tab_r(),
                     _ => {}
                 };
             }
