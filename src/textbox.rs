@@ -6,12 +6,12 @@
 
 use ratatui::{
     layout::Rect,
-    style::{Color, Style, Stylize},
+    style::{Style, Stylize},
     widgets::{Block, BorderType, Borders},
 };
 use tui_textarea::TextArea;
 
-use crate::{component::State, Action, Component};
+use crate::{component::State, theme, Action, Component};
 
 pub struct TextBox {
     area: TextArea<'static>,
@@ -27,9 +27,9 @@ impl TextBox {
             Block::default()
                 .borders(Borders::ALL)
                 .border_type(BorderType::Rounded)
-                .border_style(Style::default().fg(Color::Gray))
+                .border_style(Style::default().fg(theme::current().color_inactive))
                 .title(title.to_string())
-                .title_style(Style::default().fg(Color::Gray)),
+                .title_style(Style::default().fg(theme::current().color_inactive)),
         );
 
         Self {
@@ -47,10 +47,10 @@ impl TextBox {
     fn style_from_state(&mut self) {
         let style = if self.state.contains(State::ACTIVE) {
             self.area.set_cursor_style(Style::default().reversed());
-            Style::default().fg(Color::White)
+            Style::default().fg(theme::current().color_text)
         } else {
             self.area.set_cursor_style(Style::default());
-            Style::default().fg(Color::White).dim()
+            Style::default().fg(theme::current().color_text).dim()
         };
         let styled = if self.area.mask_char().is_some() {
             style.bold()
@@ -67,22 +67,22 @@ impl TextBox {
                 .block()
                 .unwrap()
                 .clone()
-                .border_style(Style::default().fg(Color::LightBlue))
-                .title_style(Style::default().fg(Color::Gray))
+                .border_style(Style::default().fg(theme::current().color_selection))
+                .title_style(Style::default().fg(theme::current().color_inactive))
         } else if self.state.contains(State::HIGHLIGHT) {
             self.area
                 .block()
                 .unwrap()
                 .clone()
-                .border_style(Style::default().fg(Color::White))
-                .title_style(Style::default().fg(Color::Gray))
+                .border_style(Style::default().fg(theme::current().color_highlight))
+                .title_style(Style::default().fg(theme::current().color_inactive))
         } else {
             self.area
                 .block()
                 .unwrap()
                 .clone()
-                .border_style(Style::default().fg(Color::Gray).dim())
-                .title_style(Style::default().fg(Color::Gray).dim())
+                .border_style(Style::default().fg(theme::current().color_inactive).dim())
+                .title_style(Style::default().fg(theme::current().color_inactive).dim())
         };
         self.area.set_block(block);
     }
