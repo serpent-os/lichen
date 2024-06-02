@@ -7,7 +7,7 @@
 use ratatui::{
     layout::Rect,
     style::{Style, Stylize},
-    widgets::{Block, BorderType, Borders},
+    widgets::{Block, BorderType, Borders, Padding},
 };
 use tui_textarea::TextArea;
 
@@ -29,7 +29,8 @@ impl TextBox {
                 .border_type(BorderType::Rounded)
                 .border_style(Style::default().fg(theme::current().color_inactive))
                 .title(title.as_ref().to_string())
-                .title_style(Style::default().fg(theme::current().color_inactive)),
+                .title_style(Style::default().fg(theme::current().color_inactive))
+                .padding(Padding::symmetric(1, 0)),
         );
 
         Self {
