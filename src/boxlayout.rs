@@ -4,7 +4,7 @@
 
 //! BoxLayout ...
 
-use crossterm::event::{KeyCode, KeyEventKind, KeyModifiers};
+use crossterm::event::{KeyCode, KeyEventKind};
 use ratatui::layout::{Flex, Layout, Rect};
 
 use crate::{
@@ -78,7 +78,6 @@ impl BoxLayout {
             return None;
         }
 
-        let old = self.selected;
         if self.selected == 0 {
             self.selected = self.children.len() - 1;
         } else {
@@ -124,14 +123,15 @@ impl Component for BoxLayout {
 
     fn update(&mut self, action: crate::Action) -> Option<crate::Action> {
         if let Action::Key(k) = action {
-            if k.code == KeyCode::Tab && k.kind == KeyEventKind::Press {
-                if k.modifiers.contains(KeyModifiers::SHIFT) {
-                    return self.traverse_tab_r();
-                } else {
-                    return self.traverse_tab();
-                }
+            if k.kind == KeyEventKind::Press {
+                match k.code {
+                    KeyCode::Tab => return self.traverse_tab(),
+                    KeyCode::BackTab => return self.traverse_tab_r(),
+                    _ => {}
+                };
             }
         }
+
         if let Some(child) = self.children.get_mut(self.selected) {
             child.update(action)
         } else {
