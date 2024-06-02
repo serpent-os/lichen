@@ -5,7 +5,7 @@
 //! TUI frontend for lichen
 
 use crossterm::event::KeyCode;
-use lichen::{pages::users::Users, Action, Component, Event, Screen};
+use lichen::{pages::users::Users, Action, Component, Event, Screen, State};
 use ratatui::layout::Rect;
 
 struct App {
@@ -16,12 +16,27 @@ struct App {
 
 impl Component for App {
     fn render(&self, frame: &mut ratatui::prelude::Frame, area: Rect) {
-        self.page.render(frame, area)
+        const PADDING: u16 = 4;
+        let clipped = Rect::new(
+            area.x + PADDING,
+            area.y + PADDING,
+            area.width - (PADDING * 2),
+            area.height - (PADDING * 2),
+        );
+        self.page.render(frame, clipped)
     }
 
     fn update(&mut self, action: Action) -> Option<Action> {
         self.page.update(action)
     }
+
+    fn state(&self) -> State {
+        State::NONE
+    }
+
+    fn push_state(&mut self, st: State) {}
+
+    fn pop_state(&mut self, st: State) {}
 }
 
 impl App {
@@ -38,7 +53,7 @@ impl App {
             Event::Mouse(m) => Some(Action::Mouse(m)),
             Event::Render => {
                 self.redraw = true;
-                None
+                Some(Action::Redraw)
             }
             _ => None,
         }

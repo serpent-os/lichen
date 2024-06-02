@@ -7,12 +7,10 @@
 use crossterm::event::{KeyCode, KeyEventKind, KeyModifiers};
 use ratatui::layout::{Constraint, Layout, Rect};
 
-use crate::{Action, Component};
-
-pub enum Orientation {
-    Horizontal,
-    Vertical,
-}
+use crate::{
+    component::{Orientation, State},
+    Action, Component,
+};
 
 pub struct BoxLayout {
     orientation: Orientation,
@@ -32,19 +30,17 @@ impl Default for BoxLayout {
 
 impl BoxLayout {
     pub fn new(children: Vec<Box<dyn Component>>) -> Self {
-        Self {
+        let mut s = Self {
             orientation: Orientation::Horizontal,
             children,
             selected: 0,
-        }
+        };
+        s.update_states();
+        s
     }
 
     pub fn push(&mut self, child: Box<dyn Component>) {
-        self.children.push(child)
-    }
-
-    pub fn with_children(self, children: Vec<Box<dyn Component>>) -> Self {
-        Self { children, ..self }
+        self.children.push(child);
     }
 
     // Update the orientation
@@ -60,11 +56,15 @@ impl BoxLayout {
             return None;
         }
 
+        let old = self.selected;
+
         if self.selected + 1 >= self.children.len() {
             self.selected = 0;
         } else {
             self.selected += 1;
         }
+
+        self.update_states();
         None
     }
 
@@ -72,12 +72,24 @@ impl BoxLayout {
         if self.children.is_empty() {
             return None;
         }
+
+        let old = self.selected;
         if self.selected == 0 {
             self.selected = self.children.len() - 1;
         } else {
             self.selected -= 1;
         }
+        self.update_states();
         None
+    }
+
+    fn update_states(&mut self) {
+        for (index, child) in self.children.iter_mut().enumerate() {
+            child.pop_state(State::ACTIVE);
+            if index == self.selected {
+                child.push_state(State::ACTIVE);
+            }
+        }
     }
 }
 
@@ -91,6 +103,7 @@ impl Component for BoxLayout {
                 Layout::vertical(self.children.iter().map(|_| Constraint::Length(3)))
             }
         }
+        .spacing(1)
         .split(area);
 
         for (index, child) in self.children.iter().enumerate() {
@@ -114,4 +127,12 @@ impl Component for BoxLayout {
             None
         }
     }
+
+    fn state(&self) -> State {
+        State::NONE
+    }
+
+    fn push_state(&mut self, st: crate::component::State) {}
+
+    fn pop_state(&mut self, st: crate::component::State) {}
 }

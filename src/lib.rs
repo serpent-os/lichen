@@ -9,7 +9,7 @@ pub use screen::Event;
 pub use screen::Screen;
 
 mod component;
-pub use component::{Action, Component};
+pub use component::{Action, Component, State};
 
 pub mod boxlayout;
 pub mod pages;
