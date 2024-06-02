@@ -53,6 +53,9 @@ pub enum Event {
 impl Screen {
     /// Create screen management and init the screen.
     pub fn new() -> Result<Self, io::Error> {
+        // Required colour output due to input selections etc
+        crossterm::style::force_color_output(true);
+
         execute!(
             stdout(),
             EnterAlternateScreen,
