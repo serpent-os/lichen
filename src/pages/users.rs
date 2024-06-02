@@ -5,10 +5,11 @@
 //! User management page
 //! NOTE: TOTAL hack right now!
 
-use ratatui::layout::Rect;
+use ratatui::layout::{Flex, Rect};
 
 use crate::{
     boxlayout::BoxLayout,
+    button::Button,
     component::{Orientation, State},
     textbox::TextBox,
     theme, Component,
@@ -53,12 +54,19 @@ impl Users {
             theme::current().icons.password
         ));
         confirm_password.set_hide_chars();
+        let hbox = BoxLayout::new(vec![
+            Box::new(Button::new("Cancel")),
+            Box::new(Button::new("Ok")),
+        ])
+        .flex(Flex::End);
         let vbox = BoxLayout::new(vec![
             Box::new(name),
             Box::new(password),
             Box::new(confirm_password),
+            Box::new(hbox),
         ])
-        .orientation(Orientation::Vertical);
+        .orientation(Orientation::Vertical)
+        .flex(Flex::Start);
         Self { vbox }
     }
 }

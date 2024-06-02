@@ -12,6 +12,7 @@ mod component;
 pub use component::{Action, Component, State};
 
 pub mod boxlayout;
+pub mod button;
 pub mod pages;
 pub mod textbox;
 pub mod theme;
