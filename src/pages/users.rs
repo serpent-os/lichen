@@ -5,14 +5,10 @@
 //! User management page
 //! NOTE: TOTAL hack right now!
 
-use ratatui::layout::{Flex, Rect};
+use ratatui::layout::{Direction, Flex, Rect};
 
 use crate::{
-    boxlayout::BoxLayout,
-    button::Button,
-    component::{Orientation, State},
-    textbox::TextBox,
-    theme, Component,
+    boxlayout::BoxLayout, button::Button, component::State, textbox::TextBox, theme, Component,
 };
 
 pub struct Users {
@@ -65,7 +61,7 @@ impl Users {
             Box::new(confirm_password),
             Box::new(hbox),
         ])
-        .orientation(Orientation::Vertical)
+        .direction(Direction::Vertical)
         .flex(Flex::Start);
         Self { vbox }
     }

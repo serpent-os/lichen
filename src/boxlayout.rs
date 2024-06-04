@@ -5,15 +5,12 @@
 //! BoxLayout ...
 
 use crossterm::event::{KeyCode, KeyEventKind};
-use ratatui::layout::{Flex, Layout, Rect};
+use ratatui::layout::{Direction, Flex, Layout, Rect};
 
-use crate::{
-    component::{Orientation, State},
-    Action, Component,
-};
+use crate::{component::State, Action, Component};
 
 pub struct BoxLayout {
-    orientation: Orientation,
+    direction: Direction,
     children: Vec<Box<dyn Component>>,
     selected: usize,
     flex: Flex,
@@ -22,7 +19,7 @@ pub struct BoxLayout {
 impl Default for BoxLayout {
     fn default() -> Self {
         Self {
-            orientation: Orientation::Horizontal,
+            direction: Direction::Horizontal,
             children: Vec::new(),
             selected: 0,
             flex: Flex::Legacy,
@@ -33,7 +30,7 @@ impl Default for BoxLayout {
 impl BoxLayout {
     pub fn new(children: Vec<Box<dyn Component>>) -> Self {
         let mut s = Self {
-            orientation: Orientation::Horizontal,
+            direction: Direction::Horizontal,
             children,
             selected: 0,
             flex: Flex::Legacy,
@@ -50,12 +47,9 @@ impl BoxLayout {
         self.children.push(child);
     }
 
-    // Update the orientation
-    pub fn orientation(self, orientation: Orientation) -> Self {
-        Self {
-            orientation,
-            ..self
-        }
+    // Update the direction
+    pub fn direction(self, direction: Direction) -> Self {
+        Self { direction, ..self }
     }
 
     fn traverse_tab(&mut self) -> Option<Action> {
@@ -99,19 +93,15 @@ impl BoxLayout {
 
 impl Component for BoxLayout {
     fn render(&self, frame: &mut ratatui::prelude::Frame, area: Rect) {
-        let layout = match self.orientation {
-            Orientation::Horizontal => Layout::horizontal(
-                self.children
-                    .iter()
-                    .map(|c| c.constraints(self.orientation)),
-            )
-            .flex(self.flex),
-            Orientation::Vertical => Layout::vertical(
-                self.children
-                    .iter()
-                    .map(|c| c.constraints(self.orientation)),
-            )
-            .flex(self.flex),
+        let layout = match self.direction {
+            Direction::Horizontal => {
+                Layout::horizontal(self.children.iter().map(|c| c.constraints(self.direction)))
+                    .flex(self.flex)
+            }
+            Direction::Vertical => {
+                Layout::vertical(self.children.iter().map(|c| c.constraints(self.direction)))
+                    .flex(self.flex)
+            }
         }
         .spacing(1)
         .split(area);

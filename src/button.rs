@@ -5,12 +5,12 @@
 //! Button ...
 
 use ratatui::{
-    layout::Constraint,
+    layout::{Constraint, Direction},
     text::Line,
     widgets::{Block, BorderType, Borders, Padding, Paragraph},
 };
 
-use crate::{component::Orientation, Component, State};
+use crate::{Component, State};
 
 pub struct Button {
     contents: String,
@@ -43,10 +43,10 @@ impl Component for Button {
 
     fn pop_state(&mut self, _: State) {}
 
-    fn constraints(&self, orient: Orientation) -> Constraint {
-        match orient {
-            Orientation::Horizontal => Constraint::Max((self.contents.chars().count() + 6) as u16),
-            Orientation::Vertical => Constraint::Max(3),
+    fn constraints(&self, direction: Direction) -> Constraint {
+        match direction {
+            Direction::Horizontal => Constraint::Max((self.contents.chars().count() + 6) as u16),
+            Direction::Vertical => Constraint::Max(3),
         }
     }
 }

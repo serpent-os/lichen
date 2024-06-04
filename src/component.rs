@@ -7,7 +7,7 @@
 use bitflags::bitflags;
 use crossterm::event::{KeyEvent, MouseEvent};
 use ratatui::{
-    layout::{Constraint, Rect},
+    layout::{Constraint, Direction, Rect},
     Frame,
 };
 
@@ -18,12 +18,6 @@ pub enum Action {
     Quit,
     Redraw,
     Noop,
-}
-
-#[derive(Debug, Clone, Copy)]
-pub enum Orientation {
-    Horizontal,
-    Vertical,
 }
 
 bitflags! {
@@ -44,10 +38,10 @@ pub trait Component {
     fn push_state(&mut self, st: State);
     fn pop_state(&mut self, st: State);
 
-    fn constraints(&self, orient: Orientation) -> Constraint {
-        match orient {
-            Orientation::Horizontal => Constraint::Max(10),
-            Orientation::Vertical => Constraint::Max(3),
+    fn constraints(&self, direction: Direction) -> Constraint {
+        match direction {
+            Direction::Horizontal => Constraint::Max(10),
+            Direction::Vertical => Constraint::Max(3),
         }
     }
 }
