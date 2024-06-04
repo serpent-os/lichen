@@ -15,12 +15,12 @@ use tui_textarea::TextArea;
 
 use crate::{component::State, theme, Action, Component};
 
-pub struct TextBox {
-    area: RefCell<TextArea<'static>>,
+pub struct TextBox<'a> {
+    area: RefCell<TextArea<'a>>,
     state: RefCell<State>,
 }
 
-impl TextBox {
+impl<'a> TextBox<'a> {
     pub fn new(title: impl AsRef<str>) -> Self {
         let mut text = TextArea::default();
         text.set_cursor_line_style(Style::default());
@@ -92,7 +92,7 @@ impl TextBox {
     }
 }
 
-impl Component for TextBox {
+impl<'a> Component for TextBox<'a> {
     /// Render to bounds
     fn render(&self, frame: &mut ratatui::prelude::Frame, area: Rect) {
         frame.render_widget(self.area.borrow().widget(), area)
