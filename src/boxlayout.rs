@@ -4,7 +4,11 @@
 
 //! BoxLayout ...
 
-use std::{cell::RefCell, rc::Rc};
+use std::{
+    borrow::Borrow,
+    cell::{Ref, RefCell, RefMut},
+    rc::Rc,
+};
 
 use crossterm::event::{KeyCode, KeyEventKind};
 use ratatui::layout::{Direction, Flex, Layout, Rect};
@@ -31,13 +35,15 @@ impl Default for BoxLayout {
 
 impl BoxLayout {
     pub fn new(children: Vec<Rc<dyn Component>>) -> Self {
+        let children = RefCell::new(children);
+        let selected = RefCell::new(0);
         let s = Self {
             direction: Direction::Horizontal,
-            children: RefCell::new(children),
-            selected: RefCell::new(0),
+            children,
+            selected,
             flex: Flex::Legacy,
         };
-        s.update_states();
+        s.update_states(s.children.borrow(), s.selected.borrow_mut());
         s
     }
 
@@ -55,7 +61,7 @@ impl BoxLayout {
     }
 
     fn traverse_tab(&self) -> Option<Action> {
-        let children = self.children.borrow_mut();
+        let children = self.children.borrow();
         let mut selected = self.selected.borrow_mut();
         if children.is_empty() {
             return None;
@@ -67,10 +73,7 @@ impl BoxLayout {
             *selected += 1;
         }
 
-        drop(children);
-        drop(selected);
-
-        self.update_states();
+        self.update_states(children, selected);
         None
     }
 
@@ -87,15 +90,16 @@ impl BoxLayout {
             *selected -= 1;
         }
 
-        drop(children);
-        drop(selected);
-        self.update_states();
+        self.update_states(children, selected);
         None
     }
 
-    fn update_states(&self) {
-        let selected = self.selected.borrow();
-        for (index, child) in self.children.borrow().iter().enumerate() {
+    fn update_states(
+        &self,
+        children: Ref<'_, Vec<Rc<dyn Component>>>,
+        selected: RefMut<'_, usize>,
+    ) {
+        for (index, child) in children.borrow().iter().enumerate() {
             child.pop_state(State::ACTIVE);
             if index == *selected {
                 child.push_state(State::ACTIVE);
