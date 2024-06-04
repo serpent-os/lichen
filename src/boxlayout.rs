@@ -2,7 +2,8 @@
 //
 // SPDX-License-Identifier: MPL-2.0
 
-//! BoxLayout ...
+//! BoxLayout provides a managed wrapper around the ratatui Layout types
+//! to allow nested tree of "objects" (widgets)
 
 use std::{
     borrow::Borrow,
@@ -15,6 +16,7 @@ use ratatui::layout::{Direction, Flex, Layout, Rect};
 
 use crate::{component::State, Action, Component};
 
+/// BoxLayout type
 pub struct BoxLayout {
     direction: Direction,
     children: RefCell<Vec<Rc<dyn Component>>>,
@@ -22,18 +24,12 @@ pub struct BoxLayout {
     flex: Flex,
 }
 
-impl Default for BoxLayout {
-    fn default() -> Self {
-        Self {
-            direction: Direction::Horizontal,
-            children: RefCell::new(Vec::new()),
-            selected: RefCell::new(0),
-            flex: Flex::Legacy,
-        }
-    }
-}
-
 impl BoxLayout {
+    /// Create a new BoxLayout
+    ///
+    /// # Arguments
+    ///
+    ///  - `children` - Child widgets
     pub fn new(children: Vec<Rc<dyn Component>>) -> Self {
         let children = RefCell::new(children);
         let selected = RefCell::new(0);
@@ -47,12 +43,9 @@ impl BoxLayout {
         s
     }
 
+    /// Set the flex property
     pub fn flex(self, flex: Flex) -> Self {
         Self { flex, ..self }
-    }
-
-    pub fn push(&self, child: Rc<dyn Component>) {
-        self.children.borrow_mut().push(child);
     }
 
     // Update the direction
@@ -60,6 +53,7 @@ impl BoxLayout {
         Self { direction, ..self }
     }
 
+    /// Handle tab traversal (focus policy)
     fn traverse_tab(&self) -> Option<Action> {
         let children = self.children.borrow();
         let mut selected = self.selected.borrow_mut();
@@ -77,6 +71,7 @@ impl BoxLayout {
         None
     }
 
+    /// Handle shift+tab (reverse tab traversal)
     fn traverse_tab_r(&self) -> Option<Action> {
         let children = self.children.borrow();
         let mut selected = self.selected.borrow_mut();
@@ -94,6 +89,7 @@ impl BoxLayout {
         None
     }
 
+    /// Update all states within this container due to selections
     fn update_states(
         &self,
         children: Ref<'_, Vec<Rc<dyn Component>>>,
@@ -109,6 +105,7 @@ impl BoxLayout {
 }
 
 impl Component for BoxLayout {
+    /// Render only children, recursively, via root level layout
     fn render(&self, frame: &mut ratatui::prelude::Frame, area: Rect) {
         let children = self.children.borrow();
         let layout = match self.direction {
@@ -129,6 +126,7 @@ impl Component for BoxLayout {
         }
     }
 
+    /// Handle some keyboard shortcuts, or pass to children
     fn update(&self, action: crate::Action) -> Option<crate::Action> {
         if let Action::Key(k) = action {
             if k.kind == KeyEventKind::Press {
@@ -150,11 +148,14 @@ impl Component for BoxLayout {
         }
     }
 
+    /// No state needed
     fn state(&self) -> State {
         State::NONE
     }
 
-    fn push_state(&self, st: crate::component::State) {}
+    /// Ditto
+    fn push_state(&self, _: crate::component::State) {}
 
-    fn pop_state(&self, st: crate::component::State) {}
+    /// Ditto
+    fn pop_state(&self, _: crate::component::State) {}
 }

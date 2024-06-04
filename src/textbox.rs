@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MPL-2.0
 
-//! TextBox ...
+//! TextBox encapsulates tui-textarea with lichen styling
 
 use std::cell::RefCell;
 
@@ -21,6 +21,7 @@ pub struct TextBox<'a> {
 }
 
 impl<'a> TextBox<'a> {
+    /// Return a new TextBox with the given title
     pub fn new(title: impl AsRef<str>) -> Self {
         let mut text = TextArea::default();
         text.set_cursor_line_style(Style::default());

@@ -11,6 +11,7 @@ use ratatui::{
     Frame,
 };
 
+/// TODO: Rework these APIs!
 #[derive(Debug, Clone, Copy)]
 pub enum Action {
     Key(KeyEvent),
@@ -30,7 +31,15 @@ bitflags! {
 }
 
 pub trait Component {
+    /// Draw using the final ratatui Frame within the bounds of area
+    ///
+    /// # Arguments:
+    ///
+    /// - `frame` - Ratatui frame target
+    /// - `area` - Bounds of our drawing
     fn render(&self, frame: &mut Frame, area: Rect);
+
+    /// Pass an update down the chain of the component
     fn update(&self, action: Action) -> Option<Action>;
 
     // State management funcs
@@ -38,6 +47,7 @@ pub trait Component {
     fn push_state(&self, st: State);
     fn pop_state(&self, st: State);
 
+    /// Return the optimal constraints of the widget
     fn constraints(&self, direction: Direction) -> Constraint {
         match direction {
             Direction::Horizontal => Constraint::Max(10),

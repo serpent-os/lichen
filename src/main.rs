@@ -34,9 +34,9 @@ impl Component for App {
         State::NONE
     }
 
-    fn push_state(&self, st: State) {}
+    fn push_state(&self, _: State) {}
 
-    fn pop_state(&self, st: State) {}
+    fn pop_state(&self, _: State) {}
 }
 
 impl App {

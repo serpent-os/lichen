@@ -14,6 +14,7 @@ use ratatui::style::Color;
 /// actually do support full features..
 static SILLY_BUGGERS: [&str; 1] = ["alacritty"];
 
+/// Map well known icon names for each environment
 pub struct Icons {
     // Represent a username
     pub user: &'static str,
@@ -22,6 +23,7 @@ pub struct Icons {
     pub password: &'static str,
 }
 
+/// Provides a simple means to override the palette per environment
 pub struct Theme {
     /// Text colour
     pub color_text: Color,

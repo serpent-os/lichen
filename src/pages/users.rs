@@ -13,6 +13,7 @@ use crate::{
     boxlayout::BoxLayout, button::Button, component::State, textbox::TextBox, theme, Component,
 };
 
+/// the Users type
 pub struct Users {
     vbox: RefCell<BoxLayout>,
 }
@@ -30,9 +31,9 @@ impl Component for Users {
         State::NONE
     }
 
-    fn push_state(&self, st: crate::component::State) {}
+    fn push_state(&self, _: crate::component::State) {}
 
-    fn pop_state(&self, st: crate::component::State) {}
+    fn pop_state(&self, _: crate::component::State) {}
 }
 
 impl Default for Users {
@@ -42,6 +43,7 @@ impl Default for Users {
 }
 
 impl Users {
+    /// Return a new Users page
     pub fn new() -> Self {
         let name = TextBox::new(format!("{}Username ", theme::current().icons.user));
         let password = TextBox::new(format!("{}Password ", theme::current().icons.password));
