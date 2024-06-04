@@ -31,7 +31,7 @@ impl Component for Button {
         frame.render_widget(draw, area)
     }
 
-    fn update(&mut self, action: crate::Action) -> Option<crate::Action> {
+    fn update(&self, action: crate::Action) -> Option<crate::Action> {
         None
     }
 
@@ -39,9 +39,9 @@ impl Component for Button {
         State::NONE
     }
 
-    fn push_state(&mut self, _: State) {}
+    fn push_state(&self, _: State) {}
 
-    fn pop_state(&mut self, _: State) {}
+    fn pop_state(&self, _: State) {}
 
     fn constraints(&self, direction: Direction) -> Constraint {
         match direction {

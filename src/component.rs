@@ -31,12 +31,12 @@ bitflags! {
 
 pub trait Component {
     fn render(&self, frame: &mut Frame, area: Rect);
-    fn update(&mut self, action: Action) -> Option<Action>;
+    fn update(&self, action: Action) -> Option<Action>;
 
     // State management funcs
     fn state(&self) -> State;
-    fn push_state(&mut self, st: State);
-    fn pop_state(&mut self, st: State);
+    fn push_state(&self, st: State);
+    fn pop_state(&self, st: State);
 
     fn constraints(&self, direction: Direction) -> Constraint {
         match direction {

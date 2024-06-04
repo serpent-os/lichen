@@ -5,6 +5,8 @@
 //! User management page
 //! NOTE: TOTAL hack right now!
 
+use std::{cell::RefCell, rc::Rc};
+
 use ratatui::layout::{Direction, Flex, Rect};
 
 use crate::{
@@ -12,25 +14,25 @@ use crate::{
 };
 
 pub struct Users {
-    vbox: BoxLayout,
+    vbox: RefCell<BoxLayout>,
 }
 
 impl Component for Users {
     fn render(&self, frame: &mut ratatui::prelude::Frame, area: Rect) {
-        self.vbox.render(frame, area);
+        self.vbox.borrow().render(frame, area);
     }
 
-    fn update(&mut self, action: crate::Action) -> Option<crate::Action> {
-        self.vbox.update(action)
+    fn update(&self, action: crate::Action) -> Option<crate::Action> {
+        self.vbox.borrow().update(action)
     }
 
     fn state(&self) -> State {
         State::NONE
     }
 
-    fn push_state(&mut self, st: crate::component::State) {}
+    fn push_state(&self, st: crate::component::State) {}
 
-    fn pop_state(&mut self, st: crate::component::State) {}
+    fn pop_state(&self, st: crate::component::State) {}
 }
 
 impl Default for Users {
@@ -42,27 +44,29 @@ impl Default for Users {
 impl Users {
     pub fn new() -> Self {
         let name = TextBox::new(format!("{}Username ", theme::current().icons.user));
-        let mut password = TextBox::new(format!("{}Password ", theme::current().icons.password));
+        let password = TextBox::new(format!("{}Password ", theme::current().icons.password));
         password.set_hide_chars();
 
-        let mut confirm_password = TextBox::new(format!(
+        let confirm_password = TextBox::new(format!(
             "{}Confirm password ",
             theme::current().icons.password
         ));
         confirm_password.set_hide_chars();
         let hbox = BoxLayout::new(vec![
-            Box::new(Button::new("Cancel")),
-            Box::new(Button::new("Ok")),
+            Rc::new(Button::new("Cancel")),
+            Rc::new(Button::new("Ok")),
         ])
         .flex(Flex::End);
         let vbox = BoxLayout::new(vec![
-            Box::new(name),
-            Box::new(password),
-            Box::new(confirm_password),
-            Box::new(hbox),
+            Rc::new(name),
+            Rc::new(password),
+            Rc::new(confirm_password),
+            Rc::new(hbox),
         ])
         .direction(Direction::Vertical)
         .flex(Flex::Start);
-        Self { vbox }
+        Self {
+            vbox: RefCell::new(vbox),
+        }
     }
 }

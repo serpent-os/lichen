@@ -4,6 +4,8 @@
 
 //! BoxLayout ...
 
+use std::{cell::RefCell, rc::Rc};
+
 use crossterm::event::{KeyCode, KeyEventKind};
 use ratatui::layout::{Direction, Flex, Layout, Rect};
 
@@ -11,8 +13,8 @@ use crate::{component::State, Action, Component};
 
 pub struct BoxLayout {
     direction: Direction,
-    children: Vec<Box<dyn Component>>,
-    selected: usize,
+    children: RefCell<Vec<Rc<dyn Component>>>,
+    selected: RefCell<usize>,
     flex: Flex,
 }
 
@@ -20,19 +22,19 @@ impl Default for BoxLayout {
     fn default() -> Self {
         Self {
             direction: Direction::Horizontal,
-            children: Vec::new(),
-            selected: 0,
+            children: RefCell::new(Vec::new()),
+            selected: RefCell::new(0),
             flex: Flex::Legacy,
         }
     }
 }
 
 impl BoxLayout {
-    pub fn new(children: Vec<Box<dyn Component>>) -> Self {
-        let mut s = Self {
+    pub fn new(children: Vec<Rc<dyn Component>>) -> Self {
+        let s = Self {
             direction: Direction::Horizontal,
-            children,
-            selected: 0,
+            children: RefCell::new(children),
+            selected: RefCell::new(0),
             flex: Flex::Legacy,
         };
         s.update_states();
@@ -43,8 +45,8 @@ impl BoxLayout {
         Self { flex, ..self }
     }
 
-    pub fn push(&mut self, child: Box<dyn Component>) {
-        self.children.push(child);
+    pub fn push(&self, child: Rc<dyn Component>) {
+        self.children.borrow_mut().push(child);
     }
 
     // Update the direction
@@ -52,39 +54,50 @@ impl BoxLayout {
         Self { direction, ..self }
     }
 
-    fn traverse_tab(&mut self) -> Option<Action> {
-        if self.children.is_empty() {
+    fn traverse_tab(&self) -> Option<Action> {
+        let children = self.children.borrow_mut();
+        let mut selected = self.selected.borrow_mut();
+        if children.is_empty() {
             return None;
         }
 
-        if self.selected + 1 >= self.children.len() {
-            self.selected = 0;
+        if *selected + 1 >= children.len() {
+            *selected = 0;
         } else {
-            self.selected += 1;
+            *selected += 1;
         }
+
+        drop(children);
+        drop(selected);
 
         self.update_states();
         None
     }
 
-    fn traverse_tab_r(&mut self) -> Option<Action> {
-        if self.children.is_empty() {
+    fn traverse_tab_r(&self) -> Option<Action> {
+        let children = self.children.borrow();
+        let mut selected = self.selected.borrow_mut();
+        if children.is_empty() {
             return None;
         }
 
-        if self.selected == 0 {
-            self.selected = self.children.len() - 1;
+        if *selected == 0 {
+            *selected = children.len() - 1;
         } else {
-            self.selected -= 1;
+            *selected -= 1;
         }
+
+        drop(children);
+        drop(selected);
         self.update_states();
         None
     }
 
-    fn update_states(&mut self) {
-        for (index, child) in self.children.iter_mut().enumerate() {
+    fn update_states(&self) {
+        let selected = self.selected.borrow();
+        for (index, child) in self.children.borrow().iter().enumerate() {
             child.pop_state(State::ACTIVE);
-            if index == self.selected {
+            if index == *selected {
                 child.push_state(State::ACTIVE);
             }
         }
@@ -93,25 +106,26 @@ impl BoxLayout {
 
 impl Component for BoxLayout {
     fn render(&self, frame: &mut ratatui::prelude::Frame, area: Rect) {
+        let children = self.children.borrow();
         let layout = match self.direction {
             Direction::Horizontal => {
-                Layout::horizontal(self.children.iter().map(|c| c.constraints(self.direction)))
+                Layout::horizontal(children.iter().map(|c| c.constraints(self.direction)))
                     .flex(self.flex)
             }
             Direction::Vertical => {
-                Layout::vertical(self.children.iter().map(|c| c.constraints(self.direction)))
+                Layout::vertical(children.iter().map(|c| c.constraints(self.direction)))
                     .flex(self.flex)
             }
         }
         .spacing(1)
         .split(area);
 
-        for (index, child) in self.children.iter().enumerate() {
+        for (index, child) in children.iter().enumerate() {
             child.render(frame, layout[index]);
         }
     }
 
-    fn update(&mut self, action: crate::Action) -> Option<crate::Action> {
+    fn update(&self, action: crate::Action) -> Option<crate::Action> {
         if let Action::Key(k) = action {
             if k.kind == KeyEventKind::Press {
                 match k.code {
@@ -122,7 +136,10 @@ impl Component for BoxLayout {
             }
         }
 
-        if let Some(child) = self.children.get_mut(self.selected) {
+        let mut children = self.children.borrow_mut();
+        let selected = *self.selected.borrow();
+
+        if let Some(child) = children.get_mut(selected) {
             child.update(action)
         } else {
             None
@@ -133,7 +150,7 @@ impl Component for BoxLayout {
         State::NONE
     }
 
-    fn push_state(&mut self, st: crate::component::State) {}
+    fn push_state(&self, st: crate::component::State) {}
 
-    fn pop_state(&mut self, st: crate::component::State) {}
+    fn pop_state(&self, st: crate::component::State) {}
 }

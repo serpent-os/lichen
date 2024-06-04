@@ -39,7 +39,7 @@ impl Component for Welcome {
         frame.render_widget(intro, area)
     }
 
-    fn update(&mut self, _: crate::Action) -> Option<crate::Action> {
+    fn update(&self, _: crate::Action) -> Option<crate::Action> {
         None
     }
 
@@ -47,7 +47,7 @@ impl Component for Welcome {
         crate::State::NONE
     }
 
-    fn push_state(&mut self, _: crate::State) {}
+    fn push_state(&self, _: crate::State) {}
 
-    fn pop_state(&mut self, _: crate::State) {}
+    fn pop_state(&self, _: crate::State) {}
 }

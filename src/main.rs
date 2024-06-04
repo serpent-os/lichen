@@ -26,7 +26,7 @@ impl Component for App {
         self.page.render(frame, clipped)
     }
 
-    fn update(&mut self, action: Action) -> Option<Action> {
+    fn update(&self, action: Action) -> Option<Action> {
         self.page.update(action)
     }
 
@@ -34,9 +34,9 @@ impl Component for App {
         State::NONE
     }
 
-    fn push_state(&mut self, st: State) {}
+    fn push_state(&self, st: State) {}
 
-    fn pop_state(&mut self, st: State) {}
+    fn pop_state(&self, st: State) {}
 }
 
 impl App {
