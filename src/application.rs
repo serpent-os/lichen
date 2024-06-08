@@ -1,7 +1,7 @@
 use std::mem::ManuallyDrop;
 
 use color_eyre::eyre;
-use futures::{future::BoxFuture, stream::BoxStream, StreamExt};
+use futures::{future::BoxFuture, stream::BoxStream, Future, FutureExt, Stream, StreamExt};
 use tokio::sync::mpsc;
 
 use crate::{Component, Screen, Shell};
@@ -10,6 +10,24 @@ pub enum Command<Message> {
     Future(BoxFuture<'static, Message>),
     Stream(BoxStream<'static, Message>),
     Quit,
+}
+
+impl<Message> Command<Message> {
+    /// Perform an async task
+    pub fn perform<T: Send>(
+        task: impl Future<Output = T> + Send + 'static,
+        f: impl Fn(T) -> Message + Send + 'static,
+    ) -> Self {
+        Self::Future(task.map(f).boxed())
+    }
+
+    /// Run an async stream
+    pub fn run<T: Send>(
+        stream: impl Stream<Item = T> + Send + 'static,
+        f: impl Fn(T) -> Message + Send + 'static,
+    ) -> Self {
+        Self::Stream(stream.map(f).boxed())
+    }
 }
 
 pub trait Application {
