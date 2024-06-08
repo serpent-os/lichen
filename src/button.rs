@@ -10,7 +10,7 @@ use ratatui::{
     widgets::{Block, BorderType, Borders, Padding, Paragraph},
 };
 
-use crate::{Component, State};
+use crate::{State, Widget};
 
 /// The Button type
 pub struct Button {
@@ -18,7 +18,7 @@ pub struct Button {
     contents: String,
 }
 
-impl Component for Button {
+impl Widget for Button {
     /// Draw the button as a block'd label
     fn render(&self, frame: &mut ratatui::prelude::Frame, area: ratatui::prelude::Rect) {
         let line = Line::from(self.contents.as_str());

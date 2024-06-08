@@ -14,12 +14,12 @@ use std::{
 use crossterm::event::{KeyCode, KeyEventKind};
 use ratatui::layout::{Direction, Flex, Layout, Rect};
 
-use crate::{component::State, Action, Component};
+use crate::{widget::State, Action, Widget};
 
 /// BoxLayout type
 pub struct BoxLayout {
     direction: Direction,
-    children: RefCell<Vec<Rc<dyn Component>>>,
+    children: RefCell<Vec<Rc<dyn Widget>>>,
     selected: RefCell<usize>,
     flex: Flex,
 }
@@ -30,7 +30,7 @@ impl BoxLayout {
     /// # Arguments
     ///
     ///  - `children` - Child widgets
-    pub fn new(children: Vec<Rc<dyn Component>>) -> Self {
+    pub fn new(children: Vec<Rc<dyn Widget>>) -> Self {
         let children = RefCell::new(children);
         let selected = RefCell::new(0);
         let s = Self {
@@ -90,11 +90,7 @@ impl BoxLayout {
     }
 
     /// Update all states within this container due to selections
-    fn update_states(
-        &self,
-        children: Ref<'_, Vec<Rc<dyn Component>>>,
-        selected: RefMut<'_, usize>,
-    ) {
+    fn update_states(&self, children: Ref<'_, Vec<Rc<dyn Widget>>>, selected: RefMut<'_, usize>) {
         for (index, child) in children.borrow().iter().enumerate() {
             child.pop_state(State::ACTIVE);
             if index == *selected {
@@ -104,7 +100,7 @@ impl BoxLayout {
     }
 }
 
-impl Component for BoxLayout {
+impl Widget for BoxLayout {
     /// Render only children, recursively, via root level layout
     fn render(&self, frame: &mut ratatui::prelude::Frame, area: Rect) {
         let children = self.children.borrow();
@@ -154,8 +150,8 @@ impl Component for BoxLayout {
     }
 
     /// Ditto
-    fn push_state(&self, _: crate::component::State) {}
+    fn push_state(&self, _: crate::widget::State) {}
 
     /// Ditto
-    fn pop_state(&self, _: crate::component::State) {}
+    fn pop_state(&self, _: crate::widget::State) {}
 }

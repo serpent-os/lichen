@@ -5,7 +5,7 @@
 //! TUI frontend for lichen
 
 use crossterm::event::KeyCode;
-use lichen::{pages::users::Users, Action, Component, Event, Screen, State};
+use lichen::{pages::users::Users, Action, Event, Screen, State, Widget};
 use ratatui::layout::Rect;
 
 struct App {
@@ -14,7 +14,7 @@ struct App {
     page: Users,
 }
 
-impl Component for App {
+impl Widget for App {
     fn render(&self, frame: &mut ratatui::prelude::Frame, area: Rect) {
         const PADDING: u16 = 4;
         let clipped = Rect::new(

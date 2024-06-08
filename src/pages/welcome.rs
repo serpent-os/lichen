@@ -10,7 +10,7 @@ use ratatui::{
     widgets::{self, Wrap},
 };
 
-use crate::Component;
+use crate::Widget;
 
 pub struct Welcome {}
 
@@ -26,7 +26,7 @@ impl Welcome {
     }
 }
 
-impl Component for Welcome {
+impl Widget for Welcome {
     fn render(&self, frame: &mut ratatui::prelude::Frame, area: ratatui::prelude::Rect) {
         let intro = widgets::Paragraph::new(vec![
             Line::from("Are you ready to install Serpent OS?").style(Style::default().bold()).alignment(ratatui::layout::Alignment::Center),

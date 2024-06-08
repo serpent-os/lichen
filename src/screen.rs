@@ -14,7 +14,7 @@ use std::{
 
 use crossterm::{
     cursor,
-    event::{DisableMouseCapture, EnableMouseCapture, KeyEvent, MouseEvent},
+    event::{DisableMouseCapture, EnableMouseCapture},
     execute,
     terminal::{
         disable_raw_mode, enable_raw_mode, is_raw_mode_enabled, EnterAlternateScreen,
@@ -24,12 +24,13 @@ use crossterm::{
 
 use futures::{FutureExt, StreamExt};
 use ratatui::{backend::CrosstermBackend, Terminal};
-use serde::{Deserialize, Serialize};
 use tokio::{
     sync::mpsc::{unbounded_channel, UnboundedReceiver, UnboundedSender},
     task::JoinHandle,
 };
 use tokio_util::sync::CancellationToken;
+
+use crate::Event;
 
 pub struct Screen {
     terminal: Terminal<CrosstermBackend<io::Stdout>>,
@@ -39,12 +40,6 @@ pub struct Screen {
     events_out: UnboundedSender<Event>,
     task: JoinHandle<()>,
     cancel: CancellationToken,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub enum Event {
-    Key(KeyEvent),
-    Mouse(MouseEvent),
 }
 
 impl Screen {
@@ -102,13 +97,12 @@ impl Screen {
 
         self.task = tokio::spawn(async move {
             let mut reader = crossterm::event::EventStream::new();
-            let mut renders = tokio::time::interval(Duration::from_secs_f64(1.0 / 30.0));
-            let mut ticker = tokio::time::interval(Duration::from_secs_f64(1.0 / 4.0));
-            events_out.send(Event::Init).unwrap();
+            // let mut renders = tokio::time::interval(Duration::from_secs_f64(1.0 / 30.0));
+            // let mut ticker = tokio::time::interval(Duration::from_secs_f64(1.0 / 4.0));
 
             loop {
-                let render = renders.tick();
-                let input = ticker.tick();
+                // let render = renders.tick();
+                // let input = ticker.tick();
                 let cterm = reader.next().fuse();
 
                 tokio::select! {
@@ -135,12 +129,12 @@ impl Screen {
                     _ = cancel.cancelled() => {
                         break;
                     }
-                    _ = input => {
-                        events_out.send(Event::Tick).unwrap();
-                    }
-                    _ = render => {
-                        events_out.send(Event::Render).unwrap();
-                    }
+                    // _ = input => {
+                    //     events_out.send(Event::Tick).unwrap();
+                    // }
+                    // _ = render => {
+                    //     events_out.send(Event::Render).unwrap();
+                    // }
                 }
             }
         });
@@ -149,6 +143,11 @@ impl Screen {
     /// Yield the next possible event
     pub async fn next_event(&mut self) -> Option<Event> {
         self.events_in.recv().await
+    }
+
+    /// Yield the next possible event, returning immediately if none are available
+    pub fn try_next_event(&mut self) -> Option<Event> {
+        self.events_in.try_recv().ok()
     }
 }
 

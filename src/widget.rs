@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MPL-2.0
 
-//! Component APIs
+//! Widget APIs
 
 use bitflags::bitflags;
 use ratatui::{
@@ -10,7 +10,7 @@ use ratatui::{
     Frame,
 };
 
-use crate::{Event, Shell};
+use crate::{event, Event, Shell};
 
 bitflags! {
     #[derive(Debug, Clone, Copy)]
@@ -21,8 +21,10 @@ bitflags! {
     }
 }
 
-pub trait Component {
-    type Message;
+pub trait Widget<Message> {
+    /// Pass an update down the chain of the widget
+    fn update(&mut self, event: Event, shell: &mut Shell<Message>) -> event::Status;
+
     /// Draw using the final ratatui Frame within the bounds of area
     ///
     /// # Arguments:
@@ -30,9 +32,6 @@ pub trait Component {
     /// - `frame` - Ratatui frame target
     /// - `area` - Bounds of our drawing
     fn render(&self, frame: &mut Frame, area: Rect);
-
-    /// Pass an update down the chain of the component
-    fn update(&self, event: Event, shell: &mut Shell<Self::Message>);
 
     // State management funcs
     fn state(&self) -> State;

@@ -13,7 +13,7 @@ use ratatui::{
 };
 use tui_textarea::TextArea;
 
-use crate::{component::State, theme, Action, Component};
+use crate::{theme, widget::State, Action, Widget};
 
 pub struct TextBox<'a> {
     area: RefCell<TextArea<'a>>,
@@ -93,7 +93,7 @@ impl<'a> TextBox<'a> {
     }
 }
 
-impl<'a> Component for TextBox<'a> {
+impl<'a> Widget for TextBox<'a> {
     /// Render to bounds
     fn render(&self, frame: &mut ratatui::prelude::Frame, area: Rect) {
         frame.render_widget(self.area.borrow().widget(), area)
@@ -116,14 +116,14 @@ impl<'a> Component for TextBox<'a> {
     }
 
     /// Push a new state to the set
-    fn push_state(&self, st: crate::component::State) {
+    fn push_state(&self, st: crate::widget::State) {
         self.state.borrow_mut().insert(st);
         self.block_from_state();
         self.style_from_state();
     }
 
     /// Pop a state from the set
-    fn pop_state(&self, st: crate::component::State) {
+    fn pop_state(&self, st: crate::widget::State) {
         self.state.borrow_mut().remove(st);
         self.block_from_state();
         self.style_from_state();

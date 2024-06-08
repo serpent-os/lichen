@@ -9,16 +9,14 @@ use std::{cell::RefCell, rc::Rc};
 
 use ratatui::layout::{Direction, Flex, Rect};
 
-use crate::{
-    boxlayout::BoxLayout, button::Button, component::State, textbox::TextBox, theme, Component,
-};
+use crate::{boxlayout::BoxLayout, button::Button, textbox::TextBox, theme, widget::State, Widget};
 
 /// the Users type
 pub struct Users {
     vbox: RefCell<BoxLayout>,
 }
 
-impl Component for Users {
+impl Widget for Users {
     fn render(&self, frame: &mut ratatui::prelude::Frame, area: Rect) {
         self.vbox.borrow().render(frame, area);
     }
@@ -31,9 +29,9 @@ impl Component for Users {
         State::NONE
     }
 
-    fn push_state(&self, _: crate::component::State) {}
+    fn push_state(&self, _: crate::widget::State) {}
 
-    fn pop_state(&self, _: crate::component::State) {}
+    fn pop_state(&self, _: crate::widget::State) {}
 }
 
 impl Default for Users {

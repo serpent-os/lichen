@@ -4,7 +4,7 @@ use color_eyre::eyre;
 use futures::{future::BoxFuture, stream::BoxStream, Future, FutureExt, Stream, StreamExt};
 use tokio::sync::mpsc;
 
-use crate::{Component, Screen, Shell};
+use crate::{Element, Screen, Shell};
 
 pub enum Command<Message> {
     Future(BoxFuture<'static, Message>),
@@ -34,9 +34,9 @@ pub trait Application {
     type Message: Send + 'static;
 
     fn update(&mut self, message: Self::Message) -> Command<Self::Message>;
-    // TODO: Encapsulate Box<Component> in some type so
+    // TODO: Encapsulate Box<Widget> in some type so
     // we don't have to type it
-    fn view<'a>(&'a self) -> Box<dyn Component<Message = Self::Message> + 'a>;
+    fn view<'a>(&'a self) -> Element<'a, Self::Message>;
 }
 
 pub async fn run(mut app: impl Application) -> eyre::Result<()> {
@@ -52,10 +52,11 @@ pub async fn run(mut app: impl Application) -> eyre::Result<()> {
     loop {
         let mut shell = Shell::default();
 
+        // Block until an event or command message is received
         tokio::select! {
             event = screen.next_event() => {
                 if let Some(event) = event {
-                    root.update(event, &mut shell);
+                    root.update(event.clone(), &mut shell);
                 }
             },
             message = command_receiver.recv() => {
@@ -63,6 +64,14 @@ pub async fn run(mut app: impl Application) -> eyre::Result<()> {
                     shell.emit(message);
                 }
             }
+        }
+
+        // Exhaust all immediately available events & command messages
+        while let Some(event) = screen.try_next_event() {
+            root.update(event.clone(), &mut shell);
+        }
+        while let Ok(message) = command_receiver.try_recv() {
+            shell.emit(message);
         }
 
         if !shell.messages.is_empty() {
