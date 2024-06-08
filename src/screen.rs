@@ -43,11 +43,8 @@ pub struct Screen {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum Event {
-    Init,
     Key(KeyEvent),
     Mouse(MouseEvent),
-    Render,
-    Tick, // update from input etc
 }
 
 impl Screen {

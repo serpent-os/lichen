@@ -5,21 +5,12 @@
 //! Component APIs
 
 use bitflags::bitflags;
-use crossterm::event::{KeyEvent, MouseEvent};
 use ratatui::{
     layout::{Constraint, Direction, Rect},
     Frame,
 };
 
-/// TODO: Rework these APIs!
-#[derive(Debug, Clone, Copy)]
-pub enum Action {
-    Key(KeyEvent),
-    Mouse(MouseEvent),
-    Quit,
-    Redraw,
-    Noop,
-}
+use crate::{Event, Shell};
 
 bitflags! {
     #[derive(Debug, Clone, Copy)]
@@ -31,6 +22,7 @@ bitflags! {
 }
 
 pub trait Component {
+    type Message;
     /// Draw using the final ratatui Frame within the bounds of area
     ///
     /// # Arguments:
@@ -40,7 +32,7 @@ pub trait Component {
     fn render(&self, frame: &mut Frame, area: Rect);
 
     /// Pass an update down the chain of the component
-    fn update(&self, action: Action) -> Option<Action>;
+    fn update(&self, event: Event, shell: &mut Shell<Self::Message>);
 
     // State management funcs
     fn state(&self) -> State;

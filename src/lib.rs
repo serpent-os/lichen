@@ -2,14 +2,16 @@
 //
 // SPDX-License-Identifier: MPL-2.0
 
-mod screen;
+pub use self::component::{Component, State};
+pub use self::screen::install_eyre_hooks;
+pub use self::screen::Event;
+pub use self::screen::Screen;
+pub use self::shell::Shell;
 
-pub use screen::install_eyre_hooks;
-pub use screen::Event;
-pub use screen::Screen;
-
+mod application;
 mod component;
-pub use component::{Action, Component, State};
+mod screen;
+mod shell;
 
 pub mod boxlayout;
 pub mod button;
