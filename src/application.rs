@@ -9,6 +9,7 @@ use crate::{Component, Screen, Shell};
 pub enum Command<Message> {
     Future(BoxFuture<'static, Message>),
     Stream(BoxStream<'static, Message>),
+    Quit,
 }
 
 pub trait Application {
@@ -64,6 +65,10 @@ pub async fn run(mut app: impl Application) -> eyre::Result<()> {
                                 sender.send(message).await;
                             }
                         });
+                    }
+                    Command::Quit => {
+                        screen.stop();
+                        return Ok(());
                     }
                 }
             }
