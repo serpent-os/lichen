@@ -35,6 +35,7 @@ pub struct State(RefCell<Inner>);
 struct Inner {
     id: widget::Id,
     hovered: bool,
+    pressed: bool,
 }
 
 pub struct Button<'a, Message> {
@@ -126,10 +127,25 @@ where
                 _ => {}
             },
             Event::Mouse(mouse) => match mouse.kind {
-                MouseEventKind::Up(MouseButton::Left) => {
+                MouseEventKind::Down(MouseButton::Left) => {
                     let pos = Position::new(mouse.column, mouse.row);
 
                     if layout.area.contains(pos) {
+                        if self.on_press.is_some() {
+                            shell.request_redraw();
+                            state.pressed = true;
+                            return event::Status::Captured;
+                        }
+                    }
+                }
+                MouseEventKind::Up(MouseButton::Left) => {
+                    state.pressed = false;
+
+                    let pos = Position::new(mouse.column, mouse.row);
+
+                    if layout.area.contains(pos) {
+                        state.hovered = true;
+
                         if let Some(message) = self.on_press.clone() {
                             shell.emit(message);
                             return event::Status::Captured;
@@ -166,9 +182,9 @@ where
     ) {
         let state = self.state.0.borrow();
 
-        let status = if Some(state.id) == focused {
-            Status::Hovered
-        } else if state.hovered {
+        let status = if state.pressed {
+            Status::Pressed
+        } else if Some(state.id) == focused || state.hovered {
             Status::Hovered
         } else {
             Status::Inactive
