@@ -1,0 +1,54 @@
+// SPDX-FileCopyrightText: Copyright © 2024 Serpent OS Developers
+//
+// SPDX-License-Identifier: MPL-2.0
+
+//! Widget APIs
+
+use bitflags::bitflags;
+use ratatui::{
+    layout::{Constraint, Rect},
+    Frame,
+};
+
+use crate::tui::{event, Event, Layout, Shell};
+
+pub use self::block::block;
+pub use self::box_layout::{hbox, vbox};
+pub use self::button::button;
+pub use self::text::text;
+
+pub mod block;
+pub mod box_layout;
+pub mod button;
+pub mod text;
+pub mod text_box;
+
+bitflags! {
+    #[derive(Debug, Clone, Copy)]
+    pub struct Attributes : u8 {
+        const NONE = 1;
+        const FOCUSABLE = 1 << 2;
+    }
+}
+
+pub trait Widget<Message> {
+    fn width(&self) -> Constraint;
+    fn height(&self) -> Constraint;
+    fn layout(&self, available: Rect) -> Layout;
+
+    /// Pass an update down the chain of the widget
+    fn update(
+        &mut self,
+        layout: &Layout,
+        event: Event,
+        shell: &mut Shell<Message>,
+    ) -> event::Status;
+
+    /// Draw using the final ratatui Frame within the bounds of our layout
+    ///
+    /// # Arguments:
+    ///
+    /// - `frame` - Ratatui frame target
+    /// - `layout` - Layout of our widget
+    fn render(&self, frame: &mut Frame, layout: &Layout);
+}

@@ -2,5 +2,7 @@
 //
 // SPDX-License-Identifier: MPL-2.0
 
-pub mod users;
+pub use self::user::User;
+
+pub mod user;
 pub mod welcome;

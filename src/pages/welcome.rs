@@ -26,28 +26,28 @@ impl Welcome {
     }
 }
 
-impl Widget for Welcome {
-    fn render(&self, frame: &mut ratatui::prelude::Frame, area: ratatui::prelude::Rect) {
-        let intro = widgets::Paragraph::new(vec![
-            Line::from("Are you ready to install Serpent OS?").style(Style::default().bold()).alignment(ratatui::layout::Alignment::Center),
-            Line::from(""), Line::from(""),
-            Line::from("📋 Disclaimer").style(Style::default().bold()),
-            Line::from(""),
-            Line::from("Serpent OS is not ready for production use nor should it be used for market predictions, nuclear facility management or the care of infants. At any point your installation may encounter errors or in fact no longer have ever been installed due to temporal fluctations resulting from the misuse of this install in a particle accelerator.").style(Style::default().dim())
-        ]).wrap(Wrap{ trim: false });
+// impl Widget for Welcome {
+//     fn render(&self, frame: &mut ratatui::prelude::Frame, area: ratatui::prelude::Rect) {
+//         let intro = widgets::Paragraph::new(vec![
+//             Line::from("Are you ready to install Serpent OS?").style(Style::default().bold()).alignment(ratatui::layout::Alignment::Center),
+//             Line::from(""), Line::from(""),
+//             Line::from("📋 Disclaimer").style(Style::default().bold()),
+//             Line::from(""),
+//             Line::from("Serpent OS is not ready for production use nor should it be used for market predictions, nuclear facility management or the care of infants. At any point your installation may encounter errors or in fact no longer have ever been installed due to temporal fluctations resulting from the misuse of this install in a particle accelerator.").style(Style::default().dim())
+//         ]).wrap(Wrap{ trim: false });
 
-        frame.render_widget(intro, area)
-    }
+//         frame.render_widget(intro, area)
+//     }
 
-    fn update(&self, _: crate::Action) -> Option<crate::Action> {
-        None
-    }
+//     fn update(&self, _: crate::Action) -> Option<crate::Action> {
+//         None
+//     }
 
-    fn state(&self) -> crate::State {
-        crate::State::NONE
-    }
+//     fn state(&self) -> crate::State {
+//         crate::State::NONE
+//     }
 
-    fn push_state(&self, _: crate::State) {}
+//     fn push_state(&self, _: crate::State) {}
 
-    fn pop_state(&self, _: crate::State) {}
-}
+//     fn pop_state(&self, _: crate::State) {}
+// }

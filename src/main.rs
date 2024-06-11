@@ -5,91 +5,77 @@
 //! TUI frontend for lichen
 
 use crossterm::event::KeyCode;
-use lichen::{pages::users::Users, Action, Event, Screen, State, Widget};
-use ratatui::layout::Rect;
+use lichen::tui::{
+    application::{self, Command},
+    event,
+    widget::block,
+    Application, Element, Event, Widget,
+};
+use pages::user;
+use ratatui::widgets::{Borders, Padding};
 
-struct App {
-    redraw: bool,
-    quit: bool,
-    page: Users,
-}
+use self::pages::User;
 
-impl Widget for App {
-    fn render(&self, frame: &mut ratatui::prelude::Frame, area: Rect) {
-        const PADDING: u16 = 4;
-        let clipped = Rect::new(
-            area.x + PADDING,
-            area.y + PADDING,
-            area.width - (PADDING * 2),
-            area.height - (PADDING * 2),
-        );
-        self.page.render(frame, clipped)
-    }
-
-    fn update(&self, action: Action) -> Option<Action> {
-        self.page.update(action)
-    }
-
-    fn state(&self) -> State {
-        State::NONE
-    }
-
-    fn push_state(&self, _: State) {}
-
-    fn pop_state(&self, _: State) {}
-}
-
-impl App {
-    fn handle(&mut self, event: Event) -> Option<Action> {
-        match event {
-            Event::Key(e) => {
-                if e.code == KeyCode::Char('q') {
-                    self.quit = true;
-                    Some(Action::Quit)
-                } else {
-                    Some(Action::Key(e))
-                }
-            }
-            Event::Mouse(m) => Some(Action::Mouse(m)),
-            Event::Render => {
-                self.redraw = true;
-                Some(Action::Redraw)
-            }
-            _ => None,
-        }
-    }
-}
+mod pages;
+mod theme;
 
 #[tokio::main]
 async fn main() -> color_eyre::Result<()> {
-    lichen::install_eyre_hooks()?;
+    application::run(App {
+        user: User::default(),
+    })
+    .await?;
+    Ok(())
+}
 
-    let mut screen = Screen::new()?;
-    screen.run();
+enum Message {
+    User(user::Message),
+    Quit,
+}
 
-    let mut app = App {
-        redraw: false,
-        quit: false,
-        page: Users::new(),
-    };
+struct App {
+    user: User,
+}
 
-    loop {
-        if app.redraw {
-            screen.draw(|f| app.render(f, f.size()))?;
-            app.redraw = false;
-        }
+impl Application for App {
+    type Message = Message;
 
-        if let Some(event) = screen.next_event().await {
-            let mut act = app.handle(event);
-            while let Some(action) = act {
-                act = app.update(action);
+    fn handle(&self, event: Event, status: event::Status) -> Option<Self::Message> {
+        match event {
+            Event::Key(e) if status == event::Status::Ignored => {
+                if e.code == KeyCode::Char('q') {
+                    return Some(Message::Quit);
+                }
             }
+            _ => {}
         }
+        None
+    }
 
-        if app.quit {
-            break;
+    fn update(&mut self, message: Message) -> Option<Command<Message>> {
+        match message {
+            Message::User(message) => {
+                match self.user.update(message) {
+                    Some(event) => {
+                        match event {
+                            user::Event::User { username, password } => {
+                                println!("User submitted:\n  username: {username}\n  password: {password}");
+                            }
+                        }
+                    }
+                    None => {}
+                }
+
+                None
+            }
+            Message::Quit => Some(Command::Quit),
         }
     }
-    screen.stop();
-    Ok(())
+
+    fn view<'a>(&'a self) -> Element<'a, Self::Message> {
+        block(self.user.view().map(Message::User))
+            .padding(Padding::uniform(2))
+            .borders(Borders::NONE)
+            .into()
+    }
 }

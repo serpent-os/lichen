@@ -14,7 +14,7 @@ use std::{
 
 use crossterm::{
     cursor,
-    event::{DisableMouseCapture, EnableMouseCapture},
+    event::{DisableMouseCapture, EnableMouseCapture, Event},
     execute,
     terminal::{
         disable_raw_mode, enable_raw_mode, is_raw_mode_enabled, EnterAlternateScreen,
@@ -30,8 +30,6 @@ use tokio::{
 };
 use tokio_util::sync::CancellationToken;
 
-use crate::Event;
-
 pub struct Screen {
     terminal: Terminal<CrosstermBackend<io::Stdout>>,
 
@@ -44,7 +42,9 @@ pub struct Screen {
 
 impl Screen {
     /// Create screen management and init the screen.
-    pub fn new() -> Result<Self, io::Error> {
+    pub fn new() -> color_eyre::Result<Self> {
+        install_eyre_hooks()?;
+
         // Required colour output due to input selections etc
         crossterm::style::force_color_output(true);
 
@@ -110,14 +110,7 @@ impl Screen {
                         match event {
                             Some(Ok(event)) => {
                                 log::trace!("Got an event: {event:?}");
-                                match event {
-                                    crossterm::event::Event::FocusGained => {},
-                                    crossterm::event::Event::FocusLost => {},
-                                    crossterm::event::Event::Key(key) => events_out.send(Event::Key(key)).unwrap(),
-                                    crossterm::event::Event::Mouse(m) => events_out.send(Event::Mouse(m)).unwrap(),
-                                    crossterm::event::Event::Paste(_) => {},
-                                    crossterm::event::Event::Resize(_, _) => {},
-                                }
+                                events_out.send(event).unwrap()
                             },
                             Some(Err(err)) => {
                                 log::error!("Got an error: {err}");
@@ -180,7 +173,7 @@ fn end_tty() -> Result<(), io::Error> {
 }
 
 /// Properly handle eyre hooks by resetting the display first
-pub fn install_eyre_hooks() -> color_eyre::Result<()> {
+fn install_eyre_hooks() -> color_eyre::Result<()> {
     let builder = color_eyre::config::HookBuilder::default();
     let (p, e) = builder.into_hooks();
     let p = p.into_panic_hook();

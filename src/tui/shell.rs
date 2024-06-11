@@ -1,4 +1,5 @@
 pub struct Shell<M> {
+    pub relayout: bool,
     pub redraw: bool,
     pub messages: Vec<M>,
 }
@@ -6,6 +7,7 @@ pub struct Shell<M> {
 impl<M> Default for Shell<M> {
     fn default() -> Self {
         Self {
+            relayout: false,
             redraw: false,
             messages: vec![],
         }
@@ -21,14 +23,22 @@ impl<M> Shell<M> {
         self.redraw = true;
     }
 
+    pub fn invalidate_layout(&mut self) {
+        self.relayout = true;
+    }
+
     pub fn map<U>(self, f: impl Fn(M) -> U) -> Shell<U> {
         Shell {
+            relayout: self.relayout,
             redraw: self.redraw,
             messages: self.messages.into_iter().map(f).collect(),
         }
     }
 
     pub fn merge(&mut self, other: Self) {
+        if other.relayout {
+            self.relayout = true;
+        }
         if other.redraw {
             self.redraw = true;
         }
