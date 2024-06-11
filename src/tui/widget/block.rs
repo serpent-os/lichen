@@ -53,7 +53,7 @@ impl<'a, Message> Block<'a, Message> {
 }
 
 impl<'a, Message: 'a> Widget<Message> for Block<'a, Message> {
-    fn width(&self) -> Constraint {
+    fn width(&self, height: u16) -> Constraint {
         let left = self
             .borders
             .contains(Borders::LEFT)
@@ -67,10 +67,10 @@ impl<'a, Message: 'a> Widget<Message> for Block<'a, Message> {
             .unwrap_or_default()
             + self.padding.right;
 
-        layout::pad_constraint(self.content.width(), left + right)
+        layout::pad_constraint(self.content.width(height), left + right)
     }
 
-    fn height(&self) -> Constraint {
+    fn height(&self, width: u16) -> Constraint {
         let top = self
             .borders
             .contains(Borders::TOP)
@@ -84,7 +84,7 @@ impl<'a, Message: 'a> Widget<Message> for Block<'a, Message> {
             .unwrap_or_default()
             + self.padding.bottom;
 
-        layout::pad_constraint(self.content.height(), top + bottom)
+        layout::pad_constraint(self.content.height(width), top + bottom)
     }
 
     fn layout(&self, available: Rect) -> Layout {

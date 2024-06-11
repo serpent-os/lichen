@@ -4,7 +4,9 @@
 
 //! Trivial button widget
 
-use crossterm::event::{KeyEventKind, MouseButton};
+use std::cell::RefCell;
+
+use crossterm::event::{KeyEventKind, MouseButton, MouseEventKind};
 use ratatui::{
     layout::{Constraint, Position, Rect},
     style::Style,
@@ -13,20 +15,33 @@ use ratatui::{
 
 use crate::tui::{event, layout, Element, Event, Layout, Shell, Widget};
 
-pub fn button<'a, Message>(content: impl Into<Element<'a, Message>>) -> Button<'a, Message> {
+pub fn button<'a, Message>(
+    state: &'a State,
+    content: impl Into<Element<'a, Message>>,
+) -> Button<'a, Message> {
     Button {
+        state,
         content: content.into(),
         padding: Padding::new(1, 1, 0, 0),
         on_press: None,
-        border_style: Style::default(),
+        style: Box::new(|_| Stylesheet::default()),
     }
+}
+
+#[derive(Default)]
+pub struct State(RefCell<Inner>);
+
+#[derive(Default)]
+struct Inner {
+    hovered: bool,
 }
 
 pub struct Button<'a, Message> {
     content: Element<'a, Message>,
     padding: Padding,
     on_press: Option<Message>,
-    border_style: Style,
+    state: &'a State,
+    style: Box<dyn Fn(Status) -> Stylesheet + 'a>,
 }
 
 impl<'a, Message> Button<'a, Message> {
@@ -41,9 +56,9 @@ impl<'a, Message> Button<'a, Message> {
         Self { padding, ..self }
     }
 
-    pub fn border_style(self, style: impl Into<Style>) -> Self {
+    pub fn style(self, f: impl Fn(Status) -> Stylesheet + 'a) -> Self {
         Self {
-            border_style: style.into(),
+            style: Box::new(f),
             ..self
         }
     }
@@ -53,18 +68,18 @@ impl<'a, Message> Widget<Message> for Button<'a, Message>
 where
     Message: Clone + 'a,
 {
-    fn width(&self) -> Constraint {
+    fn width(&self, height: u16) -> Constraint {
         let left = self.padding.left + 1;
         let right = self.padding.right + 1;
 
-        layout::pad_constraint(self.content.width(), left + right)
+        layout::pad_constraint(self.content.width(height), left + right)
     }
 
-    fn height(&self) -> Constraint {
+    fn height(&self, width: u16) -> Constraint {
         let top = self.padding.top + 1;
         let bottom = self.padding.bottom + 1;
 
-        layout::pad_constraint(self.content.height(), top + bottom)
+        layout::pad_constraint(self.content.height(width), top + bottom)
     }
 
     fn layout(&self, available: Rect) -> Layout {
@@ -118,6 +133,17 @@ where
                         }
                     }
                 }
+                crossterm::event::MouseEventKind::Moved => {
+                    let prev = self.state.0.borrow_mut().hovered;
+                    if mouse.kind == MouseEventKind::Moved {
+                        let pos = Position::new(mouse.column, mouse.row);
+                        self.state.0.borrow_mut().hovered = layout.area.contains(pos);
+
+                        if self.state.0.borrow_mut().hovered != prev {
+                            shell.request_redraw();
+                        }
+                    }
+                }
                 _ => {}
             },
         }
@@ -126,10 +152,18 @@ where
     }
 
     fn render(&self, frame: &mut ratatui::prelude::Frame, layout: &Layout) {
+        let status = if self.state.0.borrow().hovered {
+            Status::Hovered
+        } else {
+            // TODO: Focus tracking
+            Status::Inactive
+        };
+        let style = (self.style)(status);
+
         let border = Block::default()
             .border_type(BorderType::Rounded)
             .borders(Borders::ALL)
-            .border_style(self.border_style);
+            .border_style(style.borders);
 
         frame.render_widget(border, layout.area);
 
@@ -144,4 +178,15 @@ where
     fn from(value: Button<'a, Message>) -> Self {
         Element::new(value)
     }
+}
+
+#[derive(Clone, Copy, Default)]
+pub struct Stylesheet {
+    pub borders: Style,
+}
+
+pub enum Status {
+    Inactive,
+    Hovered,
+    Pressed,
 }

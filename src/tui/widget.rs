@@ -15,13 +15,17 @@ use crate::tui::{event, Event, Layout, Shell};
 pub use self::block::block;
 pub use self::box_layout::{hbox, vbox};
 pub use self::button::button;
+pub use self::paragraph::paragraph;
 pub use self::text::text;
+pub use self::wrap::wrap;
 
 pub mod block;
 pub mod box_layout;
 pub mod button;
+pub mod paragraph;
 pub mod text;
 pub mod text_box;
+pub mod wrap;
 
 bitflags! {
     #[derive(Debug, Clone, Copy)]
@@ -32,17 +36,30 @@ bitflags! {
 }
 
 pub trait Widget<Message> {
-    fn width(&self) -> Constraint;
-    fn height(&self) -> Constraint;
-    fn layout(&self, available: Rect) -> Layout;
+    fn width(&self, _height: u16) -> Constraint {
+        Constraint::Fill(1)
+    }
+
+    fn height(&self, _width: u16) -> Constraint {
+        Constraint::Fill(1)
+    }
+
+    fn layout(&self, available: Rect) -> Layout {
+        Layout {
+            area: available,
+            children: vec![],
+        }
+    }
 
     /// Pass an update down the chain of the widget
     fn update(
         &mut self,
-        layout: &Layout,
-        event: Event,
-        shell: &mut Shell<Message>,
-    ) -> event::Status;
+        _layout: &Layout,
+        _event: Event,
+        _shell: &mut Shell<Message>,
+    ) -> event::Status {
+        event::Status::Ignored
+    }
 
     /// Draw using the final ratatui Frame within the bounds of our layout
     ///

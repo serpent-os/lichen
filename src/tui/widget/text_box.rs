@@ -77,11 +77,7 @@ impl<'a> TextBox<'a> {
 }
 
 impl<'a, Message> Widget<Message> for TextBox<'a> {
-    fn width(&self) -> Constraint {
-        Constraint::Fill(1)
-    }
-
-    fn height(&self) -> Constraint {
+    fn height(&self, _width: u16) -> Constraint {
         Constraint::Length((self.state.0.borrow().area.lines().len() as u16).max(1) + 2)
     }
 
@@ -102,22 +98,26 @@ impl<'a, Message> Widget<Message> for TextBox<'a> {
         event: Event,
         shell: &mut Shell<Message>,
     ) -> event::Status {
-        if let Event::Mouse(mouse) = event {
-            let prev = self.state.0.borrow_mut().hovered;
-            // TODO: Why isn't moved working?
-            if mouse.kind == MouseEventKind::Moved {
-                let pos = Position::new(mouse.column, mouse.row);
-                self.state.0.borrow_mut().hovered = layout.area.contains(pos);
+        match event {
+            Event::Mouse(mouse) => {
+                let prev = self.state.0.borrow_mut().hovered;
+                if mouse.kind == MouseEventKind::Moved {
+                    let pos = Position::new(mouse.column, mouse.row);
+                    self.state.0.borrow_mut().hovered = layout.area.contains(pos);
 
-                if self.state.0.borrow_mut().hovered != prev {
-                    shell.request_redraw();
+                    if self.state.0.borrow_mut().hovered != prev {
+                        shell.request_redraw();
+                    }
                 }
             }
+            _ => {}
         }
 
         // TODO: Focus
         if self.state.0.borrow_mut().area.input(event) {
             shell.request_redraw();
+            // Needed because ENTER can change layout
+            shell.invalidate_layout();
             // event::Status::Captured
             event::Status::Ignored
         } else {
@@ -132,7 +132,6 @@ impl<'a, Message> Widget<Message> for TextBox<'a> {
             // TODO: Focus tracking
             Status::Inactive
         };
-
         let style = (self.style)(status);
 
         let mut block = Block::default()

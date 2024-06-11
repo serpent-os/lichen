@@ -59,24 +59,28 @@ impl<'a, Message> BoxLayout<'a, Message> {
 }
 
 impl<'a, Message: 'a> Widget<Message> for BoxLayout<'a, Message> {
-    fn width(&self) -> Constraint {
+    fn width(&self, _height: u16) -> Constraint {
         // TODO: Configurable
         Constraint::Fill(1)
     }
 
-    fn height(&self) -> Constraint {
+    fn height(&self, _width: u16) -> Constraint {
         // TODO: Configurable
         Constraint::Fill(1)
     }
 
     fn layout(&self, available: Rect) -> Layout {
         let children = match self.direction {
-            Direction::Horizontal => {
-                layout::Layout::horizontal(self.children.iter().map(|child| child.width()))
-            }
-            Direction::Vertical => {
-                layout::Layout::vertical(self.children.iter().map(|child| child.height()))
-            }
+            Direction::Horizontal => layout::Layout::horizontal(
+                self.children
+                    .iter()
+                    .map(|child| child.width(available.height)),
+            ),
+            Direction::Vertical => layout::Layout::vertical(
+                self.children
+                    .iter()
+                    .map(|child| child.height(available.width)),
+            ),
         }
         .flex(self.flex)
         .spacing(self.spacing)

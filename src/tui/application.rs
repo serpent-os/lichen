@@ -94,6 +94,7 @@ pub async fn run(mut app: impl Application) -> eyre::Result<()> {
         // before calling update on widget tree
         if last_screen_size != current_screen_size {
             layout = root.layout(current_screen_size);
+            shell.request_redraw();
         }
 
         // Update widget tree w/ events
@@ -147,6 +148,7 @@ pub async fn run(mut app: impl Application) -> eyre::Result<()> {
 
         if shell.relayout {
             layout = root.layout(current_screen_size);
+            shell.request_redraw();
         }
 
         if shell.redraw {

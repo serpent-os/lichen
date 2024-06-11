@@ -21,11 +21,11 @@ impl<'a> Text<'a> {
 }
 
 impl<'a, Message: 'a> Widget<Message> for Text<'a> {
-    fn width(&self) -> Constraint {
+    fn width(&self, _height: u16) -> Constraint {
         Constraint::Length(self.content.as_ref().chars().count() as u16)
     }
 
-    fn height(&self) -> Constraint {
+    fn height(&self, _width: u16) -> Constraint {
         Constraint::Length(1)
     }
 

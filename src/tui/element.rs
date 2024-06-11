@@ -16,12 +16,12 @@ impl<'a, Message: 'a> Element<'a, Message> {
         }
     }
 
-    pub fn width(&self) -> Constraint {
-        self.widget.width()
+    pub fn width(&self, height: u16) -> Constraint {
+        self.widget.width(height)
     }
 
-    pub fn height(&self) -> Constraint {
-        self.widget.height()
+    pub fn height(&self, width: u16) -> Constraint {
+        self.widget.height(width)
     }
 
     pub fn layout(&self, available: Rect) -> Layout {
@@ -48,12 +48,12 @@ impl<'a, Message: 'a> Element<'a, Message> {
         }
 
         impl<'a, T, U> Widget<U> for Map<'a, T, U> {
-            fn width(&self) -> Constraint {
-                self.widget.width()
+            fn width(&self, height: u16) -> Constraint {
+                self.widget.width(height)
             }
 
-            fn height(&self) -> Constraint {
-                self.widget.height()
+            fn height(&self, width: u16) -> Constraint {
+                self.widget.height(width)
             }
 
             fn layout(&self, available: Rect) -> Layout {

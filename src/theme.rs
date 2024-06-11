@@ -7,7 +7,7 @@
 use std::env;
 use std::sync::OnceLock;
 
-use lichen::tui::widget::text_box;
+use lichen::tui::widget::{self, text_box};
 use ratatui::style::palette::tailwind;
 use ratatui::style::Color;
 
@@ -93,6 +93,22 @@ pub fn text_box(status: text_box::Status) -> text_box::Stylesheet {
             borders: theme.color_highlight.into(),
         },
         text_box::Status::Active => text_box::Stylesheet {
+            borders: theme.color_selection.into(),
+        },
+    }
+}
+
+pub fn button(status: widget::button::Status) -> widget::button::Stylesheet {
+    let theme = current();
+
+    match status {
+        widget::button::Status::Inactive => widget::button::Stylesheet {
+            borders: theme.color_inactive.into(),
+        },
+        widget::button::Status::Hovered => widget::button::Stylesheet {
+            borders: theme.color_highlight.into(),
+        },
+        widget::button::Status::Pressed => widget::button::Stylesheet {
             borders: theme.color_selection.into(),
         },
     }
