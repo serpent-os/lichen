@@ -6,14 +6,14 @@
 
 use std::cell::RefCell;
 
-use crossterm::event::{KeyEventKind, MouseButton, MouseEventKind};
+use crossterm::event::{KeyCode, KeyEventKind, MouseButton, MouseEventKind};
 use ratatui::{
     layout::{Constraint, Position, Rect},
     style::Style,
     widgets::{Block, BorderType, Borders, Padding},
 };
 
-use crate::tui::{event, layout, Element, Event, Layout, Shell, Widget};
+use crate::tui::{event, layout, widget, Element, Event, Layout, Shell, Widget};
 
 pub fn button<'a, Message>(
     state: &'a State,
@@ -33,6 +33,7 @@ pub struct State(RefCell<Inner>);
 
 #[derive(Default)]
 struct Inner {
+    id: widget::Id,
     hovered: bool,
 }
 
@@ -111,10 +112,12 @@ where
         event: Event,
         shell: &mut Shell<Message>,
     ) -> event::Status {
+        let mut state = self.state.0.borrow_mut();
+        let focused = Some(state.id) == shell.focused();
+
         match event {
-            Event::Key(key) => match key.code {
-                // TODO: Focus
-                crossterm::event::KeyCode::Enter if key.kind == KeyEventKind::Release => {
+            Event::Key(key) if key.kind == KeyEventKind::Press => match key.code {
+                KeyCode::Enter | KeyCode::Char(' ') if focused => {
                     if let Some(message) = self.on_press.clone() {
                         shell.emit(message);
                         return event::Status::Captured;
@@ -123,7 +126,7 @@ where
                 _ => {}
             },
             Event::Mouse(mouse) => match mouse.kind {
-                crossterm::event::MouseEventKind::Up(MouseButton::Left) => {
+                MouseEventKind::Up(MouseButton::Left) => {
                     let pos = Position::new(mouse.column, mouse.row);
 
                     if layout.area.contains(pos) {
@@ -131,31 +134,43 @@ where
                             shell.emit(message);
                             return event::Status::Captured;
                         }
+                    } else if focused {
+                        shell.unfocus();
+                        return event::Status::Captured;
                     }
                 }
-                crossterm::event::MouseEventKind::Moved => {
-                    let prev = self.state.0.borrow_mut().hovered;
+                MouseEventKind::Moved => {
+                    let prev = state.hovered;
                     if mouse.kind == MouseEventKind::Moved {
                         let pos = Position::new(mouse.column, mouse.row);
-                        self.state.0.borrow_mut().hovered = layout.area.contains(pos);
+                        state.hovered = layout.area.contains(pos);
 
-                        if self.state.0.borrow_mut().hovered != prev {
+                        if state.hovered != prev {
                             shell.request_redraw();
                         }
                     }
                 }
                 _ => {}
             },
+            _ => {}
         }
 
         self.content.update(&layout.children[0], event, shell)
     }
 
-    fn render(&self, frame: &mut ratatui::prelude::Frame, layout: &Layout) {
-        let status = if self.state.0.borrow().hovered {
+    fn render(
+        &self,
+        frame: &mut ratatui::prelude::Frame,
+        layout: &Layout,
+        focused: Option<widget::Id>,
+    ) {
+        let state = self.state.0.borrow();
+
+        let status = if Some(state.id) == focused {
+            Status::Hovered
+        } else if state.hovered {
             Status::Hovered
         } else {
-            // TODO: Focus tracking
             Status::Inactive
         };
         let style = (self.style)(status);
@@ -167,7 +182,16 @@ where
 
         frame.render_widget(border, layout.area);
 
-        self.content.render(frame, &layout.children[0]);
+        self.content.render(frame, &layout.children[0], focused);
+    }
+
+    fn flatten(&self) -> Vec<widget::Info> {
+        let state = &self.state.0.borrow();
+
+        Some(widget::Info::focusable(state.id))
+            .into_iter()
+            .chain(self.content.flatten())
+            .collect()
     }
 }
 

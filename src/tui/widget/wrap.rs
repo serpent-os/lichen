@@ -1,4 +1,4 @@
-use crate::tui::{Element, Layout, Widget};
+use crate::tui::{widget, Element, Layout, Widget};
 
 pub fn wrap<'a>(widget: impl ratatui::widgets::WidgetRef + 'a) -> Wrap<'a> {
     Wrap::new(widget)
@@ -17,7 +17,12 @@ impl<'a> Wrap<'a> {
 }
 
 impl<'a, Message: 'a> Widget<Message> for Wrap<'a> {
-    fn render(&self, frame: &mut ratatui::prelude::Frame, layout: &Layout) {
+    fn render(
+        &self,
+        frame: &mut ratatui::prelude::Frame,
+        layout: &Layout,
+        _focused: Option<widget::Id>,
+    ) {
         self.widget.render_ref(layout.area, frame.buffer_mut());
     }
 }

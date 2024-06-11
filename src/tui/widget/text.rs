@@ -2,7 +2,7 @@ use std::borrow::Cow;
 
 use ratatui::layout::{Constraint, Rect};
 
-use crate::tui::{event, Element, Event, Layout, Shell, Widget};
+use crate::tui::{event, widget, Element, Event, Layout, Shell, Widget};
 
 pub fn text<'a>(content: impl Into<Cow<'a, str>>) -> Text<'a> {
     Text::new(content)
@@ -49,7 +49,12 @@ impl<'a, Message: 'a> Widget<Message> for Text<'a> {
         event::Status::Ignored
     }
 
-    fn render(&self, frame: &mut ratatui::prelude::Frame, layout: &Layout) {
+    fn render(
+        &self,
+        frame: &mut ratatui::prelude::Frame,
+        layout: &Layout,
+        _focused: Option<widget::Id>,
+    ) {
         frame.render_widget(ratatui::text::Text::raw(self.content.as_ref()), layout.area)
     }
 }

@@ -6,7 +6,7 @@
 
 use std::mem;
 
-use crossterm::event::KeyCode;
+use crossterm::event::{KeyCode, KeyEventKind};
 use lichen::tui::{
     application::{self, Command},
     event,
@@ -28,6 +28,8 @@ async fn main() -> color_eyre::Result<()> {
 enum Message {
     Page(page::Message),
     Quit,
+    FocusNext,
+    FocusPrevious,
 }
 
 struct App {
@@ -49,14 +51,16 @@ impl Application for App {
 
     fn handle(&self, event: Event, status: event::Status) -> Option<Self::Message> {
         match event {
-            Event::Key(e) if status == event::Status::Ignored => {
-                if e.code == KeyCode::Char('q') {
-                    return Some(Message::Quit);
+            Event::Key(e) if status == event::Status::Ignored && e.kind == KeyEventKind::Press => {
+                match e.code {
+                    KeyCode::Char('q') => Some(Message::Quit),
+                    KeyCode::Tab => Some(Message::FocusNext),
+                    KeyCode::BackTab => Some(Message::FocusPrevious),
+                    _ => None,
                 }
             }
-            _ => {}
+            _ => None,
         }
-        None
     }
 
     fn update(&mut self, message: Message) -> Option<Command<Message>> {
@@ -68,6 +72,7 @@ impl Application for App {
                             page::welcome::Event::Ok => {
                                 self.history
                                     .push(mem::replace(&mut self.current, Page::user()));
+                                return Some(Command::focus_next());
                             }
                         },
                         page::Event::User(event) => match event {
@@ -87,6 +92,8 @@ impl Application for App {
                 None
             }
             Message::Quit => Some(Command::Quit),
+            Message::FocusNext => Some(Command::focus_next()),
+            Message::FocusPrevious => Some(Command::focus_previous()),
         }
     }
 

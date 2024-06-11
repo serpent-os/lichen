@@ -5,6 +5,8 @@ use ratatui::{
 
 use crate::tui::{event, Event, Layout, Shell, Widget};
 
+use super::widget;
+
 pub struct Element<'a, Message> {
     widget: Box<dyn Widget<Message> + 'a>,
 }
@@ -37,8 +39,12 @@ impl<'a, Message: 'a> Element<'a, Message> {
         self.widget.update(layout, event, shell)
     }
 
-    pub fn render(&self, frame: &mut Frame, layout: &Layout) {
-        self.widget.render(frame, layout)
+    pub fn render(&self, frame: &mut Frame, layout: &Layout, focused: Option<widget::Id>) {
+        self.widget.render(frame, layout, focused)
+    }
+
+    pub fn flatten(&self) -> Vec<widget::Info> {
+        self.widget.flatten()
     }
 
     pub fn map<U: 'a>(self, f: impl Fn(Message) -> U + 'a) -> Element<'a, U> {
@@ -60,8 +66,13 @@ impl<'a, Message: 'a> Element<'a, Message> {
                 self.widget.layout(available)
             }
 
-            fn render(&self, frame: &mut ratatui::prelude::Frame, layout: &Layout) {
-                self.widget.render(frame, layout)
+            fn render(
+                &self,
+                frame: &mut ratatui::prelude::Frame,
+                layout: &Layout,
+                focused: Option<widget::Id>,
+            ) {
+                self.widget.render(frame, layout, focused)
             }
 
             fn update(
@@ -70,13 +81,17 @@ impl<'a, Message: 'a> Element<'a, Message> {
                 event: Event,
                 shell: &mut Shell<U>,
             ) -> event::Status {
-                let mut local_shell = Shell::default();
+                let mut local_shell = Shell::with_focused(shell.focused());
 
                 let status = self.widget.update(layout, event, &mut local_shell);
 
                 shell.merge(local_shell.map(&self.mapper));
 
                 status
+            }
+
+            fn flatten(&self) -> Vec<widget::Info> {
+                self.widget.flatten()
             }
         }
 

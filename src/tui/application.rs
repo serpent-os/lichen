@@ -4,12 +4,18 @@ use color_eyre::eyre;
 use futures::{future::BoxFuture, stream::BoxStream, Future, FutureExt, Stream, StreamExt};
 use tokio::sync::mpsc;
 
-use crate::tui::{event, Element, Event, Screen, Shell};
+use crate::tui::{event, widget, Element, Event, Screen, Shell};
 
 pub enum Command<Message> {
     Future(BoxFuture<'static, Message>),
     Stream(BoxStream<'static, Message>),
     Quit,
+    Focus(Focus),
+}
+
+pub enum Focus {
+    Next,
+    Previous,
 }
 
 impl<Message> Command<Message> {
@@ -27,6 +33,14 @@ impl<Message> Command<Message> {
         f: impl Fn(T) -> Message + Send + 'static,
     ) -> Self {
         Self::Stream(stream.map(f).boxed())
+    }
+
+    pub fn focus_next() -> Self {
+        Self::Focus(Focus::Next)
+    }
+
+    pub fn focus_previous() -> Self {
+        Self::Focus(Focus::Previous)
     }
 }
 
@@ -57,12 +71,14 @@ pub async fn run(mut app: impl Application) -> eyre::Result<()> {
     // Draw initial view
     let mut root = ManuallyDrop::new(app.view());
     let mut layout = root.layout(last_screen_size);
-    screen.draw(|f| root.render(f, &layout))?;
+    screen.draw(|f| root.render(f, &layout, None))?;
 
     let (command_sender, mut command_receiver) = mpsc::channel(10);
 
+    let mut focused = None;
+
     loop {
-        let mut shell = Shell::default();
+        let mut shell = Shell::with_focused(focused);
         let mut events = vec![];
         let mut processed_events = vec![];
 
@@ -111,10 +127,11 @@ pub async fn run(mut app: impl Application) -> eyre::Result<()> {
         }
 
         // Update app state w/ emitted messages
-        if !shell.messages.is_empty() {
+        if shell.has_messages() {
             let _ = ManuallyDrop::into_inner(root);
+            let mut focus = None;
 
-            for message in shell.messages.drain(..) {
+            for message in shell.drain() {
                 if let Some(command) = app.update(message) {
                     match command {
                         Command::Future(future) => {
@@ -135,6 +152,9 @@ pub async fn run(mut app: impl Application) -> eyre::Result<()> {
                             screen.stop();
                             return Ok(());
                         }
+                        Command::Focus(f) => {
+                            focus = Some(f);
+                        }
                     }
                 }
             }
@@ -144,17 +164,54 @@ pub async fn run(mut app: impl Application) -> eyre::Result<()> {
             root = ManuallyDrop::new(app.view());
             shell.invalidate_layout();
             shell.request_redraw();
+
+            if let Some(focus) = focus {
+                handle_focus(&root, &mut shell, focus);
+            }
         }
 
-        if shell.relayout {
+        if shell.is_layout_invalid() {
             layout = root.layout(current_screen_size);
             shell.request_redraw();
         }
 
-        if shell.redraw {
-            screen.draw(|f| root.render(f, &layout))?;
+        if shell.is_redraw_requested() {
+            screen.draw(|f| root.render(f, &layout, shell.focused()))?;
         }
 
         last_screen_size = current_screen_size;
+        focused = shell.focused();
+    }
+}
+
+fn handle_focus<M>(root: &Element<M>, shell: &mut Shell<M>, focus: Focus) {
+    let focusable = root
+        .flatten()
+        .into_iter()
+        .filter_map(|info| {
+            if info.attributes.contains(widget::Attributes::FOCUSABLE) && info.id.is_some() {
+                info.id
+            } else {
+                None
+            }
+        })
+        .collect::<Vec<_>>();
+
+    let focused = focusable.iter().position(|id| Some(*id) == shell.focused());
+
+    let next = match focus {
+        Focus::Next => match focused {
+            Some(idx) if idx == focusable.len() - 1 => focusable.into_iter().next(),
+            None => focusable.into_iter().next(),
+            Some(idx) => focusable.into_iter().skip(idx + 1).next(),
+        },
+        Focus::Previous => match focused {
+            None | Some(0) => focusable.into_iter().last(),
+            Some(idx) => focusable.into_iter().take(idx).rev().next(),
+        },
+    };
+
+    if let Some(next) = next {
+        shell.focus(next);
     }
 }

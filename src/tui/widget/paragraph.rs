@@ -4,7 +4,7 @@ use ratatui::{
     widgets::{WidgetRef, Wrap},
 };
 
-use crate::tui::{Element, Layout, Widget};
+use crate::tui::{widget, Element, Layout, Widget};
 
 pub fn paragraph<'a>(lines: Vec<Line<'a>>) -> Paragraph<'a> {
     Paragraph::new(lines)
@@ -33,7 +33,12 @@ impl<'a, Message: 'a> Widget<Message> for Paragraph<'a> {
         Constraint::Length(self.inner.line_count(width) as u16)
     }
 
-    fn render(&self, frame: &mut ratatui::prelude::Frame, layout: &Layout) {
+    fn render(
+        &self,
+        frame: &mut ratatui::prelude::Frame,
+        layout: &Layout,
+        _focused: Option<widget::Id>,
+    ) {
         self.inner.render_ref(layout.area, frame.buffer_mut());
     }
 }

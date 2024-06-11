@@ -6,7 +6,7 @@
 
 use std::cell::RefCell;
 
-use crossterm::event::MouseEventKind;
+use crossterm::event::{KeyCode, KeyEventKind, MouseButton, MouseEventKind};
 use ratatui::{
     layout::{Constraint, Position, Rect},
     style::Style,
@@ -14,7 +14,7 @@ use ratatui::{
 };
 use tui_textarea::TextArea;
 
-use crate::tui::{event, layout, Element, Event, Layout, Shell, Widget};
+use crate::tui::{event, layout, widget, Element, Event, Layout, Shell, Widget};
 
 pub fn text_box<'a>(state: &'a State) -> TextBox<'a> {
     TextBox::new(state)
@@ -27,6 +27,7 @@ pub struct State(RefCell<Inner>);
 pub struct Inner {
     area: TextArea<'static>,
     hovered: bool,
+    id: widget::Id,
 }
 
 impl State {
@@ -98,35 +99,64 @@ impl<'a, Message> Widget<Message> for TextBox<'a> {
         event: Event,
         shell: &mut Shell<Message>,
     ) -> event::Status {
+        let mut state = self.state.0.borrow_mut();
+        let focused = Some(state.id) == shell.focused();
+
         match event {
             Event::Mouse(mouse) => {
-                let prev = self.state.0.borrow_mut().hovered;
                 if mouse.kind == MouseEventKind::Moved {
                     let pos = Position::new(mouse.column, mouse.row);
-                    self.state.0.borrow_mut().hovered = layout.area.contains(pos);
+                    let prev = state.hovered;
 
-                    if self.state.0.borrow_mut().hovered != prev {
+                    state.hovered = layout.area.contains(pos);
+
+                    if state.hovered != prev {
                         shell.request_redraw();
+                    }
+                } else if mouse.kind == MouseEventKind::Up(MouseButton::Left) {
+                    let pos = Position::new(mouse.column, mouse.row);
+
+                    if layout.area.contains(pos) {
+                        shell.focus(state.id);
+                        return event::Status::Captured;
+                    } else if focused {
+                        shell.unfocus();
+                        return event::Status::Captured;
                     }
                 }
             }
+            Event::Key(key) if key.kind == KeyEventKind::Press => match key.code {
+                KeyCode::Esc if focused => {
+                    shell.unfocus();
+                    return event::Status::Captured;
+                }
+                KeyCode::Tab | KeyCode::BackTab | KeyCode::Enter => return event::Status::Ignored,
+                _ => {}
+            },
             _ => {}
         }
 
-        // TODO: Focus
-        if self.state.0.borrow_mut().area.input(event) {
-            shell.request_redraw();
-            // Needed because ENTER can change layout
-            shell.invalidate_layout();
-            // event::Status::Captured
-            event::Status::Ignored
-        } else {
-            event::Status::Ignored
+        if focused {
+            if state.area.input(event) {
+                shell.request_redraw();
+                return event::Status::Captured;
+            }
         }
+
+        event::Status::Ignored
     }
 
-    fn render(&self, frame: &mut ratatui::prelude::Frame, layout: &Layout) {
-        let status = if self.state.0.borrow().hovered {
+    fn render(
+        &self,
+        frame: &mut ratatui::prelude::Frame,
+        layout: &Layout,
+        focused: Option<widget::Id>,
+    ) {
+        let state = self.state.0.borrow();
+
+        let status = if Some(state.id) == focused {
+            Status::Active
+        } else if state.hovered {
             Status::Hovered
         } else {
             // TODO: Focus tracking
@@ -149,6 +179,14 @@ impl<'a, Message> Widget<Message> for TextBox<'a> {
             self.state.0.borrow().area.widget(),
             layout::pad_rect(layout.area, Padding::new(2, 2, 1, 1)),
         );
+    }
+
+    fn flatten(&self) -> Vec<widget::Info> {
+        let state = &self.state.0.borrow();
+
+        Some(widget::Info::focusable(state.id))
+            .into_iter()
+            .collect()
     }
 }
 

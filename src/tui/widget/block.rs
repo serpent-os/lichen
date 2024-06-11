@@ -4,7 +4,7 @@ use ratatui::{
     widgets::{BorderType, Borders, Padding},
 };
 
-use crate::tui::{event, layout, Element, Event, Layout, Shell, Widget};
+use crate::tui::{event, layout, widget, Element, Event, Layout, Shell, Widget};
 
 pub fn block<'a, Message>(content: impl Into<Element<'a, Message>>) -> Block<'a, Message> {
     Block::new(content)
@@ -140,7 +140,12 @@ impl<'a, Message: 'a> Widget<Message> for Block<'a, Message> {
         self.content.update(&layout.children[0], event, shell)
     }
 
-    fn render(&self, frame: &mut ratatui::prelude::Frame, layout: &Layout) {
+    fn render(
+        &self,
+        frame: &mut ratatui::prelude::Frame,
+        layout: &Layout,
+        focused: Option<widget::Id>,
+    ) {
         let mut border = ratatui::widgets::Block::default()
             .border_type(BorderType::Rounded)
             .border_style(self.border_style)
@@ -152,7 +157,14 @@ impl<'a, Message: 'a> Widget<Message> for Block<'a, Message> {
 
         frame.render_widget(border, layout.area);
 
-        self.content.render(frame, &layout.children[0]);
+        self.content.render(frame, &layout.children[0], focused);
+    }
+
+    fn flatten(&self) -> Vec<widget::Info> {
+        Some(widget::Info::default())
+            .into_iter()
+            .chain(self.content.flatten())
+            .collect()
     }
 }
 

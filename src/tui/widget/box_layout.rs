@@ -7,7 +7,7 @@
 
 use ratatui::layout::{self, Constraint, Direction, Flex, Rect};
 
-use crate::tui::{event, Element, Event, Layout, Shell, Widget};
+use crate::tui::{event, widget, Element, Event, Layout, Shell, Widget};
 
 pub fn hbox<'a, Message>(children: Vec<Element<'a, Message>>) -> BoxLayout<'a, Message> {
     BoxLayout::new(children).direction(Direction::Horizontal)
@@ -110,65 +110,24 @@ impl<'a, Message: 'a> Widget<Message> for BoxLayout<'a, Message> {
             .unwrap_or_default()
     }
 
-    fn render(&self, frame: &mut ratatui::prelude::Frame, layout: &Layout) {
+    fn render(
+        &self,
+        frame: &mut ratatui::prelude::Frame,
+        layout: &Layout,
+        focused: Option<widget::Id>,
+    ) {
         self.children
             .iter()
             .zip(&layout.children)
-            .for_each(|(child, layout)| child.render(frame, layout));
+            .for_each(|(child, layout)| child.render(frame, layout, focused));
     }
-    // /// Render only children, recursively, via root level layout
-    // fn render(&self, frame: &mut ratatui::prelude::Frame, area: Rect) {
-    //     let children = self.children.borrow();
-    //     let layout = match self.direction {
-    //         Direction::Horizontal => {
-    //             Layout::horizontal(children.iter().map(|c| c.constraints(self.direction)))
-    //                 .flex(self.flex)
-    //         }
-    //         Direction::Vertical => {
-    //             Layout::vertical(children.iter().map(|c| c.constraints(self.direction)))
-    //                 .flex(self.flex)
-    //         }
-    //     }
-    //     .spacing(1)
-    //     .split(area);
 
-    //     for (index, child) in children.iter().enumerate() {
-    //         child.render(frame, layout[index]);
-    //     }
-    // }
-
-    // /// Handle some keyboard shortcuts, or pass to children
-    // fn update(&mut self, event: Event, shell: &mut Shell<Message>) -> event::Status {
-    //     if let Event::Key(k) = event {
-    //         if k.kind == KeyEventKind::Press {
-    //             match k.code {
-    //                 KeyCode::Tab | KeyCode::Down => return self.traverse_tab(),
-    //                 KeyCode::BackTab | KeyCode::Up => return self.traverse_tab_r(),
-    //                 _ => {}
-    //             };
-    //         }
-    //     }
-
-    //     let mut children = self.children.borrow_mut();
-    //     let selected = *self.selected.borrow();
-
-    //     if let Some(child) = children.get_mut(selected) {
-    //         child.update(action)
-    //     } else {
-    //         None
-    //     }
-    // }
-
-    // /// No state needed
-    // fn state(&self) -> State {
-    //     State::NONE
-    // }
-
-    // /// Ditto
-    // fn push_state(&self, _: crate::widget::State) {}
-
-    // /// Ditto
-    // fn pop_state(&self, _: crate::widget::State) {}
+    fn flatten(&self) -> Vec<widget::Info> {
+        Some(widget::Info::default())
+            .into_iter()
+            .chain(self.children.iter().flat_map(|child| child.flatten()))
+            .collect()
+    }
 }
 
 impl<'a, Message> From<BoxLayout<'a, Message>> for Element<'a, Message>
