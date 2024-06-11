@@ -11,6 +11,7 @@ pub enum Command<Message> {
     Stream(BoxStream<'static, Message>),
     Quit,
     Focus(Focus),
+    Unfocus,
 }
 
 pub enum Focus {
@@ -41,6 +42,10 @@ impl<Message> Command<Message> {
 
     pub fn focus_previous() -> Self {
         Self::Focus(Focus::Previous)
+    }
+
+    pub fn unfocus() -> Self {
+        Self::Unfocus
     }
 }
 
@@ -154,6 +159,10 @@ pub async fn run(mut app: impl Application) -> eyre::Result<()> {
                         }
                         Command::Focus(f) => {
                             focus = Some(f);
+                        }
+                        Command::Unfocus => {
+                            focus.take();
+                            shell.unfocus();
                         }
                     }
                 }

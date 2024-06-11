@@ -30,8 +30,8 @@ impl<M> Shell<M> {
         !self.messages.is_empty()
     }
 
-    pub fn drain(&mut self) -> impl Iterator<Item = M> + '_ {
-        self.messages.drain(..)
+    pub fn drain(&mut self) -> Vec<M> {
+        std::mem::take(&mut self.messages)
     }
 
     pub fn emit(&mut self, message: M) {

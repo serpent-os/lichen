@@ -30,6 +30,7 @@ enum Message {
     Quit,
     FocusNext,
     FocusPrevious,
+    Unfocus,
 }
 
 struct App {
@@ -56,6 +57,7 @@ impl Application for App {
                     KeyCode::Char('q') => Some(Message::Quit),
                     KeyCode::Tab => Some(Message::FocusNext),
                     KeyCode::BackTab => Some(Message::FocusPrevious),
+                    KeyCode::Esc => Some(Message::Unfocus),
                     _ => None,
                 }
             }
@@ -94,6 +96,7 @@ impl Application for App {
             Message::Quit => Some(Command::Quit),
             Message::FocusNext => Some(Command::focus_next()),
             Message::FocusPrevious => Some(Command::focus_previous()),
+            Message::Unfocus => Some(Command::unfocus()),
         }
     }
 
