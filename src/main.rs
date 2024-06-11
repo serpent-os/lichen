@@ -4,92 +4,103 @@
 
 //! TUI frontend for lichen
 
-use crossterm::event::KeyCode;
-use lichen::{pages::users::Users, Action, Component, Event, Screen, State};
-use ratatui::layout::Rect;
+use std::mem;
 
-struct App {
-    redraw: bool,
-    quit: bool,
-    page: Users,
+use crossterm::event::{KeyCode, KeyEventKind};
+use lichen::tui::{
+    application::{self, Command},
+    event,
+    widget::block,
+    Application, Element, Event,
+};
+use ratatui::widgets::{Borders, Padding};
+
+use self::page::Page;
+
+mod page;
+mod theme;
+
+#[tokio::main]
+async fn main() -> color_eyre::Result<()> {
+    application::run(App::new()).await
 }
 
-impl Component for App {
-    fn render(&self, frame: &mut ratatui::prelude::Frame, area: Rect) {
-        const PADDING: u16 = 4;
-        let clipped = Rect::new(
-            area.x + PADDING,
-            area.y + PADDING,
-            area.width - (PADDING * 2),
-            area.height - (PADDING * 2),
-        );
-        self.page.render(frame, clipped)
-    }
+enum Message {
+    Page(page::Message),
+    Quit,
+    FocusNext,
+    FocusPrevious,
+}
 
-    fn update(&self, action: Action) -> Option<Action> {
-        self.page.update(action)
-    }
-
-    fn state(&self) -> State {
-        State::NONE
-    }
-
-    fn push_state(&self, _: State) {}
-
-    fn pop_state(&self, _: State) {}
+struct App {
+    history: Vec<Page>,
+    current: Page,
 }
 
 impl App {
-    fn handle(&mut self, event: Event) -> Option<Action> {
+    fn new() -> Self {
+        App {
+            history: vec![],
+            current: Page::welcome(),
+        }
+    }
+}
+
+impl Application for App {
+    type Message = Message;
+
+    fn handle(&self, event: Event, status: event::Status) -> Option<Self::Message> {
         match event {
-            Event::Key(e) => {
-                if e.code == KeyCode::Char('q') {
-                    self.quit = true;
-                    Some(Action::Quit)
-                } else {
-                    Some(Action::Key(e))
+            Event::Key(e) if status == event::Status::Ignored && e.kind == KeyEventKind::Press => {
+                match e.code {
+                    KeyCode::Char('q') => Some(Message::Quit),
+                    KeyCode::Tab => Some(Message::FocusNext),
+                    KeyCode::BackTab => Some(Message::FocusPrevious),
+                    _ => None,
                 }
-            }
-            Event::Mouse(m) => Some(Action::Mouse(m)),
-            Event::Render => {
-                self.redraw = true;
-                Some(Action::Redraw)
             }
             _ => None,
         }
     }
-}
 
-#[tokio::main]
-async fn main() -> color_eyre::Result<()> {
-    lichen::install_eyre_hooks()?;
+    fn update(&mut self, message: Message) -> Option<Command<Message>> {
+        match message {
+            Message::Page(message) => {
+                match self.current.update(message) {
+                    Some(event) => match event {
+                        page::Event::Welcome(event) => match event {
+                            page::welcome::Event::Ok => {
+                                self.history
+                                    .push(mem::replace(&mut self.current, Page::user()));
+                                return Some(Command::focus_next());
+                            }
+                        },
+                        page::Event::User(event) => match event {
+                            page::user::Event::User { username, password } => {
+                                println!("User submitted:\n  username: {username}\n  password: {password}");
+                            }
+                            page::user::Event::Cancel => {
+                                if let Some(prev) = self.history.pop() {
+                                    self.current = prev;
+                                }
+                            }
+                        },
+                    },
+                    _ => {}
+                }
 
-    let mut screen = Screen::new()?;
-    screen.run();
-
-    let mut app = App {
-        redraw: false,
-        quit: false,
-        page: Users::new(),
-    };
-
-    loop {
-        if app.redraw {
-            screen.draw(|f| app.render(f, f.size()))?;
-            app.redraw = false;
-        }
-
-        if let Some(event) = screen.next_event().await {
-            let mut act = app.handle(event);
-            while let Some(action) = act {
-                act = app.update(action);
+                None
             }
-        }
-
-        if app.quit {
-            break;
+            Message::Quit => Some(Command::Quit),
+            Message::FocusNext => Some(Command::focus_next()),
+            Message::FocusPrevious => Some(Command::focus_previous()),
         }
     }
-    screen.stop();
-    Ok(())
+
+    fn view<'a>(&'a self) -> Element<'a, Self::Message> {
+        block(self.current.view().map(Message::Page))
+            .padding(Padding::uniform(2))
+            .borders(Borders::NONE)
+            .into()
+    }
 }

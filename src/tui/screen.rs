@@ -14,7 +14,7 @@ use std::{
 
 use crossterm::{
     cursor,
-    event::{DisableMouseCapture, EnableMouseCapture, KeyEvent, MouseEvent},
+    event::{DisableMouseCapture, EnableMouseCapture, Event},
     execute,
     terminal::{
         disable_raw_mode, enable_raw_mode, is_raw_mode_enabled, EnterAlternateScreen,
@@ -24,7 +24,6 @@ use crossterm::{
 
 use futures::{FutureExt, StreamExt};
 use ratatui::{backend::CrosstermBackend, Terminal};
-use serde::{Deserialize, Serialize};
 use tokio::{
     sync::mpsc::{unbounded_channel, UnboundedReceiver, UnboundedSender},
     task::JoinHandle,
@@ -41,18 +40,11 @@ pub struct Screen {
     cancel: CancellationToken,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub enum Event {
-    Init,
-    Key(KeyEvent),
-    Mouse(MouseEvent),
-    Render,
-    Tick, // update from input etc
-}
-
 impl Screen {
     /// Create screen management and init the screen.
-    pub fn new() -> Result<Self, io::Error> {
+    pub fn new() -> color_eyre::Result<Self> {
+        install_eyre_hooks()?;
+
         // Required colour output due to input selections etc
         crossterm::style::force_color_output(true);
 
@@ -105,13 +97,12 @@ impl Screen {
 
         self.task = tokio::spawn(async move {
             let mut reader = crossterm::event::EventStream::new();
-            let mut renders = tokio::time::interval(Duration::from_secs_f64(1.0 / 30.0));
-            let mut ticker = tokio::time::interval(Duration::from_secs_f64(1.0 / 4.0));
-            events_out.send(Event::Init).unwrap();
+            // let mut renders = tokio::time::interval(Duration::from_secs_f64(1.0 / 30.0));
+            // let mut ticker = tokio::time::interval(Duration::from_secs_f64(1.0 / 4.0));
 
             loop {
-                let render = renders.tick();
-                let input = ticker.tick();
+                // let render = renders.tick();
+                // let input = ticker.tick();
                 let cterm = reader.next().fuse();
 
                 tokio::select! {
@@ -119,14 +110,7 @@ impl Screen {
                         match event {
                             Some(Ok(event)) => {
                                 log::trace!("Got an event: {event:?}");
-                                match event {
-                                    crossterm::event::Event::FocusGained => {},
-                                    crossterm::event::Event::FocusLost => {},
-                                    crossterm::event::Event::Key(key) => events_out.send(Event::Key(key)).unwrap(),
-                                    crossterm::event::Event::Mouse(m) => events_out.send(Event::Mouse(m)).unwrap(),
-                                    crossterm::event::Event::Paste(_) => {},
-                                    crossterm::event::Event::Resize(_, _) => {},
-                                }
+                                events_out.send(event).unwrap()
                             },
                             Some(Err(err)) => {
                                 log::error!("Got an error: {err}");
@@ -138,12 +122,12 @@ impl Screen {
                     _ = cancel.cancelled() => {
                         break;
                     }
-                    _ = input => {
-                        events_out.send(Event::Tick).unwrap();
-                    }
-                    _ = render => {
-                        events_out.send(Event::Render).unwrap();
-                    }
+                    // _ = input => {
+                    //     events_out.send(Event::Tick).unwrap();
+                    // }
+                    // _ = render => {
+                    //     events_out.send(Event::Render).unwrap();
+                    // }
                 }
             }
         });
@@ -152,6 +136,11 @@ impl Screen {
     /// Yield the next possible event
     pub async fn next_event(&mut self) -> Option<Event> {
         self.events_in.recv().await
+    }
+
+    /// Yield the next possible event, returning immediately if none are available
+    pub fn try_next_event(&mut self) -> Option<Event> {
+        self.events_in.try_recv().ok()
     }
 }
 
@@ -184,7 +173,7 @@ fn end_tty() -> Result<(), io::Error> {
 }
 
 /// Properly handle eyre hooks by resetting the display first
-pub fn install_eyre_hooks() -> color_eyre::Result<()> {
+fn install_eyre_hooks() -> color_eyre::Result<()> {
     let builder = color_eyre::config::HookBuilder::default();
     let (p, e) = builder.into_hooks();
     let p = p.into_panic_hook();
