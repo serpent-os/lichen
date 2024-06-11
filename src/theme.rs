@@ -9,7 +9,7 @@ use std::sync::OnceLock;
 
 use lichen::tui::widget::{self, text_box};
 use ratatui::style::palette::tailwind;
-use ratatui::style::Color;
+use ratatui::style::{Color, Style, Stylize};
 
 /// Add terminals to this list that don't report TERM=xterm-256color but
 /// actually do support full features..
@@ -82,17 +82,25 @@ pub fn current() -> &'static Theme {
     })
 }
 
-pub fn text_box(status: text_box::Status) -> text_box::Stylesheet {
+pub fn text_box(status: text_box::Status, masked: bool) -> text_box::Stylesheet {
     let theme = current();
+
+    let bold_mask = |style: Style| if masked { style.bold() } else { style };
 
     match status {
         text_box::Status::Inactive => text_box::Stylesheet {
+            area: bold_mask(Style::default().fg(theme.color_inactive)),
+            cursor: Style::default(),
             borders: theme.color_inactive.into(),
         },
         text_box::Status::Hovered => text_box::Stylesheet {
+            area: bold_mask(Style::default().fg(theme.color_inactive)),
+            cursor: Style::default(),
             borders: theme.color_highlight.into(),
         },
         text_box::Status::Active => text_box::Stylesheet {
+            area: bold_mask(Style::default()),
+            cursor: Style::default().reversed(),
             borders: theme.color_selection.into(),
         },
     }

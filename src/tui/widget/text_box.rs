@@ -42,7 +42,7 @@ impl State {
 
 pub struct TextBox<'a> {
     state: &'a State,
-    style: Box<dyn Fn(Status) -> Stylesheet + 'a>,
+    style: Box<dyn Fn(Status, bool) -> Stylesheet + 'a>,
     title: Option<String>,
 }
 
@@ -51,7 +51,7 @@ impl<'a> TextBox<'a> {
     pub fn new(state: &'a State) -> Self {
         Self {
             state,
-            style: Box::new(|_| Stylesheet::default()),
+            style: Box::new(|_, _| Stylesheet::default()),
             title: None,
         }
     }
@@ -62,7 +62,7 @@ impl<'a> TextBox<'a> {
         self
     }
 
-    pub fn style(self, f: impl Fn(Status) -> Stylesheet + 'a) -> Self {
+    pub fn style(self, f: impl Fn(Status, bool) -> Stylesheet + 'a) -> Self {
         Self {
             style: Box::new(f),
             ..self
@@ -152,17 +152,21 @@ impl<'a, Message> Widget<Message> for TextBox<'a> {
         layout: &Layout,
         focused: Option<widget::Id>,
     ) {
-        let state = self.state.0.borrow();
+        let mut state = self.state.0.borrow_mut();
+        let focused = Some(state.id) == focused;
 
-        let status = if Some(state.id) == focused {
+        let status = if focused {
             Status::Active
         } else if state.hovered {
             Status::Hovered
         } else {
-            // TODO: Focus tracking
             Status::Inactive
         };
-        let style = (self.style)(status);
+
+        let style = (self.style)(status, state.area.mask_char().is_some());
+
+        state.area.set_style(style.area);
+        state.area.set_cursor_style(style.cursor);
 
         let mut block = Block::default()
             .border_style(style.borders)
@@ -176,7 +180,7 @@ impl<'a, Message> Widget<Message> for TextBox<'a> {
         frame.render_widget(block, layout.area);
 
         frame.render_widget(
-            self.state.0.borrow().area.widget(),
+            state.area.widget(),
             layout::pad_rect(layout.area, Padding::new(2, 2, 1, 1)),
         );
     }
@@ -201,6 +205,8 @@ where
 
 #[derive(Clone, Copy, Default)]
 pub struct Stylesheet {
+    pub area: Style,
+    pub cursor: Style,
     pub borders: Style,
 }
 
