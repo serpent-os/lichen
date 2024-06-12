@@ -1,8 +1,8 @@
-use std::mem::ManuallyDrop;
+use std::{mem::ManuallyDrop, time::Instant};
 
 use color_eyre::eyre;
 use futures::{future::BoxFuture, stream::BoxStream, Future, FutureExt, Stream, StreamExt};
-use tokio::sync::mpsc;
+use tokio::{sync::mpsc, time};
 
 use crate::tui::{event, widget, Element, Event, Screen, Shell};
 
@@ -73,12 +73,14 @@ pub async fn run(mut app: impl Application) -> eyre::Result<()> {
 
     let mut last_screen_size = screen.size()?;
 
-    // Draw initial view
     let mut root = ManuallyDrop::new(app.view());
     let mut layout = root.layout(last_screen_size);
-    screen.draw(|f| root.render(f, &layout, None))?;
 
     let (command_sender, mut command_receiver) = mpsc::channel(10);
+    let (redraw_sender, mut redraw_receiver) = mpsc::channel(1);
+
+    // Draw initial view
+    let _ = redraw_sender.send(()).await;
 
     let mut focused = None;
 
@@ -86,11 +88,12 @@ pub async fn run(mut app: impl Application) -> eyre::Result<()> {
         let mut shell = Shell::with_focused(focused);
         let mut events = vec![];
         let mut processed_events = vec![];
+        let mut redraw = false;
 
         // Block until an event or command message is received
         tokio::select! {
             event = screen.next_event() => {
-                if let Some(event) = event {
+                if let Some(event) = event.and_then(Event::from_crossterm) {
                     events.push(event);
                 }
             },
@@ -99,10 +102,14 @@ pub async fn run(mut app: impl Application) -> eyre::Result<()> {
                     shell.emit(message);
                 }
             }
+            _ = redraw_receiver.recv() => {
+                events.push(Event::RedrawRequested(Instant::now()));
+                redraw = true;
+            }
         }
 
         // Exhaust all immediately available events & command messages
-        while let Some(event) = screen.try_next_event() {
+        while let Some(event) = screen.try_next_event().and_then(Event::from_crossterm) {
             events.push(event);
         }
         while let Ok(message) = command_receiver.try_recv() {
@@ -119,7 +126,7 @@ pub async fn run(mut app: impl Application) -> eyre::Result<()> {
         }
 
         // Update widget tree w/ events
-        for event in events.into_iter().filter_map(Event::from_crossterm) {
+        for event in events.into_iter() {
             let status = root.update(&layout, event.clone(), &mut shell);
             processed_events.push((event, status));
         }
@@ -184,7 +191,16 @@ pub async fn run(mut app: impl Application) -> eyre::Result<()> {
             shell.request_redraw();
         }
 
-        if shell.is_redraw_requested() {
+        if let Some(redraw) = shell.requested_redraw() {
+            let sender = redraw_sender.clone();
+            let duration = redraw.after();
+            tokio::spawn(async move {
+                time::sleep(duration).await;
+                let _ = sender.send(()).await;
+            });
+        }
+
+        if redraw {
             screen.draw(|f| root.render(f, &layout, shell.focused()))?;
         }
 

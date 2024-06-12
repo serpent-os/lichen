@@ -5,7 +5,7 @@
 //! Welcome page
 
 use lichen::tui::{
-    widget::{button, hbox, paragraph, vbox},
+    widget::{button, hbox, paragraph, spinner, vbox},
     Element,
 };
 use ratatui::{
@@ -28,6 +28,7 @@ pub enum Message {
 #[derive(Default)]
 pub struct Welcome {
     ok: button::State,
+    spinner: spinner::State,
 }
 
 impl Welcome {
@@ -54,8 +55,14 @@ impl Welcome {
             .style(theme::button)
             .into();
 
-        let buttons = hbox(vec![ok]).flex(Flex::End).into();
+        let spinner = spinner(
+            &self.spinner,
+            vec!['-', '-', '=', '≡', '■', '≡', '=', '-', '-'],
+        )
+        .into();
 
-        vbox(vec![intro, buttons]).spacing(2).into()
+        let bottom_row = hbox(vec![spinner, ok]).flex(Flex::SpaceBetween).into();
+
+        vbox(vec![intro, bottom_row]).spacing(2).into()
     }
 }

@@ -18,6 +18,7 @@ pub use self::block::block;
 pub use self::box_layout::{hbox, vbox};
 pub use self::button::button;
 pub use self::paragraph::paragraph;
+pub use self::spinner::spinner;
 pub use self::text::text;
 pub use self::wrap::wrap;
 
@@ -25,6 +26,7 @@ pub mod block;
 pub mod box_layout;
 pub mod button;
 pub mod paragraph;
+pub mod spinner;
 pub mod text;
 pub mod text_box;
 pub mod wrap;

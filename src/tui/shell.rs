@@ -1,8 +1,10 @@
+use std::time::Duration;
+
 use super::widget;
 
 pub struct Shell<M> {
     relayout: bool,
-    redraw: bool,
+    redraw: Option<Redraw>,
     messages: Vec<M>,
     focus: Option<Focus>,
 }
@@ -11,7 +13,7 @@ impl<M> Default for Shell<M> {
     fn default() -> Self {
         Self {
             relayout: false,
-            redraw: false,
+            redraw: None,
             messages: vec![],
             focus: None,
         }
@@ -39,10 +41,14 @@ impl<M> Shell<M> {
     }
 
     pub fn request_redraw(&mut self) {
-        self.redraw = true;
+        self.redraw = Some(Redraw::Immediately);
     }
 
-    pub fn is_redraw_requested(&self) -> bool {
+    pub fn request_redraw_after(&mut self, duration: Duration) {
+        self.redraw = Some(Redraw::After(duration));
+    }
+
+    pub fn requested_redraw(&self) -> Option<Redraw> {
         self.redraw
     }
 
@@ -67,8 +73,12 @@ impl<M> Shell<M> {
         if other.relayout {
             self.relayout = true;
         }
-        if other.redraw {
-            self.redraw = true;
+        if let Some(b) = other.redraw {
+            if let Some(a) = self.redraw {
+                self.redraw = Some(a.merge(b));
+            } else {
+                self.redraw = Some(b);
+            }
         }
         if let Some(focused) = other.focus {
             self.focus = Some(focused);
@@ -99,4 +109,35 @@ impl<M> Shell<M> {
 enum Focus {
     Set(widget::Id),
     Unset,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum Redraw {
+    Immediately,
+    After(Duration),
+}
+
+impl Redraw {
+    pub fn after(&self) -> Duration {
+        if let Self::After(duration) = self {
+            *duration
+        } else {
+            Duration::ZERO
+        }
+    }
+
+    fn merge(self, other: Redraw) -> Self {
+        match (self, other) {
+            (Redraw::Immediately, Redraw::Immediately) => self,
+            (Redraw::Immediately, Redraw::After(_)) => self,
+            (Redraw::After(_), Redraw::Immediately) => other,
+            (Redraw::After(a), Redraw::After(b)) => {
+                if a < b {
+                    self
+                } else {
+                    other
+                }
+            }
+        }
+    }
 }

@@ -137,9 +137,11 @@ impl<'a, Message> Widget<Message> for TextBox<'a> {
         }
 
         if focused {
-            if state.area.input(event) {
-                shell.request_redraw();
-                return event::Status::Captured;
+            if let Some(input) = event.input() {
+                if state.area.input(input) {
+                    shell.request_redraw();
+                    return event::Status::Captured;
+                }
             }
         }
 

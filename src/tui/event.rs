@@ -1,11 +1,13 @@
+use std::time::Instant;
+
 use crossterm::event::{KeyEvent, MouseEvent};
-use serde::{Deserialize, Serialize};
 use tui_textarea::Input;
 
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug)]
 pub enum Event {
     Key(KeyEvent),
     Mouse(MouseEvent),
+    RedrawRequested(Instant),
 }
 
 impl Event {
@@ -19,15 +21,13 @@ impl Event {
             crossterm::event::Event::Resize(_, _) => None,
         }
     }
-}
 
-impl From<Event> for Input {
-    fn from(event: Event) -> Input {
-        match event {
-            Event::Key(key) => crossterm::event::Event::Key(key),
-            Event::Mouse(mouse) => crossterm::event::Event::Mouse(mouse),
+    pub fn input(self) -> Option<Input> {
+        match self {
+            Event::Key(key) => Some(crossterm::event::Event::Key(key).into()),
+            Event::Mouse(mouse) => Some(crossterm::event::Event::Mouse(mouse).into()),
+            Event::RedrawRequested(_) => None,
         }
-        .into()
     }
 }
 
