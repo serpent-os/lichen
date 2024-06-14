@@ -26,9 +26,6 @@ pub struct Icons {
 
 /// Provides a simple means to override the palette per environment
 pub struct Theme {
-    /// Text colour
-    pub color_text: Color,
-
     /// Selection colour
     pub color_selection: Color,
 
@@ -44,7 +41,6 @@ pub struct Theme {
 
 /// Basic theme for tty/non-256/emoji use
 pub static BASIC: Theme = Theme {
-    color_text: Color::White,
     color_selection: Color::LightBlue,
     color_highlight: Color::White,
     color_inactive: Color::DarkGray,
@@ -56,7 +52,6 @@ pub static BASIC: Theme = Theme {
 
 /// Refined theme for desktop use
 pub static REFINED: Theme = Theme {
-    color_text: Color::White,
     color_selection: tailwind::BLUE.c300,
     color_highlight: tailwind::SLATE.c400,
     color_inactive: tailwind::SLATE.c500,
