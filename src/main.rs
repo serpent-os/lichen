@@ -68,8 +68,8 @@ impl Application for App {
     fn update(&mut self, message: Message) -> Option<Command<Message>> {
         match message {
             Message::Page(message) => {
-                match self.current.update(message) {
-                    Some(event) => match event {
+                if let Some(event) = self.current.update(message) {
+                    match event {
                         page::Event::Welcome(event) => match event {
                             page::welcome::Event::Ok => {
                                 self.history
@@ -80,6 +80,9 @@ impl Application for App {
                         page::Event::User(event) => match event {
                             page::user::Event::User { username, password } => {
                                 println!("User submitted:\n  username: {username}\n  password: {password}");
+                                self.history
+                                    .push(mem::replace(&mut self.current, Page::timezone()));
+                                return Some(Command::focus_next());
                             }
                             page::user::Event::Cancel => {
                                 if let Some(prev) = self.history.pop() {
@@ -87,8 +90,17 @@ impl Application for App {
                                 }
                             }
                         },
-                    },
-                    _ => {}
+                        page::Event::Timezone(event) => match event {
+                            page::timezone::Event::Timezone(tz) => {
+                                println!("Timezone: {tz}");
+                            }
+                            page::timezone::Event::Cancel => {
+                                if let Some(prev) = self.history.pop() {
+                                    self.current = prev;
+                                }
+                            }
+                        },
+                    };
                 }
 
                 None
@@ -100,7 +112,7 @@ impl Application for App {
         }
     }
 
-    fn view<'a>(&'a self) -> Element<'a, Self::Message> {
+    fn view(&self) -> Element<'_, Self::Message> {
         block(self.current.view().map(Message::Page))
             .padding(Padding::uniform(2))
             .borders(Borders::NONE)
