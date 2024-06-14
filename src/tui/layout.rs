@@ -13,7 +13,7 @@ pub fn pad_constraint(constraint: Constraint, padding: u16) -> Constraint {
         Constraint::Min(x) => Constraint::Min(x + padding),
         Constraint::Max(x) => Constraint::Max(x + padding),
         Constraint::Length(x) => Constraint::Length(x + padding),
-        c @ _ => c,
+        c => c,
     }
 }
 

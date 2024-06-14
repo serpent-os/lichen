@@ -109,7 +109,7 @@ impl<'a, Message: 'a> Widget<Message> for Block<'a, Message> {
             .then_some(1)
             .unwrap_or_default();
 
-        let mut padding = self.padding.clone();
+        let mut padding = self.padding;
         padding.left += left;
         padding.right += right;
         padding.top += top;

@@ -64,7 +64,7 @@ pub trait Application {
     /// Update the Application with the incoming message
     fn update(&mut self, message: Self::Message) -> Option<Command<Self::Message>>;
     /// Materialize a view with the current state of the Application
-    fn view<'a>(&'a self) -> Element<'a, Self::Message>;
+    fn view(&self) -> Element<'_, Self::Message>;
 }
 
 pub async fn run(mut app: impl Application) -> eyre::Result<()> {
@@ -127,7 +127,7 @@ pub async fn run(mut app: impl Application) -> eyre::Result<()> {
 
         // Update widget tree w/ events
         for event in events.into_iter() {
-            let status = root.update(&layout, event.clone(), &mut shell);
+            let status = root.update(&layout, event, &mut shell);
             processed_events.push((event, status));
         }
 
@@ -228,11 +228,11 @@ fn handle_focus<M>(root: &Element<M>, shell: &mut Shell<M>, focus: Focus) {
         Focus::Next => match focused {
             Some(idx) if idx == focusable.len() - 1 => focusable.into_iter().next(),
             None => focusable.into_iter().next(),
-            Some(idx) => focusable.into_iter().skip(idx + 1).next(),
+            Some(idx) => focusable.into_iter().nth(idx + 1),
         },
         Focus::Previous => match focused {
             None | Some(0) => focusable.into_iter().last(),
-            Some(idx) => focusable.into_iter().take(idx).rev().next(),
+            Some(idx) => focusable.into_iter().take(idx).next_back(),
         },
     };
 

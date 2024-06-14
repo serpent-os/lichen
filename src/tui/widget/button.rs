@@ -85,7 +85,7 @@ where
     }
 
     fn layout(&self, available: Rect) -> Layout {
-        let mut padding = self.padding.clone();
+        let mut padding = self.padding;
         padding.left += 1;
         padding.right += 1;
         padding.top += 1;
@@ -130,12 +130,10 @@ where
                 MouseEventKind::Down(MouseButton::Left) => {
                     let pos = Position::new(mouse.column, mouse.row);
 
-                    if layout.area.contains(pos) {
-                        if self.on_press.is_some() {
-                            shell.request_redraw();
-                            state.pressed = true;
-                            return event::Status::Captured;
-                        }
+                    if layout.area.contains(pos) && self.on_press.is_some() {
+                        shell.request_redraw();
+                        state.pressed = true;
+                        return event::Status::Captured;
                     }
                 }
                 MouseEventKind::Up(MouseButton::Left) => {

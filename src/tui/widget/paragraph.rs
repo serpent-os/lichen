@@ -6,7 +6,7 @@ use ratatui::{
 
 use crate::tui::{widget, Element, Layout, Widget};
 
-pub fn paragraph<'a>(lines: Vec<Line<'a>>) -> Paragraph<'a> {
+pub fn paragraph(lines: Vec<Line<'_>>) -> Paragraph<'_> {
     Paragraph::new(lines)
 }
 

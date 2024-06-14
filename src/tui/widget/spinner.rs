@@ -9,7 +9,7 @@ use crate::tui::{event, widget, Element, Event, Layout, Shell, Widget};
 
 const UPDATE_INTERVAL: Duration = Duration::from_millis(150);
 
-pub fn spinner<'a>(state: &'a State, chars: Vec<char>) -> Spinner<'a> {
+pub fn spinner(state: &State, chars: Vec<char>) -> Spinner<'_> {
     Spinner::new(state, chars)
 }
 

@@ -16,7 +16,7 @@ use tui_textarea::TextArea;
 
 use crate::tui::{event, layout, widget, Element, Event, Layout, Shell, Widget};
 
-pub fn text_box<'a>(state: &'a State) -> TextBox<'a> {
+pub fn text_box(state: &State) -> TextBox<'_> {
     TextBox::new(state)
 }
 

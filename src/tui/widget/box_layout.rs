@@ -9,11 +9,11 @@ use ratatui::layout::{self, Constraint, Direction, Flex, Rect};
 
 use crate::tui::{event, widget, Element, Event, Layout, Shell, Widget};
 
-pub fn hbox<'a, Message>(children: Vec<Element<'a, Message>>) -> BoxLayout<'a, Message> {
+pub fn hbox<Message>(children: Vec<Element<'_, Message>>) -> BoxLayout<'_, Message> {
     BoxLayout::new(children).direction(Direction::Horizontal)
 }
 
-pub fn vbox<'a, Message>(children: Vec<Element<'a, Message>>) -> BoxLayout<'a, Message> {
+pub fn vbox<Message>(children: Vec<Element<'_, Message>>) -> BoxLayout<'_, Message> {
     BoxLayout::new(children).direction(Direction::Vertical)
 }
 
@@ -33,14 +33,14 @@ impl<'a, Message> BoxLayout<'a, Message> {
     ///  - `children` - Child widgets
     pub fn new(children: Vec<Element<'a, Message>>) -> Self {
         // let selected = RefCell::new(0);
-        let s = Self {
+
+        // s.update_states(s.children.borrow(), s.selected.borrow_mut());
+        Self {
             direction: Direction::Horizontal,
             children,
             flex: Flex::Legacy,
             spacing: 0,
-        };
-        // s.update_states(s.children.borrow(), s.selected.borrow_mut());
-        s
+        }
     }
 
     /// Set the flex property
@@ -85,7 +85,7 @@ impl<'a, Message: 'a> Widget<Message> for BoxLayout<'a, Message> {
         .flex(self.flex)
         .spacing(self.spacing)
         .split(available)
-        .into_iter()
+        .iter()
         .zip(&self.children)
         .map(|(area, child)| child.layout(*area))
         .collect();
@@ -105,7 +105,7 @@ impl<'a, Message: 'a> Widget<Message> for BoxLayout<'a, Message> {
         self.children
             .iter_mut()
             .zip(&layout.children)
-            .map(|(child, layout)| child.update(layout, event.clone(), shell))
+            .map(|(child, layout)| child.update(layout, event, shell))
             .max()
             .unwrap_or_default()
     }
