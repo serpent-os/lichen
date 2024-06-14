@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: Copyright © 2024 Serpent OS Developers
+//
+// SPDX-License-Identifier: MPL-2.0
+
 pub use self::application::Application;
 pub use self::element::Element;
 pub use self::event::Event;
