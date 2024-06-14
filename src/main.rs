@@ -18,6 +18,7 @@ use ratatui::widgets::{Borders, Padding};
 use self::page::Page;
 
 mod page;
+mod system;
 mod theme;
 
 #[tokio::main]
