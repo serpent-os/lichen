@@ -3,19 +3,20 @@
 // SPDX-License-Identifier: MPL-2.0
 
 //! Parsing for ISO-3166-1 files from iso-codes
+//! Essentially, loading of territories.
 
 use serde::Deserialize;
 
 /// Wrap the document stream from JSON into referenced
 /// entries in the input text
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize)]
 pub struct Document<'a> {
     #[serde(rename = "3166-1", borrow)]
     entries: Vec<Entry<'a>>,
 }
 
 /// Maps an entry from iso-codes to a Rusty struct.
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize)]
 pub struct Entry<'a> {
     /// Two-element code identifying the entry
     #[serde(rename = "alpha_2", borrow)]
@@ -48,7 +49,7 @@ mod tests {
 
     #[test]
     fn basic_load() {
-        let data = r#"
+        const TEST_DATA: &str = r#"
         {
             "3166-1": [
 
@@ -78,7 +79,7 @@ mod tests {
         }
           "#;
         let loaded =
-            serde_json::from_str::<Document>(data).expect("Failed to decode ISO-3166 JSON");
+            serde_json::from_str::<Document>(TEST_DATA).expect("Failed to decode ISO-3166 JSON");
 
         let ie = loaded
             .entries
