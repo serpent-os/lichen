@@ -2,6 +2,5 @@
 //
 // SPDX-License-Identifier: MPL-2.0
 
-//! Integration with various system APIs to enumerate locales, timezones, etc.
-
-mod locale;
+mod iso_3166;
+mod iso_639;

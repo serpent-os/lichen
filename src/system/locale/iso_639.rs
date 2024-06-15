@@ -95,7 +95,7 @@ pub struct EntryThreeCode<'a> {
 
 #[cfg(test)]
 mod tests {
-    use crate::system::iso_639::{DocumentThreeCode, DocumentTwoCode, Kind, Scope};
+    use super::{DocumentThreeCode, DocumentTwoCode, Kind, Scope};
 
     #[test]
     fn load_2() {
