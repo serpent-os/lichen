@@ -12,27 +12,34 @@ use serde::Deserialize;
 #[derive(Deserialize)]
 pub struct DocumentTwoCode<'a> {
     #[serde(rename = "639-2", borrow)]
-    entries: Vec<EntryTwoCode<'a>>,
+    pub entries: Vec<EntryTwoCode<'a>>,
 }
 
 /// A two-letter code entry
 #[derive(Deserialize)]
 pub struct EntryTwoCode<'a> {
     #[serde(rename = "alpha_2", borrow)]
-    code2: &'a str,
+    pub code2: Option<&'a str>,
 
     #[serde(rename = "alpha_3", borrow)]
-    code3: Option<&'a str>,
+    pub code3: &'a str,
 
     /// Official display name
     #[serde(borrow)]
-    name: &'a str,
+    pub name: &'a str,
+
+    /// Common name (optional)
+    #[serde(borrow)]
+    pub common_name: Option<&'a str>,
+
+    /// Three letter bibliographic
+    pub bibliographic: Option<&'a str>,
 }
 
 #[derive(Deserialize)]
 pub struct DocumentThreeCode<'a> {
     #[serde(rename = "639-3", borrow)]
-    entries: Vec<EntryThreeCode<'a>>,
+    pub entries: Vec<EntryThreeCode<'a>>,
 }
 
 /// Language scope
@@ -68,29 +75,33 @@ pub enum Kind {
 pub struct EntryThreeCode<'a> {
     /// Three letter code
     #[serde(rename = "alpha_3", borrow)]
-    code: &'a str,
+    pub code: &'a str,
 
     /// Sometimes a 2 letter code is present
     #[serde(rename = "alpha_2", borrow)]
-    code2: Option<&'a str>,
+    pub code2: Option<&'a str>,
 
     /// Official name
     #[serde(borrow)]
-    name: &'a str,
+    pub name: &'a str,
 
     /// Inverted name
     #[serde(borrow)]
-    inverted_name: Option<&'a str>,
+    pub inverted_name: Option<&'a str>,
 
     /// Scope of the language
-    scope: Scope,
+    pub scope: Scope,
 
     /// Type of language
     #[serde(rename = "type")]
-    kind: Kind,
+    pub kind: Kind,
 
     /// Three letter bibliographic
-    bibliographic: Option<&'a str>,
+    pub bibliographic: Option<&'a str>,
+
+    /// Common name (optional)
+    #[serde(borrow)]
+    pub common_name: Option<&'a str>,
 }
 
 #[cfg(test)]
@@ -126,7 +137,7 @@ mod tests {
         let ga = loaded
             .entries
             .iter()
-            .find(|i| i.code2 == "ga")
+            .find(|i| i.code3 == "gle")
             .expect("Failed to find GLE");
         assert_eq!(ga.name, "Irish");
     }
