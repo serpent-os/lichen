@@ -12,7 +12,7 @@ use serde::Deserialize;
 #[derive(Deserialize)]
 pub struct Document<'a> {
     #[serde(rename = "3166-1", borrow)]
-    entries: Vec<Entry<'a>>,
+    pub entries: Vec<Entry<'a>>,
 }
 
 /// Maps an entry from iso-codes to a Rusty struct.
@@ -20,27 +20,27 @@ pub struct Document<'a> {
 pub struct Entry<'a> {
     /// Two-element code identifying the entry
     #[serde(rename = "alpha_2", borrow)]
-    code2: &'a str,
+    pub code2: &'a str,
 
     /// Three-element code identifying the entry
     #[serde(rename = "alpha_3", borrow)]
-    code3: &'a str,
+    pub code3: &'a str,
 
     /// Unicode flag representation
     #[serde(borrow)]
-    flag: &'a str,
+    pub flag: &'a str,
 
     /// Normalised name
     #[serde(borrow)]
-    name: &'a str,
+    pub name: &'a str,
 
     /// Unique territory
     #[serde(borrow)]
-    numeric: &'a str,
+    pub numeric: &'a str,
 
     /// Formal name if present
     #[serde(borrow)]
-    official_name: Option<&'a str>,
+    pub official_name: Option<&'a str>,
 }
 
 #[cfg(test)]
@@ -84,7 +84,7 @@ mod tests {
         let ie = loaded
             .entries
             .iter()
-            .find(|e| e.code2 == "IE")
+            .find(|e| e.code3 == "IRL")
             .expect("Failed to find locale");
         assert_eq!(ie.name, "Ireland");
         eprintln!("Ireland: {}", ie.flag);

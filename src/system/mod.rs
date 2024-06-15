@@ -4,4 +4,4 @@
 
 //! Integration with various system APIs to enumerate locales, timezones, etc.
 
-mod locale;
+pub mod locale;
