@@ -4,6 +4,7 @@
 
 //! Registry of languages and territories.
 
+use core::fmt;
 use std::{collections::HashMap, fs};
 
 use super::{iso_3166, iso_639, Error};
@@ -17,6 +18,20 @@ pub struct Registry {
     places_lookup: HashMap<String, usize>,
     languages: Vec<Language>,
     languages_lookup: HashMap<String, usize>,
+}
+
+/// Locale joins Territory + Language
+pub struct Locale<'a> {
+    pub name: String,
+    pub display_name: String,
+    pub language: &'a Language,
+    pub territory: &'a Territory,
+}
+
+impl fmt::Display for Locale<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(&self.display_name)
+    }
 }
 
 /// Sane representation for UI purposes
@@ -159,6 +174,39 @@ impl Registry {
             None
         }
     }
+
+    /// Attempt to retrieve a locale combination
+    pub fn locale<'a>(&self, id: impl AsRef<str>) -> Option<Locale<'_>> {
+        let id = id.as_ref().to_lowercase();
+
+        // Handle .codeset
+        let (left, _codeset) = if let Some(idx) = id.find('.') {
+            id.split_at(idx)
+        } else {
+            (id.as_str(), "")
+        };
+
+        // Now handle a modifier
+        let (code, _modifier) = if let Some(idx) = left.find('@') {
+            left.split_at(idx)
+        } else {
+            (left, "")
+        };
+
+        // Split on '_' and map into language/territory
+        let (language, territory) = code
+            .split_once('_')
+            .and_then(|(l, t)| Some((self.language(l)?, self.territory(t)?)))?;
+
+        let display_name = format!("{} ({})", &language.display_name, &territory.display_name);
+
+        Some(Locale {
+            name: id.clone(),
+            display_name,
+            language,
+            territory,
+        })
+    }
 }
 
 #[cfg(test)]
@@ -186,5 +234,14 @@ mod tests {
         let dan = r.language("dan").expect("Cannot find Danish by dan");
         let dn = r.language("da").expect("Cannot find Danish by dn");
         assert_eq!(dan, dn);
+    }
+
+    #[test]
+    fn test_locale() {
+        let r = Registry::new().expect("Failed to initialise registry");
+        let en_ie = r.locale("en_IE.UTF-8").expect("Failed to find en_IE.UTF-8");
+        assert_eq!(en_ie.display_name, "English (Ireland)");
+        let ga_ie = r.locale("ga_IE.UTF-8").expect("Failed to find ga_IE.UTF-8");
+        assert_eq!(ga_ie.display_name, "Irish (Ireland)");
     }
 }
