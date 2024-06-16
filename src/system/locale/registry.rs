@@ -216,14 +216,25 @@ impl Registry {
         };
 
         // Split on '_' and map into language/territory
-        let (language, territory) = code
-            .split_once('_')
-            .and_then(|(l, t)| Some((self.language(l)?, self.territory(t)?)))?;
+        let (l_code, t_code) = code.split_once('_')?;
+        let language = self.language(l_code)?;
+        let territory = self.territory(t_code)?;
 
+        // Cook functioning names/ids with fixed formatting
         let display_name = format!("{} ({})", &language.display_name, &territory.display_name);
+        let mut new_id = Vec::new();
+        new_id.push(l_code.into());
+        new_id.push("_".into());
+        new_id.push(t_code.to_uppercase());
+        if let Some(m) = modifier.as_ref() {
+            new_id.push(format!("@{m}"));
+        }
+        if let Some(codeset) = codeset.as_ref() {
+            new_id.push(format!(".{}", codeset));
+        }
 
         Some(Locale {
-            name: id.clone(),
+            name: new_id.into_iter().collect(),
             display_name,
             language,
             territory,
@@ -235,6 +246,8 @@ impl Registry {
 
 #[cfg(test)]
 mod tests {
+    use std::process::Command;
+
     use super::Registry;
 
     #[test]
@@ -271,5 +284,23 @@ mod tests {
 
         eprintln!("en_IE = {en_ie:?}");
         eprintln!("ga_IE = {ga_ie:?}");
+    }
+
+    #[test]
+    fn test_get_locales() {
+        let r = Registry::new().expect("Failed to initialise registry");
+        let output = Command::new("localectl")
+            .arg("list-locales")
+            .output()
+            .expect("Failed to run localectl");
+        let output = String::from_utf8(output.stdout).expect("Cannot decode output");
+        for line in output.lines() {
+            if line == "C.UTF-8" {
+                continue;
+            }
+            eprintln!("looking up {line}");
+            let locale = r.locale(line).expect("Failed to find a predefined locale");
+            eprintln!("locale {line} = {locale:?}");
+        }
     }
 }
