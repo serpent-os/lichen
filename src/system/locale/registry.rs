@@ -21,11 +21,14 @@ pub struct Registry {
 }
 
 /// Locale joins Territory + Language
+#[derive(Debug)]
 pub struct Locale<'a> {
     pub name: String,
     pub display_name: String,
     pub language: &'a Language,
     pub territory: &'a Territory,
+    pub modifier: Option<String>,
+    pub codeset: Option<String>,
 }
 
 impl fmt::Display for Locale<'_> {
@@ -176,21 +179,40 @@ impl Registry {
     }
 
     /// Attempt to retrieve a locale combination
-    pub fn locale<'a>(&self, id: impl AsRef<str>) -> Option<Locale<'_>> {
+    pub fn locale(&self, id: impl AsRef<str>) -> Option<Locale<'_>> {
         let id = id.as_ref().to_lowercase();
 
         // Handle .codeset
-        let (left, _codeset) = if let Some(idx) = id.find('.') {
+        let (left, codeset) = if let Some(idx) = id.find('.') {
             id.split_at(idx)
         } else {
             (id.as_str(), "")
         };
 
+        // Fix "utf8" codeset
+        let codeset = if codeset.is_empty() {
+            None
+        } else {
+            Some(
+                codeset
+                    .replace("utf8", "UTF-8")
+                    .chars()
+                    .skip(1)
+                    .collect::<String>()
+                    .to_uppercase(),
+            )
+        };
+
         // Now handle a modifier
-        let (code, _modifier) = if let Some(idx) = left.find('@') {
+        let (code, modifier) = if let Some(idx) = left.find('@') {
             left.split_at(idx)
         } else {
             (left, "")
+        };
+        let modifier = if modifier.is_empty() {
+            None
+        } else {
+            Some(modifier.chars().skip(1).collect::<String>().to_uppercase())
         };
 
         // Split on '_' and map into language/territory
@@ -205,6 +227,8 @@ impl Registry {
             display_name,
             language,
             territory,
+            codeset,
+            modifier,
         })
     }
 }
@@ -223,6 +247,7 @@ mod tests {
 
         let dk = r.territory("dk").expect("Cannot find Denmark by dk");
         assert_eq!(dk.display_name, "Kingdom of Denmark");
+        eprintln!("dk = {dk:?}");
     }
 
     #[test]
@@ -243,5 +268,8 @@ mod tests {
         assert_eq!(en_ie.display_name, "English (Ireland)");
         let ga_ie = r.locale("ga_IE.UTF-8").expect("Failed to find ga_IE.UTF-8");
         assert_eq!(ga_ie.display_name, "Irish (Ireland)");
+
+        eprintln!("en_IE = {en_ie:?}");
+        eprintln!("ga_IE = {ga_ie:?}");
     }
 }
