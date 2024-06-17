@@ -4,7 +4,7 @@
 
 //! TUI frontend for lichen
 
-use std::mem;
+use std::{env, mem};
 
 use crossterm::event::{KeyCode, KeyEventKind};
 use lichen::tui::{
@@ -14,7 +14,7 @@ use lichen::tui::{
     Application, Element, Event,
 };
 use ratatui::widgets::{Borders, Padding};
-use system::disk::Disk;
+use system::{disk::Disk, locale};
 
 use self::page::Page;
 
@@ -27,6 +27,13 @@ async fn main() -> color_eyre::Result<()> {
     // find all disks
     let disks = Disk::discover()?;
     eprintln!("System disks: {disks:?}");
+    let lang = env::var("LANG").unwrap_or_default();
+    let registry = locale::Registry::new()?;
+    if let Some(locale) = registry.locale(lang) {
+        eprintln!("Found your current locale: {locale:?}");
+    } else {
+        eprintln!("Couldn't find your current locale. Is LANG set?");
+    }
     application::run(App::new()).await
 }
 
