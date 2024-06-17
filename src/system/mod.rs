@@ -4,5 +4,5 @@
 
 //! Integration with various system APIs to enumerate locales, timezones, etc.
 
-pub mod disks;
+pub mod disk;
 pub mod locale;
