@@ -10,6 +10,7 @@ use thiserror::Error;
 
 /// Indicates type of disk device
 #[derive(Debug)]
+#[allow(clippy::upper_case_acronyms)]
 pub enum Kind {
     /// Hard disk drive
     HDD,
