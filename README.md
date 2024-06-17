@@ -6,7 +6,7 @@ An early days installer for Serpent OS to meet a deadline.
 
     cargo build
     sudo ./target/debug/lichen
-    # 'Q' to quit, 'ESC' to kill focus
+    # 'q' to quit, 'ESC' to kill focus
 
 ## License
 
