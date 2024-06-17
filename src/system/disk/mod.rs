@@ -23,3 +23,5 @@ pub enum Error {
 
 mod disk;
 pub use disk::Disk;
+mod partition;
+pub use partition::Partition;

@@ -5,11 +5,13 @@
 //! Disk management
 
 use std::{
-    fs,
+    fs::{self, File},
     path::{Path, PathBuf},
 };
 
-use super::Error;
+use gpt::GptConfig;
+
+use super::{Error, Partition};
 
 /// Indicates type of disk device
 #[derive(Debug)]
@@ -94,5 +96,19 @@ impl Disk {
             .flatten()
             .collect::<Vec<_>>();
         Ok(disks)
+    }
+
+    /// Return all partitions on the disk if it is GPT
+    pub fn partitions(&self) -> Result<Vec<Partition>, Error> {
+        let device = Box::new(File::open(&self.path)?);
+        let table = GptConfig::default()
+            .writable(false)
+            .initialized(true)
+            .open_from_device(device)?;
+        let mut parts = vec![];
+        for (_, part) in table.partitions().iter() {
+            parts.push(part.try_into()?)
+        }
+        Ok(parts)
     }
 }

@@ -26,7 +26,12 @@ mod theme;
 async fn main() -> color_eyre::Result<()> {
     // find all disks
     let disks = Disk::discover()?;
-    eprintln!("System disks: {disks:?}");
+    for disk in disks {
+        eprintln!("Disk = {disk:?}");
+        if let Ok(parts) = disk.partitions() {
+            eprintln!("  Partitions = {parts:?}");
+        }
+    }
     let lang = env::var("LANG").unwrap_or_default();
     let registry = locale::Registry::new()?;
     if let Some(locale) = registry.locale(lang) {
