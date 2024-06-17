@@ -16,10 +16,7 @@ use crossterm::{
     cursor,
     event::{DisableMouseCapture, EnableMouseCapture, Event},
     execute,
-    terminal::{
-        disable_raw_mode, enable_raw_mode, is_raw_mode_enabled, EnterAlternateScreen,
-        LeaveAlternateScreen,
-    },
+    terminal::{disable_raw_mode, enable_raw_mode, is_raw_mode_enabled, EnterAlternateScreen, LeaveAlternateScreen},
 };
 
 use futures::{FutureExt, StreamExt};
@@ -48,12 +45,7 @@ impl Screen {
         // Required colour output due to input selections etc
         crossterm::style::force_color_output(true);
 
-        execute!(
-            stdout(),
-            EnterAlternateScreen,
-            EnableMouseCapture,
-            cursor::Hide
-        )?;
+        execute!(stdout(), EnterAlternateScreen, EnableMouseCapture, cursor::Hide)?;
         enable_raw_mode()?;
         let term = Terminal::new(CrosstermBackend::new(stdout()))?;
 
@@ -161,12 +153,7 @@ impl DerefMut for Screen {
 /// Finish terminal integrations
 fn end_tty() -> Result<(), io::Error> {
     if is_raw_mode_enabled()? {
-        execute!(
-            stdout(),
-            LeaveAlternateScreen,
-            DisableMouseCapture,
-            cursor::Show
-        )?;
+        execute!(stdout(), LeaveAlternateScreen, DisableMouseCapture, cursor::Show)?;
         disable_raw_mode()?;
     }
     Ok(())

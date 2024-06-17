@@ -132,8 +132,7 @@ mod tests {
         }
         "#;
 
-        let loaded = serde_json::from_str::<DocumentTwoCode>(TEST_DATA)
-            .expect("Failed to decode ISO-639 2-code data");
+        let loaded = serde_json::from_str::<DocumentTwoCode>(TEST_DATA).expect("Failed to decode ISO-639 2-code data");
         let ga = loaded
             .entries
             .iter()
@@ -171,8 +170,8 @@ mod tests {
         }
         "#;
 
-        let loaded = serde_json::from_str::<DocumentThreeCode>(TEST_DATA)
-            .expect("Failed to decode ISO-639 3-code data");
+        let loaded =
+            serde_json::from_str::<DocumentThreeCode>(TEST_DATA).expect("Failed to decode ISO-639 3-code data");
         let ga = loaded
             .entries
             .iter()

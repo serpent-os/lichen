@@ -85,20 +85,14 @@ impl<'a, Message> Widget<Message> for TextBox<'a> {
     fn layout(&self, available: Rect) -> Layout {
         Layout {
             area: Rect {
-                height: ((self.state.0.borrow().area.lines().len() as u16).max(1) + 2)
-                    .min(available.height),
+                height: ((self.state.0.borrow().area.lines().len() as u16).max(1) + 2).min(available.height),
                 ..available
             },
             children: vec![],
         }
     }
 
-    fn update(
-        &mut self,
-        layout: &Layout,
-        event: Event,
-        shell: &mut Shell<Message>,
-    ) -> event::Status {
+    fn update(&mut self, layout: &Layout, event: Event, shell: &mut Shell<Message>) -> event::Status {
         let mut state = self.state.0.borrow_mut();
         let focused = Some(state.id) == shell.focused();
 
@@ -148,12 +142,7 @@ impl<'a, Message> Widget<Message> for TextBox<'a> {
         event::Status::Ignored
     }
 
-    fn render(
-        &self,
-        frame: &mut ratatui::prelude::Frame,
-        layout: &Layout,
-        focused: Option<widget::Id>,
-    ) {
+    fn render(&self, frame: &mut ratatui::prelude::Frame, layout: &Layout, focused: Option<widget::Id>) {
         let mut state = self.state.0.borrow_mut();
         let focused = Some(state.id) == focused;
 
@@ -190,9 +179,7 @@ impl<'a, Message> Widget<Message> for TextBox<'a> {
     fn flatten(&self) -> Vec<widget::Info> {
         let state = &self.state.0.borrow();
 
-        Some(widget::Info::focusable(state.id))
-            .into_iter()
-            .collect()
+        Some(widget::Info::focusable(state.id)).into_iter().collect()
     }
 }
 

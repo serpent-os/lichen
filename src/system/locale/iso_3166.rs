@@ -78,8 +78,7 @@ mod tests {
             ]
         }
           "#;
-        let loaded =
-            serde_json::from_str::<Document>(TEST_DATA).expect("Failed to decode ISO-3166 JSON");
+        let loaded = serde_json::from_str::<Document>(TEST_DATA).expect("Failed to decode ISO-3166 JSON");
 
         let ie = loaded
             .entries

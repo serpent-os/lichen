@@ -15,10 +15,7 @@ use ratatui::{
 
 use crate::tui::{event, layout, widget, Element, Event, Layout, Shell, Widget};
 
-pub fn button<'a, Message>(
-    state: &'a State,
-    content: impl Into<Element<'a, Message>>,
-) -> Button<'a, Message> {
+pub fn button<'a, Message>(state: &'a State, content: impl Into<Element<'a, Message>>) -> Button<'a, Message> {
     Button {
         state,
         content: content.into(),
@@ -107,12 +104,7 @@ where
         }
     }
 
-    fn update(
-        &mut self,
-        layout: &Layout,
-        event: Event,
-        shell: &mut Shell<Message>,
-    ) -> event::Status {
+    fn update(&mut self, layout: &Layout, event: Event, shell: &mut Shell<Message>) -> event::Status {
         let mut state = self.state.0.borrow_mut();
         let focused = Some(state.id) == shell.focused();
 
@@ -172,12 +164,7 @@ where
         self.content.update(&layout.children[0], event, shell)
     }
 
-    fn render(
-        &self,
-        frame: &mut ratatui::prelude::Frame,
-        layout: &Layout,
-        focused: Option<widget::Id>,
-    ) {
+    fn render(&self, frame: &mut ratatui::prelude::Frame, layout: &Layout, focused: Option<widget::Id>) {
         let state = self.state.0.borrow();
 
         let status = if state.pressed {

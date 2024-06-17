@@ -58,60 +58,24 @@ impl<'a, Message> Block<'a, Message> {
 
 impl<'a, Message: 'a> Widget<Message> for Block<'a, Message> {
     fn width(&self, height: u16) -> Constraint {
-        let left = self
-            .borders
-            .contains(Borders::LEFT)
-            .then_some(1)
-            .unwrap_or_default()
-            + self.padding.left;
-        let right = self
-            .borders
-            .contains(Borders::RIGHT)
-            .then_some(1)
-            .unwrap_or_default()
-            + self.padding.right;
+        let left = self.borders.contains(Borders::LEFT).then_some(1).unwrap_or_default() + self.padding.left;
+        let right = self.borders.contains(Borders::RIGHT).then_some(1).unwrap_or_default() + self.padding.right;
 
         layout::pad_constraint(self.content.width(height), left + right)
     }
 
     fn height(&self, width: u16) -> Constraint {
-        let top = self
-            .borders
-            .contains(Borders::TOP)
-            .then_some(1)
-            .unwrap_or_default()
-            + self.padding.top;
-        let bottom = self
-            .borders
-            .contains(Borders::BOTTOM)
-            .then_some(1)
-            .unwrap_or_default()
-            + self.padding.bottom;
+        let top = self.borders.contains(Borders::TOP).then_some(1).unwrap_or_default() + self.padding.top;
+        let bottom = self.borders.contains(Borders::BOTTOM).then_some(1).unwrap_or_default() + self.padding.bottom;
 
         layout::pad_constraint(self.content.height(width), top + bottom)
     }
 
     fn layout(&self, available: Rect) -> Layout {
-        let left = self
-            .borders
-            .contains(Borders::LEFT)
-            .then_some(1)
-            .unwrap_or_default();
-        let right = self
-            .borders
-            .contains(Borders::RIGHT)
-            .then_some(1)
-            .unwrap_or_default();
-        let top = self
-            .borders
-            .contains(Borders::TOP)
-            .then_some(1)
-            .unwrap_or_default();
-        let bottom = self
-            .borders
-            .contains(Borders::BOTTOM)
-            .then_some(1)
-            .unwrap_or_default();
+        let left = self.borders.contains(Borders::LEFT).then_some(1).unwrap_or_default();
+        let right = self.borders.contains(Borders::RIGHT).then_some(1).unwrap_or_default();
+        let top = self.borders.contains(Borders::TOP).then_some(1).unwrap_or_default();
+        let bottom = self.borders.contains(Borders::BOTTOM).then_some(1).unwrap_or_default();
 
         let mut padding = self.padding;
         padding.left += left;
@@ -135,21 +99,11 @@ impl<'a, Message: 'a> Widget<Message> for Block<'a, Message> {
         }
     }
 
-    fn update(
-        &mut self,
-        layout: &Layout,
-        event: Event,
-        shell: &mut Shell<Message>,
-    ) -> event::Status {
+    fn update(&mut self, layout: &Layout, event: Event, shell: &mut Shell<Message>) -> event::Status {
         self.content.update(&layout.children[0], event, shell)
     }
 
-    fn render(
-        &self,
-        frame: &mut ratatui::prelude::Frame,
-        layout: &Layout,
-        focused: Option<widget::Id>,
-    ) {
+    fn render(&self, frame: &mut ratatui::prelude::Frame, layout: &Layout, focused: Option<widget::Id>) {
         let mut border = ratatui::widgets::Block::default()
             .border_type(BorderType::Rounded)
             .border_style(self.border_style)

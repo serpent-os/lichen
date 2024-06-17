@@ -97,12 +97,7 @@ pub trait Widget<Message> {
     }
 
     /// Pass an update down the chain of the widget
-    fn update(
-        &mut self,
-        _layout: &Layout,
-        _event: Event,
-        _shell: &mut Shell<Message>,
-    ) -> event::Status {
+    fn update(&mut self, _layout: &Layout, _event: Event, _shell: &mut Shell<Message>) -> event::Status {
         event::Status::Ignored
     }
 

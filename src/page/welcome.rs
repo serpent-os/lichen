@@ -55,11 +55,7 @@ impl Welcome {
             .style(theme::button)
             .into();
 
-        let spinner = spinner(
-            &self.spinner,
-            vec!['-', '-', '=', '≡', '■', '≡', '=', '-', '-'],
-        )
-        .into();
+        let spinner = spinner(&self.spinner, vec!['-', '-', '=', '≡', '■', '≡', '=', '-', '-']).into();
 
         let bottom_row = hbox(vec![spinner, ok]).flex(Flex::SpaceBetween).into();
 

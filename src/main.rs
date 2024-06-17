@@ -53,15 +53,13 @@ impl Application for App {
 
     fn handle(&self, event: Event, status: event::Status) -> Option<Self::Message> {
         match event {
-            Event::Key(e) if status == event::Status::Ignored && e.kind == KeyEventKind::Press => {
-                match e.code {
-                    KeyCode::Char('q') => Some(Message::Quit),
-                    KeyCode::Tab => Some(Message::FocusNext),
-                    KeyCode::BackTab => Some(Message::FocusPrevious),
-                    KeyCode::Esc => Some(Message::Unfocus),
-                    _ => None,
-                }
-            }
+            Event::Key(e) if status == event::Status::Ignored && e.kind == KeyEventKind::Press => match e.code {
+                KeyCode::Char('q') => Some(Message::Quit),
+                KeyCode::Tab => Some(Message::FocusNext),
+                KeyCode::BackTab => Some(Message::FocusPrevious),
+                KeyCode::Esc => Some(Message::Unfocus),
+                _ => None,
+            },
             _ => None,
         }
     }
@@ -73,16 +71,14 @@ impl Application for App {
                     match event {
                         page::Event::Welcome(event) => match event {
                             page::welcome::Event::Ok => {
-                                self.history
-                                    .push(mem::replace(&mut self.current, Page::user()));
+                                self.history.push(mem::replace(&mut self.current, Page::user()));
                                 return Some(Command::focus_next());
                             }
                         },
                         page::Event::User(event) => match event {
                             page::user::Event::User { username, password } => {
                                 println!("User submitted:\n  username: {username}\n  password: {password}");
-                                self.history
-                                    .push(mem::replace(&mut self.current, Page::timezone()));
+                                self.history.push(mem::replace(&mut self.current, Page::timezone()));
                                 return Some(Command::focus_next());
                             }
                             page::user::Event::Cancel => {

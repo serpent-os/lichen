@@ -71,16 +71,12 @@ impl<'a, Message: 'a> Widget<Message> for BoxLayout<'a, Message> {
 
     fn layout(&self, available: Rect) -> Layout {
         let children = match self.direction {
-            Direction::Horizontal => layout::Layout::horizontal(
-                self.children
-                    .iter()
-                    .map(|child| child.width(available.height)),
-            ),
-            Direction::Vertical => layout::Layout::vertical(
-                self.children
-                    .iter()
-                    .map(|child| child.height(available.width)),
-            ),
+            Direction::Horizontal => {
+                layout::Layout::horizontal(self.children.iter().map(|child| child.width(available.height)))
+            }
+            Direction::Vertical => {
+                layout::Layout::vertical(self.children.iter().map(|child| child.height(available.width)))
+            }
         }
         .flex(self.flex)
         .spacing(self.spacing)
@@ -96,12 +92,7 @@ impl<'a, Message: 'a> Widget<Message> for BoxLayout<'a, Message> {
         }
     }
 
-    fn update(
-        &mut self,
-        layout: &Layout,
-        event: Event,
-        shell: &mut Shell<Message>,
-    ) -> event::Status {
+    fn update(&mut self, layout: &Layout, event: Event, shell: &mut Shell<Message>) -> event::Status {
         self.children
             .iter_mut()
             .zip(&layout.children)
@@ -110,12 +101,7 @@ impl<'a, Message: 'a> Widget<Message> for BoxLayout<'a, Message> {
             .unwrap_or_default()
     }
 
-    fn render(
-        &self,
-        frame: &mut ratatui::prelude::Frame,
-        layout: &Layout,
-        focused: Option<widget::Id>,
-    ) {
+    fn render(&self, frame: &mut ratatui::prelude::Frame, layout: &Layout, focused: Option<widget::Id>) {
         self.children
             .iter()
             .zip(&layout.children)

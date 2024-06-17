@@ -34,12 +34,7 @@ impl<'a, Message: 'a> Element<'a, Message> {
         self.widget.layout(available)
     }
 
-    pub fn update(
-        &mut self,
-        layout: &Layout,
-        event: Event,
-        shell: &mut Shell<Message>,
-    ) -> event::Status {
+    pub fn update(&mut self, layout: &Layout, event: Event, shell: &mut Shell<Message>) -> event::Status {
         self.widget.update(layout, event, shell)
     }
 
@@ -70,21 +65,11 @@ impl<'a, Message: 'a> Element<'a, Message> {
                 self.widget.layout(available)
             }
 
-            fn render(
-                &self,
-                frame: &mut ratatui::prelude::Frame,
-                layout: &Layout,
-                focused: Option<widget::Id>,
-            ) {
+            fn render(&self, frame: &mut ratatui::prelude::Frame, layout: &Layout, focused: Option<widget::Id>) {
                 self.widget.render(frame, layout, focused)
             }
 
-            fn update(
-                &mut self,
-                layout: &Layout,
-                event: Event,
-                shell: &mut Shell<U>,
-            ) -> event::Status {
+            fn update(&mut self, layout: &Layout, event: Event, shell: &mut Shell<U>) -> event::Status {
                 let mut local_shell = Shell::with_focused(shell.focused());
 
                 let status = self.widget.update(layout, event, &mut local_shell);

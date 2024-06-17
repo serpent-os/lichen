@@ -67,10 +67,7 @@ impl User {
 
         let confirm_password = text_box(&self.password_confirmation)
             .hide_chars()
-            .title(format!(
-                "{}Confirm password ",
-                theme::current().icons.password
-            ))
+            .title(format!("{}Confirm password ", theme::current().icons.password))
             .style(theme::text_box);
 
         let buttons = hbox(vec![

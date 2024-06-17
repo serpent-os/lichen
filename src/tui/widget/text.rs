@@ -44,21 +44,11 @@ impl<'a, Message: 'a> Widget<Message> for Text<'a> {
         }
     }
 
-    fn update(
-        &mut self,
-        _layout: &Layout,
-        _event: Event,
-        _shell: &mut Shell<Message>,
-    ) -> event::Status {
+    fn update(&mut self, _layout: &Layout, _event: Event, _shell: &mut Shell<Message>) -> event::Status {
         event::Status::Ignored
     }
 
-    fn render(
-        &self,
-        frame: &mut ratatui::prelude::Frame,
-        layout: &Layout,
-        _focused: Option<widget::Id>,
-    ) {
+    fn render(&self, frame: &mut ratatui::prelude::Frame, layout: &Layout, _focused: Option<widget::Id>) {
         frame.render_widget(ratatui::text::Text::raw(self.content.as_ref()), layout.area)
     }
 }

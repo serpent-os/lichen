@@ -53,9 +53,7 @@ fn discover_disks() -> Result<Vec<Disk>, Error> {
         }
 
         // Root level devices, not interested in child partitions as yet.
-        let ancestors = fs::read_dir(slavedir)?
-            .filter_map(|m| m.ok())
-            .collect::<Vec<_>>();
+        let ancestors = fs::read_dir(slavedir)?.filter_map(|m| m.ok()).collect::<Vec<_>>();
         if !ancestors.is_empty() {
             continue;
         }
@@ -79,9 +77,8 @@ fn discover_disks() -> Result<Vec<Disk>, Error> {
         let model = fs::read_to_string(device_link.join("model"))
             .ok()
             .map(|f| f.trim().to_string());
-        let block_size = str::parse::<u64>(
-            fs::read_to_string(entry.path().join("queue").join("physical_block_size"))?.trim(),
-        )?;
+        let block_size =
+            str::parse::<u64>(fs::read_to_string(entry.path().join("queue").join("physical_block_size"))?.trim())?;
         let size = str::parse::<u64>(fs::read_to_string(entry.path().join("size"))?.trim())?;
 
         let path = PathBuf::from("/dev").join(entry.file_name());

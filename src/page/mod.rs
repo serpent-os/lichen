@@ -52,13 +52,9 @@ impl Page {
     /// Dispatch update
     pub fn update(&mut self, message: Message) -> Option<Event> {
         match (self, message) {
-            (Self::Welcome(state), Message::Welcome(message)) => {
-                Some(Event::Welcome(state.update(message)))
-            }
+            (Self::Welcome(state), Message::Welcome(message)) => Some(Event::Welcome(state.update(message))),
             (Self::User(state), Message::User(message)) => Some(Event::User(state.update(message))),
-            (Self::Timezone(state), Message::Timezone(message)) => {
-                Some(Event::Timezone(state.update(message)))
-            }
+            (Self::Timezone(state), Message::Timezone(message)) => Some(Event::Timezone(state.update(message))),
             _ => None,
         }
     }

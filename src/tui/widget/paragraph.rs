@@ -37,12 +37,7 @@ impl<'a, Message: 'a> Widget<Message> for Paragraph<'a> {
         Constraint::Length(self.inner.line_count(width) as u16)
     }
 
-    fn render(
-        &self,
-        frame: &mut ratatui::prelude::Frame,
-        layout: &Layout,
-        _focused: Option<widget::Id>,
-    ) {
+    fn render(&self, frame: &mut ratatui::prelude::Frame, layout: &Layout, _focused: Option<widget::Id>) {
         self.inner.render_ref(layout.area, frame.buffer_mut());
     }
 }

@@ -46,12 +46,7 @@ impl<'a, Message: 'a> Widget<Message> for Spinner<'a> {
         Constraint::Length(1)
     }
 
-    fn update(
-        &mut self,
-        _layout: &Layout,
-        event: Event,
-        shell: &mut Shell<Message>,
-    ) -> event::Status {
+    fn update(&mut self, _layout: &Layout, event: Event, shell: &mut Shell<Message>) -> event::Status {
         let mut state = self.state.0.borrow_mut();
 
         if let Event::RedrawRequested(now) = event {
@@ -73,12 +68,7 @@ impl<'a, Message: 'a> Widget<Message> for Spinner<'a> {
         event::Status::Ignored
     }
 
-    fn render(
-        &self,
-        frame: &mut ratatui::prelude::Frame,
-        layout: &Layout,
-        _focused: Option<widget::Id>,
-    ) {
+    fn render(&self, frame: &mut ratatui::prelude::Frame, layout: &Layout, _focused: Option<widget::Id>) {
         let state = self.state.0.borrow();
 
         if let Some(c) = self.chars.get(state.current) {
