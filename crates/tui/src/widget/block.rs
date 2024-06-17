@@ -8,7 +8,7 @@ use ratatui::{
     widgets::{BorderType, Borders, Padding},
 };
 
-use crate::tui::{event, layout, widget, Element, Event, Layout, Shell, Widget};
+use crate::{event, layout, widget, Element, Event, Layout, Shell, Widget};
 
 pub fn block<'a, Message>(content: impl Into<Element<'a, Message>>) -> Block<'a, Message> {
     Block::new(content)

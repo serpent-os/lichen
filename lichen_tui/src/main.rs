@@ -7,19 +7,18 @@
 use std::{env, mem};
 
 use crossterm::event::{KeyCode, KeyEventKind};
-use lichen::tui::{
+use ratatui::widgets::{Borders, Padding};
+use system::{disk::Disk, locale};
+use tui::{
     application::{self, Command},
     event,
     widget::block,
     Application, Element, Event,
 };
-use ratatui::widgets::{Borders, Padding};
-use system::{disk::Disk, locale};
 
 use self::page::Page;
 
 mod page;
-mod system;
 mod theme;
 
 #[tokio::main]

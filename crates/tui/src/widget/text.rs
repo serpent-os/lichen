@@ -6,7 +6,7 @@ use std::borrow::Cow;
 
 use ratatui::layout::{Constraint, Rect};
 
-use crate::tui::{event, widget, Element, Event, Layout, Shell, Widget};
+use crate::{event, widget, Element, Event, Layout, Shell, Widget};
 
 pub fn text<'a>(content: impl Into<Cow<'a, str>>) -> Text<'a> {
     Text::new(content)

@@ -8,7 +8,7 @@ use color_eyre::eyre;
 use futures::{future::BoxFuture, stream::BoxStream, Future, FutureExt, Stream, StreamExt};
 use tokio::{sync::mpsc, time};
 
-use crate::tui::{event, widget, Element, Event, Screen, Shell};
+use crate::{event, widget, Element, Event, Screen, Shell};
 
 pub enum Command<Message> {
     Future(BoxFuture<'static, Message>),

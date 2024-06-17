@@ -12,7 +12,7 @@ use ratatui::{
     Frame,
 };
 
-use crate::tui::{event, Event, Layout, Shell};
+use crate::{event, Event, Layout, Shell};
 
 pub use self::block::block;
 pub use self::box_layout::{hbox, vbox};

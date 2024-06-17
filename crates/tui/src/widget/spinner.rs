@@ -9,7 +9,7 @@ use std::{
 
 use ratatui::layout::Constraint;
 
-use crate::tui::{event, widget, Element, Event, Layout, Shell, Widget};
+use crate::{event, widget, Element, Event, Layout, Shell, Widget};
 
 const UPDATE_INTERVAL: Duration = Duration::from_millis(150);
 

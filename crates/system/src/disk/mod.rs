@@ -21,7 +21,7 @@ pub enum Error {
     InvalidDisk,
 }
 
-mod disk;
-pub use disk::Disk;
+mod disks;
+pub use disks::Disk;
 mod partition;
 pub use partition::Partition;

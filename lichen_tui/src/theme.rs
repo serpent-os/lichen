@@ -7,9 +7,9 @@
 use std::env;
 use std::sync::OnceLock;
 
-use lichen::tui::widget::{self, text_box};
 use ratatui::style::palette::tailwind;
 use ratatui::style::{Color, Style, Stylize};
+use tui::widget::{self, text_box};
 
 /// Add terminals to this list that don't report TERM=xterm-256color but
 /// actually do support full features..

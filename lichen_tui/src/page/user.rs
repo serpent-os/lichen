@@ -5,7 +5,8 @@
 //! User management page
 //! NOTE: TOTAL hack right now!
 
-use lichen::tui::{
+use ratatui::layout::Flex;
+use tui::{
     widget::{
         button, hbox,
         text_box::{self, text_box},
@@ -13,7 +14,6 @@ use lichen::tui::{
     },
     Element,
 };
-use ratatui::layout::Flex;
 
 use crate::theme;
 

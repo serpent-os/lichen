@@ -13,7 +13,7 @@ use ratatui::{
     widgets::{Block, BorderType, Borders, Padding},
 };
 
-use crate::tui::{event, layout, widget, Element, Event, Layout, Shell, Widget};
+use crate::{event, layout, widget, Element, Event, Layout, Shell, Widget};
 
 pub fn button<'a, Message>(state: &'a State, content: impl Into<Element<'a, Message>>) -> Button<'a, Message> {
     Button {

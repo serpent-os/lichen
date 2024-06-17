@@ -1,4 +1,8 @@
-use crate::tui::{widget, Element, Layout, Widget};
+// SPDX-FileCopyrightText: Copyright © 2024 Serpent OS Developers
+//
+// SPDX-License-Identifier: MPL-2.0
+
+use crate::{widget, Element, Layout, Widget};
 
 pub fn wrap<'a>(widget: impl ratatui::widgets::WidgetRef + 'a) -> Wrap<'a> {
     Wrap::new(widget)

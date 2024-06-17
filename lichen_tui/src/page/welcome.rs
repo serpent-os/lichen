@@ -4,14 +4,14 @@
 
 //! Welcome page
 
-use lichen::tui::{
-    widget::{button, hbox, paragraph, spinner, vbox},
-    Element,
-};
 use ratatui::{
     layout::{Alignment, Flex},
     style::{Style, Stylize},
     text::Line,
+};
+use tui::{
+    widget::{button, hbox, paragraph, spinner, vbox},
+    Element,
 };
 
 use crate::theme;
@@ -41,7 +41,7 @@ impl Welcome {
     pub fn view(&self) -> Element<Message> {
         let intro = paragraph(vec![
             Line::from("Are you ready to install Serpent OS?").style(Style::default().bold()).alignment(Alignment::Center),
-            Line::from(""), 
+            Line::from(""),
             Line::from(""),
             Line::from("📋 Disclaimer").style(Style::default().bold()),
             Line::from(""),

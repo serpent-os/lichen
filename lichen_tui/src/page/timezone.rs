@@ -5,11 +5,11 @@
 //! User management page
 //! NOTE: TOTAL hack right now!
 
-use lichen::tui::{
+use ratatui::layout::Flex;
+use tui::{
     widget::{button, hbox, vbox},
     Element,
 };
-use ratatui::layout::Flex;
 
 use crate::theme;
 

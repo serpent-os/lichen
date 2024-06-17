@@ -7,7 +7,7 @@
 
 use ratatui::layout::{self, Constraint, Direction, Flex, Rect};
 
-use crate::tui::{event, widget, Element, Event, Layout, Shell, Widget};
+use crate::{event, widget, Element, Event, Layout, Shell, Widget};
 
 pub fn hbox<Message>(children: Vec<Element<'_, Message>>) -> BoxLayout<'_, Message> {
     BoxLayout::new(children).direction(Direction::Horizontal)

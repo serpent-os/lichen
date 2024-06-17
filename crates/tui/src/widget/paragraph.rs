@@ -8,7 +8,7 @@ use ratatui::{
     widgets::{WidgetRef, Wrap},
 };
 
-use crate::tui::{widget, Element, Layout, Widget};
+use crate::{widget, Element, Layout, Widget};
 
 pub fn paragraph(lines: Vec<Line<'_>>) -> Paragraph<'_> {
     Paragraph::new(lines)

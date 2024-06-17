@@ -21,6 +21,7 @@ pub struct Partition {
 
 /// Specialised type of partition
 #[derive(Debug)]
+#[allow(clippy::upper_case_acronyms)]
 pub enum Kind {
     ESP,
     XBOOTLDR,

@@ -7,7 +7,7 @@ use ratatui::{
     Frame,
 };
 
-use crate::tui::{event, Event, Layout, Shell, Widget};
+use crate::{event, Event, Layout, Shell, Widget};
 
 use super::widget;
 

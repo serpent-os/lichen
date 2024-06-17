@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MPL-2.0
 
-use lichen::tui::Element;
+use tui::Element;
 
 pub use self::timezone::Timezone;
 pub use self::user::User;
