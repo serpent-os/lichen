@@ -4,10 +4,9 @@
 
 //! Registry of languages and territories.
 
-use core::fmt;
 use std::{collections::HashMap, fs};
 
-use super::{iso_3166, iso_639, Error};
+use super::{iso_3166, iso_639_2, iso_639_3, Error, Language, Locale, Territory};
 
 /// All ISO codes are expected to live in this location
 const ISO_CODES_BASE: &str = "/usr/share/iso-codes/json";
@@ -18,89 +17,6 @@ pub struct Registry {
     places_lookup: HashMap<String, usize>,
     languages: Vec<Language>,
     languages_lookup: HashMap<String, usize>,
-}
-
-/// Locale joins Territory + Language
-#[derive(Debug)]
-pub struct Locale<'a> {
-    pub name: String,
-    pub display_name: String,
-    pub language: &'a Language,
-    pub territory: &'a Territory,
-    pub modifier: Option<String>,
-    pub codeset: Option<String>,
-}
-
-impl fmt::Display for Locale<'_> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(&self.display_name)
-    }
-}
-
-/// Sane representation for UI purposes
-#[derive(PartialEq, Eq, Debug)]
-pub struct Territory {
-    pub code: String,
-    pub code2: String,
-    pub display_name: String,
-    pub flag: String,
-}
-
-impl From<&iso_3166::Entry<'_>> for Territory {
-    fn from(value: &iso_3166::Entry) -> Self {
-        if let Some(display) = value.official_name {
-            Self {
-                code: value.code3.into(),
-                code2: value.code2.into(),
-                display_name: display.into(),
-                flag: value.flag.into(),
-            }
-        } else {
-            Self {
-                code: value.code3.into(),
-                code2: value.code2.into(),
-                display_name: value.name.into(),
-                flag: value.flag.into(),
-            }
-        }
-    }
-}
-
-/// Simplistic language representation
-#[derive(PartialEq, Eq, Debug)]
-pub struct Language {
-    pub code: String,
-    pub code2: Option<String>,
-    pub display_name: String,
-    pub inverted_name: Option<String>,
-}
-
-impl From<&iso_639::EntryTwoCode<'_>> for Language {
-    /// Convert iso entry into Language
-    fn from(value: &iso_639::EntryTwoCode<'_>) -> Self {
-        Self {
-            code: value.code3.into(),
-            code2: value.code2.map(|v| v.into()),
-            display_name: value.name.into(),
-            inverted_name: None,
-        }
-    }
-}
-
-impl From<&iso_639::EntryThreeCode<'_>> for Language {
-    fn from(value: &iso_639::EntryThreeCode<'_>) -> Self {
-        let display = if let Some(name) = value.common_name {
-            name.into()
-        } else {
-            value.name.into()
-        };
-        Self {
-            code: value.code.into(),
-            code2: value.code2.map(|v| v.into()),
-            display_name: display,
-            inverted_name: value.inverted_name.map(|v| v.into()),
-        }
-    }
 }
 
 impl Registry {
@@ -146,7 +62,7 @@ impl Registry {
     fn load_languages_2() -> Result<Vec<Language>, Error> {
         let languages = format!("{}/iso_639-2.json", ISO_CODES_BASE);
         let contents = fs::read_to_string(languages)?;
-        let parser = serde_json::from_str::<iso_639::DocumentTwoCode>(&contents)?;
+        let parser = serde_json::from_str::<iso_639_2::Document>(&contents)?;
 
         Ok(parser.entries.iter().map(|e| e.into()).collect::<Vec<_>>())
     }
@@ -155,7 +71,7 @@ impl Registry {
     fn load_languages_3() -> Result<Vec<Language>, Error> {
         let languages = format!("{}/iso_639-3.json", ISO_CODES_BASE);
         let contents = fs::read_to_string(languages)?;
-        let parser = serde_json::from_str::<iso_639::DocumentThreeCode>(&contents)?;
+        let parser = serde_json::from_str::<iso_639_3::Document>(&contents)?;
 
         Ok(parser.entries.iter().map(|e| e.into()).collect::<Vec<_>>())
     }

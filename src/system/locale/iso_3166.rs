@@ -7,6 +7,8 @@
 
 use serde::Deserialize;
 
+use super::Territory;
+
 /// Wrap the document stream from JSON into referenced
 /// entries in the input text
 #[derive(Deserialize)]
@@ -41,6 +43,26 @@ pub struct Entry<'a> {
     /// Formal name if present
     #[serde(borrow)]
     pub official_name: Option<&'a str>,
+}
+
+impl From<&Entry<'_>> for Territory {
+    fn from(value: &Entry) -> Self {
+        if let Some(display) = value.official_name {
+            Self {
+                code: value.code3.into(),
+                code2: value.code2.into(),
+                display_name: display.into(),
+                flag: value.flag.into(),
+            }
+        } else {
+            Self {
+                code: value.code3.into(),
+                code2: value.code2.into(),
+                display_name: value.name.into(),
+                flag: value.flag.into(),
+            }
+        }
+    }
 }
 
 #[cfg(test)]

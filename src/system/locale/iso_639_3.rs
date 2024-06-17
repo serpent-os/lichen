@@ -2,44 +2,16 @@
 //
 // SPDX-License-Identifier: MPL-2.0
 
-//! Parsing for ISO-639 files from iso-codes
-//! Essentially, loading of languages
-
+//! Parsing for ISO-639-3 JSON files
 use serde::Deserialize;
 
-/// Wrap the document stream from JSON into referenced
-/// entries in the input text
+use super::Language;
+
+/// JSON document for 639-3
 #[derive(Deserialize)]
-pub struct DocumentTwoCode<'a> {
-    #[serde(rename = "639-2", borrow)]
-    pub entries: Vec<EntryTwoCode<'a>>,
-}
-
-/// A two-letter code entry
-#[derive(Deserialize)]
-pub struct EntryTwoCode<'a> {
-    #[serde(rename = "alpha_2", borrow)]
-    pub code2: Option<&'a str>,
-
-    #[serde(rename = "alpha_3", borrow)]
-    pub code3: &'a str,
-
-    /// Official display name
-    #[serde(borrow)]
-    pub name: &'a str,
-
-    /// Common name (optional)
-    #[serde(borrow)]
-    pub common_name: Option<&'a str>,
-
-    /// Three letter bibliographic
-    pub bibliographic: Option<&'a str>,
-}
-
-#[derive(Deserialize)]
-pub struct DocumentThreeCode<'a> {
+pub struct Document<'a> {
     #[serde(rename = "639-3", borrow)]
-    pub entries: Vec<EntryThreeCode<'a>>,
+    pub entries: Vec<Entry<'a>>,
 }
 
 /// Language scope
@@ -71,8 +43,9 @@ pub enum Kind {
     Special,
 }
 
+/// Single entry in the JSON document
 #[derive(Deserialize)]
-pub struct EntryThreeCode<'a> {
+pub struct Entry<'a> {
     /// Three letter code
     #[serde(rename = "alpha_3", borrow)]
     pub code: &'a str,
@@ -104,45 +77,28 @@ pub struct EntryThreeCode<'a> {
     pub common_name: Option<&'a str>,
 }
 
+impl From<&Entry<'_>> for Language {
+    fn from(value: &Entry<'_>) -> Self {
+        let display = if let Some(name) = value.common_name {
+            name.into()
+        } else {
+            value.name.into()
+        };
+        Self {
+            code: value.code.into(),
+            code2: value.code2.map(|v| v.into()),
+            display_name: display,
+            inverted_name: value.inverted_name.map(|v| v.into()),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{DocumentThreeCode, DocumentTwoCode, Kind, Scope};
+    use super::{Document, Kind, Scope};
 
     #[test]
-    fn load_2() {
-        const TEST_DATA: &str = r#"
-        {
-          "639-2": [
-                {
-                "alpha_2": "gd",
-                "alpha_3": "gla",
-                "name": "Gaelic; Scottish Gaelic"
-                },
-                {
-                "alpha_2": "ga",
-                "alpha_3": "gle",
-                "name": "Irish"
-                },
-                {
-                "alpha_2": "gl",
-                "alpha_3": "glg",
-                "name": "Galician"
-                }
-            ]
-        }
-        "#;
-
-        let loaded = serde_json::from_str::<DocumentTwoCode>(TEST_DATA).expect("Failed to decode ISO-639 2-code data");
-        let ga = loaded
-            .entries
-            .iter()
-            .find(|i| i.code3 == "gle")
-            .expect("Failed to find GLE");
-        assert_eq!(ga.name, "Irish");
-    }
-
-    #[test]
-    fn load_3() {
+    fn load_iso_639_3() {
         const TEST_DATA: &str = r#"
         {
           "639-3": [
@@ -170,8 +126,7 @@ mod tests {
         }
         "#;
 
-        let loaded =
-            serde_json::from_str::<DocumentThreeCode>(TEST_DATA).expect("Failed to decode ISO-639 3-code data");
+        let loaded = serde_json::from_str::<Document>(TEST_DATA).expect("Failed to decode ISO-639-3 data");
         let ga = loaded
             .entries
             .iter()
