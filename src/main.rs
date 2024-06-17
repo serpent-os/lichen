@@ -14,6 +14,7 @@ use lichen::tui::{
     Application, Element, Event,
 };
 use ratatui::widgets::{Borders, Padding};
+use system::disk::Disk;
 
 use self::page::Page;
 
@@ -23,6 +24,9 @@ mod theme;
 
 #[tokio::main]
 async fn main() -> color_eyre::Result<()> {
+    // find all disks
+    let disks = Disk::discover()?;
+    eprintln!("System disks: {disks:?}");
     application::run(App::new()).await
 }
 
