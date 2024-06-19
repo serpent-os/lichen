@@ -44,6 +44,16 @@ async fn ask_locale<'a>(locales: &'a [Locale<'a>]) -> color_eyre::Result<&'a Loc
     Ok(&locales[index])
 }
 
+// Grab a password for the root account
+fn ask_password() -> color_eyre::Result<String> {
+    print_header("🔑", "You'll need to set a default root (administrator) password");
+    let password = dialoguer::Password::with_theme(&ColorfulTheme::default())
+        .with_prompt("Type the password")
+        .with_confirmation("Confirm your password", "Those passwords did not match")
+        .interact()?;
+    Ok(password)
+}
+
 /// TODO: Make this actually use more than Disk and be async!
 fn load_disks() -> color_eyre::Result<Vec<Disk>> {
     Ok(Disk::discover()?)
@@ -75,6 +85,7 @@ async fn main() -> color_eyre::Result<()> {
 
     let selected_disk = ask_disk(&disks)?;
     let selected_locale = ask_locale(&locales).await?;
+    let _ = ask_password()?;
 
     print_header("🕮", "Quickly review your settings");
     print_summary_item("Disk", selected_disk);
