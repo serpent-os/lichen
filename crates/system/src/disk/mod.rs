@@ -24,4 +24,5 @@ pub enum Error {
 mod disks;
 pub use disks::Disk;
 mod partition;
+pub use partition::Kind as PartitionKind;
 pub use partition::Partition;

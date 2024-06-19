@@ -4,6 +4,7 @@
 
 //! Partition APIs
 
+use std::fmt::Display;
 use std::path::PathBuf;
 
 use std::fs;
@@ -11,7 +12,7 @@ use std::fs;
 use gpt::partition_types;
 
 /// Partition on a GPT disk
-#[derive(Debug)]
+#[derive(Debug, Clone, Default)]
 pub struct Partition {
     pub path: PathBuf,
     pub kind: Kind,
@@ -19,12 +20,18 @@ pub struct Partition {
     pub uuid: String,
 }
 
+impl Display for Partition {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.path.display().to_string())
+    }
+}
 /// Specialised type of partition
-#[derive(Debug)]
+#[derive(Debug, Clone, Default)]
 #[allow(clippy::upper_case_acronyms)]
 pub enum Kind {
     ESP,
     XBOOTLDR,
+    #[default]
     Regular,
 }
 
