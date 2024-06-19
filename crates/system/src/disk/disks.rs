@@ -5,6 +5,7 @@
 //! Disk management
 
 use std::{
+    fmt::Display,
     fs::{self, File},
     path::{Path, PathBuf},
 };
@@ -24,6 +25,15 @@ pub enum Kind {
     SSD,
 }
 
+impl Display for Kind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match &self {
+            Kind::HDD => f.write_str("HDD"),
+            Kind::SSD => f.write_str("SSD"),
+        }
+    }
+}
+
 /// Basic physical device mapping
 #[derive(Debug)]
 pub struct Disk {
@@ -33,6 +43,20 @@ pub struct Disk {
     pub vendor: Option<String>,
     pub block_size: u64,
     pub size: u64,
+}
+
+impl Display for Disk {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let vendor = self.vendor.as_ref().map(|v| format!("{} ", v)).unwrap_or_default();
+
+        let description = if let Some(model) = self.model.as_ref() {
+            format!("{}{}", vendor, model)
+        } else {
+            vendor.to_string()
+        };
+
+        f.write_fmt(format_args!("{} ({})", description, &self.kind))
+    }
 }
 
 impl Disk {
