@@ -72,6 +72,20 @@ fn ask_disk(disks: &[Disk]) -> color_eyre::Result<&Disk> {
     Ok(&disks[index])
 }
 
+fn ask_timezone() -> color_eyre::Result<String> {
+    print_header("🕒", "Now we need to set the system timezone");
+
+    let index = dialoguer::FuzzySelect::with_theme(&ColorfulTheme::default())
+        .with_prompt("Start typing")
+        .items(&chrono_tz::TZ_VARIANTS)
+        .default(0)
+        .highlight_matches(true)
+        .max_length(10)
+        .interact()?;
+
+    Ok(chrono_tz::TZ_VARIANTS[index].to_string())
+}
+
 #[tokio::main]
 async fn main() -> color_eyre::Result<()> {
     color_eyre::install().unwrap();
@@ -85,11 +99,13 @@ async fn main() -> color_eyre::Result<()> {
 
     let selected_disk = ask_disk(&disks)?;
     let selected_locale = ask_locale(&locales).await?;
+    let timezone = ask_timezone()?;
     let _ = ask_password()?;
 
     print_header("🕮", "Quickly review your settings");
     print_summary_item("Disk", selected_disk);
     print_summary_item("Locale", selected_locale);
+    print_summary_item("Timezone", &timezone);
 
     println!("\n\n");
 
