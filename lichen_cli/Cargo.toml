@@ -1,0 +1,13 @@
+[package]
+name = "lichen_cli"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+color-eyre.workspace = true
+dialoguer = { version = "0.11.0", features = ["completion", "fuzzy-matcher", "fuzzy-select"] }
+indicatif = "0.17.8"
+futures.workspace = true
+tokio.workspace = true
+system = { path = "../crates/system" }
+console = "0.15.8"

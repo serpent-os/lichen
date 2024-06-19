@@ -2,6 +2,7 @@
 members = [
     "crates/*",
     "lichen_tui",
+    "lichen_cli",
 ]
 resolver = "2"
 
