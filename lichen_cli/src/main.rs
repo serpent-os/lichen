@@ -6,6 +6,7 @@
 
 use std::fmt::Display;
 
+use color_eyre::{eyre::eyre, Section};
 use console::{set_colors_enabled, style};
 use dialoguer::theme::ColorfulTheme;
 use system::{
@@ -117,6 +118,26 @@ fn load_partitions() -> color_eyre::Result<Vec<InstallationPartiton>> {
             partitions.extend(regulars.map(|p| InstallationPartiton::Normal(p.clone())))
         }
     }
+
+    if partitions.is_empty() {
+        return Err(eyre!("Cannot find any usable partitions")
+            .suggestion("The installer requires that disks are readable and using a GUID Partition Table"));
+    }
+
+    // ensure we have an ESP..
+    let esp = partitions
+        .iter()
+        .find(|p| matches!(p, InstallationPartiton::Boot { esp: _, xbootldr: _ }));
+    if let Some(InstallationPartiton::Boot { esp, xbootldr }) = esp {
+        if xbootldr.is_none() {
+            eprintln!("Warning: No XBOOTLDR available for ESP: {}", esp.path.display());
+        }
+    } else {
+        return Err(eyre!("No usable EFI System Partition").suggestion(
+            "The installer requires that an ESP is present, and will also use an XBOOTLDR partition if present",
+        ));
+    }
+
     Ok(partitions)
 }
 
