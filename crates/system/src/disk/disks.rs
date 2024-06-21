@@ -129,9 +129,10 @@ impl Disk {
             .writable(false)
             .initialized(true)
             .open_from_device(device)?;
+        let block_size = table.logical_block_size();
         let mut parts = vec![];
         for (_, part) in table.partitions().iter() {
-            parts.push(part.try_into()?)
+            parts.push(Partition::from(part, block_size)?)
         }
         Ok(parts)
     }

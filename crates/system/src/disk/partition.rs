@@ -9,6 +9,7 @@ use std::path::PathBuf;
 
 use std::fs;
 
+use gpt::disk::LogicalBlockSize;
 use gpt::partition_types;
 
 /// Partition on a GPT disk
@@ -35,8 +36,9 @@ pub enum Kind {
     Regular,
 }
 
-impl TryFrom<&gpt::partition::Partition> for Partition {
-    fn try_from(value: &gpt::partition::Partition) -> Result<Self, Self::Error> {
+impl Partition {
+    /// Construct new Partition from the given GPT Partition and block size
+    pub fn from(value: &gpt::partition::Partition, block_size: &LogicalBlockSize) -> Result<Self, super::Error> {
         let uuid = value.part_guid.hyphenated().to_string();
         let path = fs::canonicalize(format!("/dev/disk/by-partuuid/{}", uuid))?;
         let kind = match value.part_type_guid {
@@ -44,9 +46,7 @@ impl TryFrom<&gpt::partition::Partition> for Partition {
             partition_types::FREEDESK_BOOT => Kind::XBOOTLDR,
             _ => Kind::Regular,
         };
-        let size = value.size()?;
+        let size = value.bytes_len(*block_size)?;
         Ok(Self { path, kind, size, uuid })
     }
-
-    type Error = super::Error;
 }
