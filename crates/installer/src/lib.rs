@@ -16,3 +16,5 @@ pub use engine::Installer;
 
 mod partitions;
 pub use partitions::{BootPartition, SystemPartition};
+
+pub mod systemd;

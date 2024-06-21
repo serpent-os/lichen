@@ -6,7 +6,7 @@
 
 use system::{
     disk::{self, Disk},
-    locale::{self, Locale},
+    locale::{self},
 };
 use thiserror::Error;
 
@@ -19,16 +19,16 @@ pub enum Error {
 
     #[error("locale: {0}")]
     Locale(#[from] locale::Error),
+
+    #[error("unknown locale code: {0}")]
+    UnknownLocale(String),
 }
 
 /// The installer does some initial probing and is used with a Model
 /// to build an execution routine
-pub struct Installer<'a> {
+pub struct Installer {
     /// Complete locale registry
     locale_registry: locale::Registry,
-
-    /// Available / loaded locales
-    locales: Vec<Locale<'a>>,
 
     /// All known/useful disks
     disks: Vec<Disk>,
@@ -40,7 +40,7 @@ pub struct Installer<'a> {
     system_parts: Vec<SystemPartition>,
 }
 
-impl<'a> Installer<'a> {
+impl Installer {
     /// Return a newly initialised installer
     pub fn new() -> Result<Self, Error> {
         let locale_registry = locale::Registry::new()?;
@@ -74,11 +74,15 @@ impl<'a> Installer<'a> {
 
         Ok(Self {
             locale_registry,
-            locales: Vec::new(),
             disks,
             system_parts,
             boot_parts,
         })
+    }
+
+    /// Allow access to locale registry (mapping IDs)
+    pub fn locales(&self) -> &locale::Registry {
+        &self.locale_registry
     }
 
     /// Return references to the discovered boot partitions
