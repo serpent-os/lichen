@@ -13,3 +13,6 @@ pub use account::Account;
 
 mod engine;
 pub use engine::Installer;
+
+mod partitions;
+pub use partitions::{BootPartition, SystemPartition};

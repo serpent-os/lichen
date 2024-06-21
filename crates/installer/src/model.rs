@@ -4,11 +4,17 @@
 
 use std::collections::BTreeSet;
 
-use crate::Account;
+use crate::{Account, BootPartition, SystemPartition};
 
 /// Core model for the installation target
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct Model {
     /// All accounts in the system.
     pub accounts: BTreeSet<Account>,
+
+    /// The boot partition to use
+    pub boot_partition: BootPartition,
+
+    /// The system partitions to use/mount
+    pub partitions: Vec<SystemPartition>,
 }
