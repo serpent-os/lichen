@@ -10,5 +10,6 @@ dialoguer = { version = "0.11.0", features = ["completion", "fuzzy-matcher", "fu
 indicatif = "0.17.8"
 futures.workspace = true
 tokio.workspace = true
+installer = { path = "../crates/installer" }
 system = { path = "../crates/system" }
 console = "0.15.8"

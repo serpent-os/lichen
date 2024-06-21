@@ -628,6 +628,7 @@ name = "installer"
 version = "0.1.0"
 dependencies = [
  "system",
+ "thiserror",
 ]
 
 [[package]]
@@ -676,6 +677,7 @@ dependencies = [
  "dialoguer",
  "futures",
  "indicatif",
+ "installer",
  "system",
  "tokio",
 ]
