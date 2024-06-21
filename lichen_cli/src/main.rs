@@ -9,6 +9,7 @@ use std::fmt::Display;
 use color_eyre::{eyre::eyre, Section};
 use console::{set_colors_enabled, style};
 use dialoguer::theme::ColorfulTheme;
+use indicatif::HumanBytes;
 use system::{
     disk::{Disk, Partition},
     locale::{self, Locale, Registry},
@@ -32,12 +33,22 @@ impl Display for InstallationPartiton {
         match &self {
             InstallationPartiton::Boot { esp, xbootldr } => {
                 if let Some(xbootldr) = xbootldr.as_ref() {
-                    f.write_fmt(format_args!("ESP {} with XBOOTLDR: {}", esp, xbootldr))
+                    f.write_fmt(format_args!(
+                        "ESP on {} ({}) with XBOOTLDR: {} ({})",
+                        esp,
+                        HumanBytes(esp.size),
+                        xbootldr,
+                        HumanBytes(xbootldr.size)
+                    ))
                 } else {
-                    f.write_fmt(format_args!("ESP {}", esp))
+                    f.write_fmt(format_args!("ESP on {} ({})", esp, HumanBytes(esp.size)))
                 }
             }
-            InstallationPartiton::Normal(part) => f.write_fmt(format_args!("Regular partition: {}", part)),
+            InstallationPartiton::Normal(part) => f.write_fmt(format_args!(
+                "Regular partition on {} ({})",
+                part,
+                HumanBytes(part.size)
+            )),
         }
     }
 }
