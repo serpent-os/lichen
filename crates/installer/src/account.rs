@@ -6,10 +6,10 @@
 #[derive(Debug, Clone)]
 pub struct Account {
     /// User ID
-    uid: u16,
+    uid: libc::uid_t,
 
     /// Group ID
-    gid: u16,
+    gid: libc::gid_t,
 
     /// Account name
     username: String,
@@ -67,7 +67,7 @@ impl Account {
     }
 
     /// Update the IDs
-    pub fn with_id(self, uid: u16, gid: u16) -> Self {
+    pub fn with_id(self, uid: libc::uid_t, gid: libc::gid_t) -> Self {
         Self { uid, gid, ..self }
     }
 

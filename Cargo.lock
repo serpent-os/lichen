@@ -627,8 +627,10 @@ dependencies = [
 name = "installer"
 version = "0.1.0"
 dependencies = [
+ "libc",
  "system",
  "thiserror",
+ "tokio",
 ]
 
 [[package]]
