@@ -1225,6 +1225,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "superblock"
+version = "0.1.0"
+source = "git+https://github.com/serpent-os/blsforme.git?rev=abc2fcc025975ebff714835849c94159f81990d5#abc2fcc025975ebff714835849c94159f81990d5"
+dependencies = [
+ "log",
+ "thiserror",
+ "uuid",
+]
+
+[[package]]
 name = "syn"
 version = "2.0.66"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1254,6 +1264,7 @@ dependencies = [
  "gpt",
  "serde",
  "serde_json",
+ "superblock",
  "thiserror",
  "tokio",
  "tokio-stream",

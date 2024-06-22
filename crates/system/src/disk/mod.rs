@@ -22,6 +22,9 @@ pub enum Error {
 
     #[error("thread: {0}")]
     Thread(#[from] JoinError),
+
+    #[error("superblock: {0}")]
+    Superblock(#[from] superblock::Error),
 }
 
 mod disks;
@@ -30,3 +33,5 @@ mod partition;
 pub use partition::Kind as PartitionKind;
 pub use partition::Partition;
 use tokio::task::JoinError;
+
+pub use superblock::Kind as SuperblockKind;

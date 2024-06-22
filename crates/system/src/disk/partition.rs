@@ -5,9 +5,9 @@
 //! Partition APIs
 
 use std::fmt::Display;
-use std::path::PathBuf;
-
 use std::fs;
+use std::io::{Cursor, Read};
+use std::path::PathBuf;
 
 use gpt::disk::LogicalBlockSize;
 use gpt::partition_types;
@@ -19,6 +19,7 @@ pub struct Partition {
     pub kind: Kind,
     pub size: u64,
     pub uuid: String,
+    pub sb: Option<super::SuperblockKind>,
 }
 
 impl Display for Partition {
@@ -36,6 +37,16 @@ pub enum Kind {
     Regular,
 }
 
+/// Superblock scanning, self contained
+fn scan_superblock(path: &PathBuf) -> Result<superblock::Kind, super::Error> {
+    let fi = fs::File::open(path)?;
+    let mut buffer: Vec<u8> = Vec::with_capacity(2 * 1024 * 1024);
+    fi.take(2 * 1024 * 1024).read_to_end(&mut buffer)?;
+    let mut cursor = Cursor::new(&buffer);
+    let sb = superblock::for_reader(&mut cursor)?;
+    Ok(sb.kind())
+}
+
 impl Partition {
     /// Construct new Partition from the given GPT Partition and block size
     pub fn from(value: &gpt::partition::Partition, block_size: &LogicalBlockSize) -> Result<Self, super::Error> {
@@ -46,7 +57,14 @@ impl Partition {
             partition_types::FREEDESK_BOOT => Kind::XBOOTLDR,
             _ => Kind::Regular,
         };
+        let sb = scan_superblock(&path).ok();
         let size = value.bytes_len(*block_size)?;
-        Ok(Self { path, kind, size, uuid })
+        Ok(Self {
+            path,
+            kind,
+            size,
+            uuid,
+            sb,
+        })
     }
 }
