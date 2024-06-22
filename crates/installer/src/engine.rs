@@ -4,11 +4,13 @@
 
 //! Concrete implementation of the isntaller
 
+use futures::stream::{self, StreamExt};
 use system::{
     disk::{self, Disk},
-    locale::{self},
+    locale::{self, Locale},
 };
 use thiserror::Error;
+use tokio::task::JoinError;
 
 use crate::{BootPartition, Model, SystemPartition};
 
@@ -22,6 +24,9 @@ pub enum Error {
 
     #[error("unknown locale code: {0}")]
     UnknownLocale(String),
+
+    #[error("thread: {0}")]
+    Thread(#[from] JoinError),
 }
 
 /// The installer does some initial probing and is used with a Model
@@ -83,6 +88,16 @@ impl Installer {
     /// Allow access to locale registry (mapping IDs)
     pub fn locales(&self) -> &locale::Registry {
         &self.locale_registry
+    }
+
+    /// Generate/load the locale map as async stream
+    pub async fn locales_for_ids<S: IntoIterator<Item = impl AsRef<str>>>(&self, ids: S) -> Result<Vec<Locale>, Error> {
+        let res = stream::iter(ids.into_iter())
+            .filter_map(|id| async move { self.locale_registry.locale(id) })
+            .collect::<Vec<_>>()
+            .await;
+
+        Ok(res)
     }
 
     /// Return references to the discovered boot partitions

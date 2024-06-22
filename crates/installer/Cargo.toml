@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 libc.workspace = true
+futures.workspace = true
 system = { path = "../system" }
 thiserror.workspace = true
 tokio.workspace = true
