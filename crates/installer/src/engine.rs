@@ -12,7 +12,10 @@ use system::{
 use thiserror::Error;
 use tokio::task::JoinError;
 
-use crate::{BootPartition, Model, SystemPartition};
+use crate::{
+    steps::{self, Step},
+    BootPartition, Model, SystemPartition,
+};
 
 #[derive(Debug, Error)]
 pub enum Error {
@@ -21,6 +24,9 @@ pub enum Error {
 
     #[error("locale: {0}")]
     Locale(#[from] locale::Error),
+
+    #[error("missing mandatory partition: {0}")]
+    MissingPartition(&'static str),
 
     #[error("unknown locale code: {0}")]
     UnknownLocale(String),
@@ -116,7 +122,45 @@ impl Installer {
     }
 
     /// build the model into a set of install steps
-    pub fn compile_to_steps(&self, _model: &Model) -> Result<(), Error> {
-        todo!("dont know how")
+    pub fn compile_to_steps<'a>(&self, model: &'a Model) -> Result<Vec<Box<dyn Step + 'a>>, Error> {
+        let mut s: Vec<Box<dyn Step>> = vec![];
+        let boot_part = &model.boot_partition.esp;
+
+        // Mount efi..
+        s.push(Box::new(steps::MountPartition {
+            partition: boot_part,
+            mountpoint: "/efi".into(),
+        }));
+
+        // Mount xbootldr
+        if let Some(xbootldr) = model.boot_partition.xbootldr.as_ref() {
+            s.push(Box::new(steps::MountPartition {
+                partition: xbootldr,
+                mountpoint: "/boot".into(),
+            }));
+        };
+
+        let root_partition = model
+            .partitions
+            .iter()
+            .find(|p| {
+                if let Some(mount) = p.mountpoint.as_ref() {
+                    mount == "/"
+                } else {
+                    false
+                }
+            })
+            .ok_or(Error::MissingPartition("/"))?;
+
+        s.push(Box::new(steps::FormatPartition {
+            partition: &root_partition.partition,
+            filesystem: "ext4".into(),
+        }));
+        s.push(Box::new(steps::MountPartition {
+            partition: &root_partition.partition,
+            mountpoint: "/".into(),
+        }));
+
+        Ok(s)
     }
 }

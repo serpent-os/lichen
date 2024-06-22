@@ -96,13 +96,16 @@ async fn main() -> color_eyre::Result<()> {
     let rootpw = ask_password()?;
 
     let esp = ask_esp(boots)?;
-    let rootfs = ask_rootfs(parts)?;
+
+    // Set / partition
+    let mut rootfs = ask_rootfs(parts)?.clone();
+    rootfs.mountpoint = Some("/".into());
 
     print_header("🕮", "Quickly review your settings");
     print_summary_item("Locale", selected_locale);
     print_summary_item("Timezone", &timezone);
     print_summary_item("Bootloader", esp);
-    print_summary_item("Root (/) filesystem", rootfs);
+    print_summary_item("Root (/) filesystem", &rootfs);
 
     let model = installer::Model {
         accounts: [Account::root().with_password(rootpw)].into(),
@@ -115,9 +118,18 @@ async fn main() -> color_eyre::Result<()> {
 
     eprintln!("model: {model:?}");
 
-    let _y = dialoguer::Confirm::with_theme(&ColorfulTheme::default())
+    let y = dialoguer::Confirm::with_theme(&ColorfulTheme::default())
         .with_prompt("Proceed with installation?")
         .interact()?;
+    if !y {
+        return Ok(());
+    }
+
+    let steps = inst.compile_to_steps(&model)?;
+    for step in steps {
+        eprintln!(" running step: {}", step.name());
+        eprintln!(" debug: {step:?}");
+    }
 
     Ok(())
 }

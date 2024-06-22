@@ -51,7 +51,7 @@ pub struct SystemPartition {
     pub(crate) partition: disk::Partition,
 
     /// Where will it be mounted
-    pub(crate) mountpoint: Option<String>,
+    pub mountpoint: Option<String>,
 
     pub(crate) parent_desc: String,
 }
