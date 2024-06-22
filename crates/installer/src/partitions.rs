@@ -9,14 +9,14 @@
 
 use std::fmt::Display;
 
-use system::disk;
 use human_bytes::human_bytes;
+use system::disk;
 
 /// A boot partition is an EFI System Partition which may or may
 /// not be paired with an `XBOOTLDR` partition, relative to its location
 /// on the same GPT disk.
 /// This is a requirement per the Boot Loader Specification.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct BootPartition {
     pub(crate) esp: disk::Partition,
     pub(crate) xbootldr: Option<disk::Partition>,
@@ -25,13 +25,18 @@ pub struct BootPartition {
 
 impl Display for BootPartition {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_fmt(format_args!("{} ({}) [on {}]", self.esp.path.display(), human_bytes(self.esp.size as f64), self.parent_desc))
+        f.write_fmt(format_args!(
+            "{} ({}) [on {}]",
+            self.esp.path.display(),
+            human_bytes(self.esp.size as f64),
+            self.parent_desc
+        ))
     }
 }
 
 /// A system partition is simply a regular partition with a specified mountpoint
 /// within the root.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct SystemPartition {
     pub(crate) partition: disk::Partition,
 
@@ -43,7 +48,12 @@ pub struct SystemPartition {
 
 impl Display for SystemPartition {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_fmt(format_args!("{} ({}) [on {}]", self.partition.path.display(), human_bytes(self.partition.size as f64), self.parent_desc))
+        f.write_fmt(format_args!(
+            "{} ({}) [on {}]",
+            self.partition.path.display(),
+            human_bytes(self.partition.size as f64),
+            self.parent_desc
+        ))
     }
 }
 

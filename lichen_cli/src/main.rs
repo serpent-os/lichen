@@ -6,7 +6,7 @@
 
 use console::{set_colors_enabled, style};
 use dialoguer::theme::ColorfulTheme;
-use installer::{systemd, BootPartition, Installer, Locale, SystemPartition};
+use installer::{systemd, Account, BootPartition, Installer, Locale, SystemPartition};
 
 /// Craptastic header printing
 fn print_header(icon: &str, text: &str) {
@@ -93,7 +93,7 @@ async fn main() -> color_eyre::Result<()> {
 
     let selected_locale = ask_locale(&locales).await?;
     let timezone = ask_timezone()?;
-    let _ = ask_password()?;
+    let rootpw = ask_password()?;
 
     let esp = ask_esp(boots)?;
     let rootfs = ask_rootfs(parts)?;
@@ -104,7 +104,16 @@ async fn main() -> color_eyre::Result<()> {
     print_summary_item("Bootloader", esp);
     print_summary_item("Root (/) filesystem", rootfs);
 
+    let model = installer::Model {
+        accounts: [Account::root().with_password(rootpw)].into(),
+        boot_partition: esp.to_owned(),
+        partitions: [rootfs.clone()].into(),
+        locale: Some(selected_locale),
+        timezone: Some(timezone),
+    };
     println!("\n\n");
+
+    eprintln!("model: {model:?}");
 
     let _y = dialoguer::Confirm::with_theme(&ColorfulTheme::default())
         .with_prompt("Proceed with installation?")

@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MPL-2.0
 
 /// Identifies an account
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Eq, Ord)]
 pub struct Account {
     /// User ID
     uid: libc::uid_t,

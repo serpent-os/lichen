@@ -4,11 +4,13 @@
 
 use std::collections::BTreeSet;
 
+use system::locale::Locale;
+
 use crate::{Account, BootPartition, SystemPartition};
 
 /// Core model for the installation target
 #[derive(Debug)]
-pub struct Model {
+pub struct Model<'a> {
     /// All accounts in the system.
     pub accounts: BTreeSet<Account>,
 
@@ -17,4 +19,10 @@ pub struct Model {
 
     /// The system partitions to use/mount
     pub partitions: Vec<SystemPartition>,
+
+    /// System locale to set
+    pub locale: Option<&'a Locale<'a>>,
+
+    /// Timezone ID
+    pub timezone: Option<String>,
 }
