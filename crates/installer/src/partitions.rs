@@ -25,10 +25,20 @@ pub struct BootPartition {
 
 impl Display for BootPartition {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let opt_string = if let Some(xbootldr) = self.xbootldr.as_ref() {
+            format!(
+                "with XBOOTLDR {} ({}) ",
+                xbootldr.path.display(),
+                human_bytes(xbootldr.size as f64)
+            )
+        } else {
+            "".into()
+        };
         f.write_fmt(format_args!(
-            "{} ({}) [on {}]",
+            "{} ({}) {}[on {}]",
             self.esp.path.display(),
             human_bytes(self.esp.size as f64),
+            opt_string,
             self.parent_desc
         ))
     }
