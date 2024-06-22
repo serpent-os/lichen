@@ -19,6 +19,9 @@ pub enum Error {
 
     #[error("invalid disk")]
     InvalidDisk,
+
+    #[error("thread: {0}")]
+    Thread(#[from] JoinError),
 }
 
 mod disks;
@@ -26,3 +29,4 @@ pub use disks::Disk;
 mod partition;
 pub use partition::Kind as PartitionKind;
 pub use partition::Partition;
+use tokio::task::JoinError;

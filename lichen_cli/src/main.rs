@@ -98,14 +98,14 @@ fn ask_password() -> color_eyre::Result<String> {
 }
 
 /// TODO: Make this actually use more than Disk and be async!
-fn load_partitions() -> color_eyre::Result<(Vec<BootPartition>, Vec<TargetPartition>)> {
-    let disks = Disk::discover()?;
+async fn load_partitions() -> color_eyre::Result<(Vec<BootPartition>, Vec<TargetPartition>)> {
+    let disks = Disk::discover().await?;
     let mut partitions = vec![];
     let mut boots = vec![];
 
     for disk in disks {
         // Ignore errors.
-        if let Ok(parts) = disk.partitions() {
+        if let Ok(parts) = disk.partitions().await {
             // Find first ESP
             let esp = parts
                 .iter()
@@ -190,7 +190,7 @@ async fn main() -> color_eyre::Result<()> {
     set_colors_enabled(true);
 
     // Load all the things
-    let (boots, parts) = load_partitions()?;
+    let (boots, parts) = load_partitions().await?;
 
     // TODO: Make Registry use asynchronous loading
     let registry = locale::Registry::new()?;

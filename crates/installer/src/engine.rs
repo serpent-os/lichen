@@ -42,14 +42,14 @@ pub struct Installer {
 
 impl Installer {
     /// Return a newly initialised installer
-    pub fn new() -> Result<Self, Error> {
+    pub async fn new() -> Result<Self, Error> {
         let locale_registry = locale::Registry::new()?;
-        let disks = Disk::discover()?;
+        let disks = Disk::discover().await?;
 
         let mut boot_parts = vec![];
         let mut system_parts = vec![];
         for disk in disks.iter() {
-            if let Ok(parts) = disk.partitions() {
+            if let Ok(parts) = disk.partitions().await {
                 if let Some(esp) = parts
                     .iter()
                     .find(|p| matches!(p.kind, disk::PartitionKind::ESP))

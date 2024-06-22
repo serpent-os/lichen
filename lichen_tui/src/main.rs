@@ -24,10 +24,10 @@ mod theme;
 #[tokio::main]
 async fn main() -> color_eyre::Result<()> {
     // find all disks
-    let disks = Disk::discover()?;
+    let disks = Disk::discover().await?;
     for disk in disks {
         eprintln!("Disk = {disk:?}");
-        if let Ok(parts) = disk.partitions() {
+        if let Ok(parts) = disk.partitions().await {
             eprintln!("  Partitions = {parts:?}");
         }
     }

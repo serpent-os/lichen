@@ -6,11 +6,13 @@
 
 use std::{
     fmt::Display,
-    fs::{self, File},
     path::{Path, PathBuf},
 };
 
+use futures::StreamExt;
 use gpt::GptConfig;
+use tokio::{fs, task::spawn_blocking};
+use tokio_stream::wrappers::ReadDirStream;
 
 use super::{Error, Partition};
 
@@ -61,7 +63,7 @@ impl Display for Disk {
 
 impl Disk {
     /// Build a Disk from the given sysfs path
-    pub fn from_sysfs_path(path: impl AsRef<Path>) -> Result<Self, Error> {
+    pub async fn from_sysfs_path(path: impl AsRef<Path>) -> Result<Self, Error> {
         let path = path.as_ref();
         let device_link = path.join("device");
         let slavedir = path.join("slaves");
@@ -74,7 +76,10 @@ impl Disk {
         }
 
         // Root level devices, not interested in child partitions as yet.
-        let ancestors = fs::read_dir(slavedir)?.filter_map(|m| m.ok()).collect::<Vec<_>>();
+        let ancestors = ReadDirStream::new(fs::read_dir(slavedir).await?)
+            .filter_map(|m| async move { m.ok() })
+            .collect::<Vec<_>>()
+            .await;
         if !ancestors.is_empty() {
             return Err(Error::InvalidDisk);
         }
@@ -82,7 +87,7 @@ impl Disk {
         // SSD or HDD?
         let rotational = path.join("queue").join("rotational");
         let kind = if rotational.exists() {
-            match str::parse::<i32>(fs::read_to_string(rotational)?.trim())? {
+            match str::parse::<i32>(fs::read_to_string(rotational).await?.trim())? {
                 0 => Kind::SSD,
                 _ => Kind::HDD,
             }
@@ -93,13 +98,19 @@ impl Disk {
         // additioal metadata.
 
         let vendor = fs::read_to_string(device_link.join("vendor"))
+            .await
             .ok()
             .map(|f| f.trim().to_string());
         let model = fs::read_to_string(device_link.join("model"))
+            .await
             .ok()
             .map(|f| f.trim().to_string());
-        let block_size = str::parse::<u64>(fs::read_to_string(path.join("queue").join("physical_block_size"))?.trim())?;
-        let size = str::parse::<u64>(fs::read_to_string(path.join("size"))?.trim())?;
+        let block_size = str::parse::<u64>(
+            fs::read_to_string(path.join("queue").join("physical_block_size"))
+                .await?
+                .trim(),
+        )?;
+        let size = str::parse::<u64>(fs::read_to_string(path.join("size")).await?.trim())?;
 
         let path = PathBuf::from("/dev").join(file_name);
 
@@ -114,17 +125,26 @@ impl Disk {
     }
 
     /// Discover all disks on the system
-    pub fn discover() -> Result<Vec<Self>, Error> {
-        let disks = fs::read_dir("/sys/class/block")?
-            .filter_map(|e| Some(Self::from_sysfs_path(e.ok()?.path())))
-            .flatten()
-            .collect::<Vec<_>>();
+    pub async fn discover() -> Result<Vec<Self>, Error> {
+        let disks = ReadDirStream::new(fs::read_dir("/sys/class/block").await?)
+            .filter_map(|f| async move {
+                let f = f.ok()?;
+                Disk::from_sysfs_path(f.path()).await.ok()
+            })
+            .collect::<Vec<_>>()
+            .await;
         Ok(disks)
     }
 
     /// Return all partitions on the disk if it is GPT
-    pub fn partitions(&self) -> Result<Vec<Partition>, Error> {
-        let device = Box::new(File::open(&self.path)?);
+    pub async fn partitions(&self) -> Result<Vec<Partition>, Error> {
+        let path = self.path.clone();
+        spawn_blocking(move || Self::partitions_inner(&path)).await?
+    }
+
+    /// Runs on a thread thanks to janky I/O
+    fn partitions_inner(path: &PathBuf) -> Result<Vec<Partition>, Error> {
+        let device = Box::new(std::fs::File::open(path)?);
         let table = GptConfig::default()
             .writable(false)
             .initialized(true)
