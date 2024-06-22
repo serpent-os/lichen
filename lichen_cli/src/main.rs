@@ -4,9 +4,14 @@
 
 //! Super basic CLI runner for lichen
 
+use std::time::Duration;
+
 use console::{set_colors_enabled, style};
+use crossterm::style::Stylize;
 use dialoguer::theme::ColorfulTheme;
+use indicatif::{ProgressStyle};
 use installer::{systemd, Account, BootPartition, Installer, Locale, SystemPartition};
+use tokio::time::sleep;
 
 /// Craptastic header printing
 fn print_header(icon: &str, text: &str) {
@@ -126,9 +131,34 @@ async fn main() -> color_eyre::Result<()> {
     }
 
     let steps = inst.compile_to_steps(&model)?;
+    let multi = indicatif::MultiProgress::new();
+    let total = indicatif::ProgressBar::new(steps.len() as u64).with_style(
+        ProgressStyle::with_template("\n|{bar:20.cyan/blue}| {pos}/{len}")
+            .unwrap()
+            .progress_chars("■≡=- "),
+    );
+    let total = multi.add(total);
+
     for step in steps {
-        eprintln!(" running step: {}", step.name());
-        eprintln!(" debug: {step:?}");
+        let progress_bar = multi.insert_before(
+            &total,
+            indicatif::ProgressBar::new(1)
+                .with_message(format!(
+                    "{} {}",
+                    step.name().to_string().blue(),
+                    "Running".to_string().bold(),
+                ))
+                .with_style(
+                    ProgressStyle::with_template(" {spinner} {wide_msg} ")
+                        .unwrap()
+                        .tick_chars("--=≡■≡=--"),
+                ),
+        );
+        progress_bar.enable_steady_tick(Duration::from_millis(150));
+        total.inc(1);
+
+        //step.execute();
+        sleep(Duration::from_secs(2)).await;
     }
 
     Ok(())
