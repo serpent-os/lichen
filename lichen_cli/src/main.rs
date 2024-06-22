@@ -90,11 +90,22 @@ async fn main() -> color_eyre::Result<()> {
     color_eyre::install().unwrap();
     set_colors_enabled(true);
 
+    let load_spinner = indicatif::ProgressBar::new(1)
+        .with_message(format!("{}", "Loading".blue()))
+        .with_style(
+            ProgressStyle::with_template(" {spinner} {wide_msg} ")
+                .unwrap()
+                .tick_chars("--=≡■≡=--"),
+        );
+    load_spinner.enable_steady_tick(Duration::from_millis(150));
+
     // Load all the things
     let inst = Installer::new().await?;
     let boots = inst.boot_partitions();
     let parts = inst.system_partitions();
     let locales = inst.locales_for_ids(systemd::localectl_list_locales().await?).await?;
+
+    load_spinner.finish_and_clear();
 
     let selected_locale = ask_locale(&locales).await?;
     let timezone = ask_timezone()?;
