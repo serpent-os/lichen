@@ -64,7 +64,7 @@ impl Installer {
                         .iter()
                         .find(|p| matches!(p.kind, disk::PartitionKind::XBOOTLDR))
                         .cloned();
-                    boot_parts.push(BootPartition { esp, xbootldr })
+                    boot_parts.push(BootPartition { esp, xbootldr, parent_desc: disk.to_string() })
                 }
                 let others = parts
                     .iter()
@@ -73,6 +73,7 @@ impl Installer {
                 system_parts.extend(others.map(|p| SystemPartition {
                     partition: p,
                     mountpoint: None,
+                    parent_desc: disk.to_string()
                 }));
             }
         }

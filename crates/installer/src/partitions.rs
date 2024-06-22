@@ -7,7 +7,10 @@
 //! Quite simply we only care about the difference in a regular
 //! partition, and a boot partition.
 
+use std::fmt::Display;
+
 use system::disk;
+use human_bytes::human_bytes;
 
 /// A boot partition is an EFI System Partition which may or may
 /// not be paired with an `XBOOTLDR` partition, relative to its location
@@ -17,6 +20,13 @@ use system::disk;
 pub struct BootPartition {
     pub(crate) esp: disk::Partition,
     pub(crate) xbootldr: Option<disk::Partition>,
+    pub(crate) parent_desc: String,
+}
+
+impl Display for BootPartition {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_fmt(format_args!("{} ({}) [on {}]", self.esp.path.display(), human_bytes(self.esp.size as f64), self.parent_desc))
+    }
 }
 
 /// A system partition is simply a regular partition with a specified mountpoint
@@ -27,6 +37,14 @@ pub struct SystemPartition {
 
     /// Where will it be mounted
     pub(crate) mountpoint: Option<String>,
+
+    pub(crate) parent_desc: String,
+}
+
+impl Display for SystemPartition {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_fmt(format_args!("{} ({}) [on {}]", self.partition.path.display(), human_bytes(self.partition.size as f64), self.parent_desc))
+    }
 }
 
 impl AsRef<disk::Partition> for SystemPartition {
