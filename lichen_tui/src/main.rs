@@ -32,7 +32,7 @@ async fn main() -> color_eyre::Result<()> {
         }
     }
     let lang = env::var("LANG").unwrap_or_default();
-    let registry = locale::Registry::new()?;
+    let registry = locale::Registry::new().await?;
     if let Some(locale) = registry.locale(lang) {
         eprintln!("Found your current locale: {locale:?}");
     } else {

@@ -193,7 +193,7 @@ async fn main() -> color_eyre::Result<()> {
     let (boots, parts) = load_partitions().await?;
 
     // TODO: Make Registry use asynchronous loading
-    let registry = locale::Registry::new()?;
+    let registry = locale::Registry::new().await?;
     let locales = load_locales(&registry).await?;
 
     let selected_locale = ask_locale(&locales).await?;

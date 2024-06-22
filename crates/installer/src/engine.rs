@@ -43,7 +43,7 @@ pub struct Installer {
 impl Installer {
     /// Return a newly initialised installer
     pub async fn new() -> Result<Self, Error> {
-        let locale_registry = locale::Registry::new()?;
+        let locale_registry = locale::Registry::new().await?;
         let disks = Disk::discover().await?;
 
         let mut boot_parts = vec![];
