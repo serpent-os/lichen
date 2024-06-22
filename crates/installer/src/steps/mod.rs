@@ -8,6 +8,12 @@ pub trait Step: Debug {
     /// Unique step name for debugging etc.
     fn name(&self) -> &'static str;
 
+    /// Return presentable, generic title
+    fn title(&self) -> String;
+
+    /// Describe the operation more specifically
+    fn describe(&self) -> String;
+
     /// Request execution of the step
     fn execute(&self);
 }

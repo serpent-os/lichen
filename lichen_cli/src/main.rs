@@ -143,11 +143,7 @@ async fn main() -> color_eyre::Result<()> {
         let progress_bar = multi.insert_before(
             &total,
             indicatif::ProgressBar::new(1)
-                .with_message(format!(
-                    "{} {}",
-                    step.name().to_string().blue(),
-                    "Running".to_string().bold(),
-                ))
+                .with_message(format!("{} {}", step.title().blue(), step.describe().bold(),))
                 .with_style(
                     ProgressStyle::with_template(" {spinner} {wide_msg} ")
                         .unwrap()

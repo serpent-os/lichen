@@ -26,6 +26,15 @@ impl<'a> Step for FormatPartition<'a> {
     fn execute(&self) {
         todo!()
     }
+
+    fn title(&self) -> String {
+        "Format partition".into()
+    }
+
+    fn describe(&self) -> String {
+        // TODO: More than ext4 xD
+        format!("{} as ext4", self.partition.path.display())
+    }
 }
 
 /// Mount a given partition
@@ -45,5 +54,13 @@ impl<'a> Step for MountPartition<'a> {
 
     fn execute(&self) {
         todo!()
+    }
+
+    fn title(&self) -> String {
+        "Mount filesystem".into()
+    }
+
+    fn describe(&self) -> String {
+        format!("{} as {}", self.partition.path.display(), &self.mountpoint)
     }
 }
