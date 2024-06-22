@@ -9,7 +9,7 @@ use std::time::Duration;
 use console::{set_colors_enabled, style};
 use crossterm::style::Stylize;
 use dialoguer::theme::ColorfulTheme;
-use indicatif::{ProgressStyle};
+use indicatif::ProgressStyle;
 use installer::{systemd, Account, BootPartition, Installer, Locale, SystemPartition};
 use tokio::time::sleep;
 
