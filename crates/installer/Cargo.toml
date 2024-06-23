@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 libc.workspace = true
+log.workspace = true
 human_bytes.workspace = true
 futures.workspace = true
 system = { path = "../system" }

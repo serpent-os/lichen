@@ -11,7 +11,6 @@ use crossterm::style::Stylize;
 use dialoguer::theme::ColorfulTheme;
 use indicatif::ProgressStyle;
 use installer::{systemd, Account, BootPartition, Installer, Locale, SystemPartition};
-use tokio::time::sleep;
 
 /// Craptastic header printing
 fn print_header(icon: &str, text: &str) {
@@ -150,6 +149,8 @@ async fn main() -> color_eyre::Result<()> {
     );
     let total = multi.add(total);
 
+    let mut context = installer::steps::Context::new("/tmp/");
+
     for step in steps {
         let progress_bar = multi.insert_before(
             &total,
@@ -164,8 +165,7 @@ async fn main() -> color_eyre::Result<()> {
         progress_bar.enable_steady_tick(Duration::from_millis(150));
         total.inc(1);
 
-        //step.execute();
-        sleep(Duration::from_secs(2)).await;
+        step.execute(&mut context);
     }
 
     Ok(())

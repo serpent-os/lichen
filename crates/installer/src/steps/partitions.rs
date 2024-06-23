@@ -6,7 +6,7 @@
 
 use system::disk::Partition;
 
-use super::Step;
+use super::{Context, Step};
 
 /// Format a partition
 #[derive(Debug)]
@@ -23,8 +23,14 @@ impl<'a> Step for FormatPartition<'a> {
         "format-partition"
     }
 
-    fn execute(&self) {
-        todo!()
+    fn execute(&self, _context: &mut Context) {
+        let fs = self.filesystem.to_lowercase();
+        let command = match fs.as_str() {
+            "ext4" => ("mkfs.ext4", [&self.partition.path.display().to_string()]),
+            _ => unimplemented!(),
+        };
+        log::info!("Formatting {} as {}", self.partition.path.display(), self.filesystem);
+        log::trace!("Running: {command:?}");
     }
 
     fn title(&self) -> String {
@@ -52,8 +58,8 @@ impl<'a> Step for MountPartition<'a> {
         "mount-partition"
     }
 
-    fn execute(&self) {
-        todo!()
+    fn execute(&self, _context: &mut Context) {
+        log::info!("Mounting {} to {}", self.partition.path.display(), self.mountpoint);
     }
 
     fn title(&self) -> String {

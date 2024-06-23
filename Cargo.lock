@@ -636,6 +636,7 @@ dependencies = [
  "futures",
  "human_bytes",
  "libc",
+ "log",
  "system",
  "thiserror",
  "tokio",
