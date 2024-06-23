@@ -13,7 +13,7 @@ use thiserror::Error;
 use tokio::task::JoinError;
 
 use crate::{
-    steps::{self, Step},
+    steps::{FormatPartition, MountPartition, Step},
     BootPartition, Model, SystemPartition,
 };
 
@@ -127,17 +127,17 @@ impl Installer {
         let boot_part = &model.boot_partition.esp;
 
         // Mount efi..
-        s.push(Step::Mount(Box::new(steps::MountPartition {
+        s.push(Step::mount(MountPartition {
             partition: boot_part,
             mountpoint: "/efi".into(),
-        })));
+        }));
 
         // Mount xbootldr
         if let Some(xbootldr) = model.boot_partition.xbootldr.as_ref() {
-            s.push(Step::Mount(Box::new(steps::MountPartition {
+            s.push(Step::mount(MountPartition {
                 partition: xbootldr,
                 mountpoint: "/boot".into(),
-            })));
+            }));
         };
 
         let root_partition = model
@@ -152,14 +152,14 @@ impl Installer {
             })
             .ok_or(Error::MissingPartition("/"))?;
 
-        s.push(Step::Format(Box::new(steps::FormatPartition {
+        s.push(Step::format(FormatPartition {
             partition: &root_partition.partition,
             filesystem: "ext4".into(),
-        })));
-        s.push(Step::Mount(Box::new(steps::MountPartition {
+        }));
+        s.push(Step::mount(MountPartition {
             partition: &root_partition.partition,
             mountpoint: "/".into(),
-        })));
+        }));
 
         Ok(s)
     }

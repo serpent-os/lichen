@@ -21,6 +21,16 @@ pub enum Step<'a> {
 }
 
 impl<'a> Step<'a> {
+    /// Create new FormatPartition step
+    pub fn format(f: partitions::FormatPartition<'a>) -> Self {
+        Self::Format(Box::new(f))
+    }
+
+    /// Create new MountPartition step
+    pub fn mount(m: partitions::MountPartition<'a>) -> Self {
+        Self::Mount(Box::new(m))
+    }
+
     /// Return a unique short ID name for the steps
     pub fn name(&self) -> &'static str {
         match &self {
