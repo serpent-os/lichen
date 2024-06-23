@@ -4,17 +4,8 @@
 
 //! Lichen installation steps
 
-/// Context for the steps that are executing
-pub struct Context {
-    root: PathBuf,
-}
-
-impl Context {
-    /// Create a new context
-    pub fn new(root: impl Into<PathBuf>) -> Self {
-        Self { root: root.into() }
-    }
-}
+mod context;
+pub use context::Context;
 
 pub trait Step: Debug {
     /// Unique step name for debugging etc.
@@ -31,6 +22,6 @@ pub trait Step: Debug {
 }
 
 mod partitions;
-use std::{fmt::Debug, path::PathBuf};
+use std::fmt::Debug;
 
 pub use partitions::{FormatPartition, MountPartition};
