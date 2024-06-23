@@ -6,7 +6,7 @@
 
 use system::disk::Partition;
 
-use super::{Context, Step};
+use super::Context;
 
 /// Format a partition
 #[derive(Debug)]
@@ -18,12 +18,8 @@ pub struct FormatPartition<'a> {
     pub(crate) filesystem: String,
 }
 
-impl<'a> Step for FormatPartition<'a> {
-    fn name(&self) -> &'static str {
-        "format-partition"
-    }
-
-    fn execute(&self, _context: &mut Context) {
+impl<'a> FormatPartition<'a> {
+    pub(super) fn execute(&self, _context: &mut Context) {
         let fs = self.filesystem.to_lowercase();
         let command = match fs.as_str() {
             "ext4" => ("mkfs.ext4", [&self.partition.path.display().to_string()]),
@@ -33,11 +29,11 @@ impl<'a> Step for FormatPartition<'a> {
         log::trace!("Running: {command:?}");
     }
 
-    fn title(&self) -> String {
+    pub(super) fn title(&self) -> String {
         "Format partition".into()
     }
 
-    fn describe(&self) -> String {
+    pub(super) fn describe(&self) -> String {
         // TODO: More than ext4 xD
         format!("{} as ext4", self.partition.path.display())
     }
@@ -53,20 +49,16 @@ pub struct MountPartition<'a> {
     pub(crate) mountpoint: String,
 }
 
-impl<'a> Step for MountPartition<'a> {
-    fn name(&self) -> &'static str {
-        "mount-partition"
-    }
-
-    fn execute(&self, _context: &mut Context) {
+impl<'a> MountPartition<'a> {
+    pub(super) fn execute(&self, _context: &mut Context) {
         log::info!("Mounting {} to {}", self.partition.path.display(), self.mountpoint);
     }
 
-    fn title(&self) -> String {
+    pub(super) fn title(&self) -> String {
         "Mount filesystem".into()
     }
 
-    fn describe(&self) -> String {
+    pub(super) fn describe(&self) -> String {
         format!("{} as {}", self.partition.path.display(), &self.mountpoint)
     }
 }

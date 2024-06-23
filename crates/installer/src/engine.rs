@@ -122,22 +122,22 @@ impl Installer {
     }
 
     /// build the model into a set of install steps
-    pub fn compile_to_steps<'a>(&self, model: &'a Model) -> Result<Vec<Box<dyn Step + 'a>>, Error> {
-        let mut s: Vec<Box<dyn Step>> = vec![];
+    pub fn compile_to_steps<'a>(&self, model: &'a Model) -> Result<Vec<Step<'a>>, Error> {
+        let mut s: Vec<Step<'a>> = vec![];
         let boot_part = &model.boot_partition.esp;
 
         // Mount efi..
-        s.push(Box::new(steps::MountPartition {
+        s.push(Step::Mount(Box::new(steps::MountPartition {
             partition: boot_part,
             mountpoint: "/efi".into(),
-        }));
+        })));
 
         // Mount xbootldr
         if let Some(xbootldr) = model.boot_partition.xbootldr.as_ref() {
-            s.push(Box::new(steps::MountPartition {
+            s.push(Step::Mount(Box::new(steps::MountPartition {
                 partition: xbootldr,
                 mountpoint: "/boot".into(),
-            }));
+            })));
         };
 
         let root_partition = model
@@ -152,14 +152,14 @@ impl Installer {
             })
             .ok_or(Error::MissingPartition("/"))?;
 
-        s.push(Box::new(steps::FormatPartition {
+        s.push(Step::Format(Box::new(steps::FormatPartition {
             partition: &root_partition.partition,
             filesystem: "ext4".into(),
-        }));
-        s.push(Box::new(steps::MountPartition {
+        })));
+        s.push(Step::Mount(Box::new(steps::MountPartition {
             partition: &root_partition.partition,
             mountpoint: "/".into(),
-        }));
+        })));
 
         Ok(s)
     }

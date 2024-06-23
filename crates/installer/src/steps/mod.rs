@@ -7,18 +7,44 @@
 mod context;
 pub use context::Context;
 
-pub trait Step: Debug {
-    /// Unique step name for debugging etc.
-    fn name(&self) -> &'static str;
+#[derive(Debug)]
+pub enum Step<'a> {
+    Format(Box<partitions::FormatPartition<'a>>),
+    Mount(Box<partitions::MountPartition<'a>>),
+}
 
-    /// Return presentable, generic title
-    fn title(&self) -> String;
+impl<'a> Step<'a> {
+    /// Return a unique short ID name for the steps
+    pub fn name(&self) -> &'static str {
+        match &self {
+            Step::Format(_) => "format-partition",
+            Step::Mount(_) => "mount-partition",
+        }
+    }
 
-    /// Describe the operation more specifically
-    fn describe(&self) -> String;
+    /// Return the display title for a step
+    pub fn title(&self) -> String {
+        match &self {
+            Step::Format(s) => s.title(),
+            Step::Mount(s) => s.title(),
+        }
+    }
 
-    /// Request execution of the step
-    fn execute(&self, context: &mut Context);
+    /// Describe the action/context for the step
+    pub fn describe(&self) -> String {
+        match &self {
+            Step::Format(s) => s.describe(),
+            Step::Mount(s) => s.describe(),
+        }
+    }
+
+    /// Execute a step asynchronously. Implementations can opt-in to async.
+    pub async fn execute(&self, context: &mut Context) {
+        match &self {
+            Step::Format(s) => s.execute(context),
+            Step::Mount(s) => s.execute(context),
+        }
+    }
 }
 
 mod partitions;
