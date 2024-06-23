@@ -5,6 +5,7 @@
 //! Partititon formatting
 
 use system::disk::Partition;
+use tokio::process::Command;
 
 use super::Context;
 
@@ -19,14 +20,18 @@ pub struct FormatPartition<'a> {
 }
 
 impl<'a> FormatPartition<'a> {
-    pub(super) fn execute(&self, _context: &mut Context) {
+    pub(super) async fn execute(&self, _context: &mut Context) -> Result<(), super::Error> {
         let fs = self.filesystem.to_lowercase();
-        let command = match fs.as_str() {
+        let (exec, args) = match fs.as_str() {
             "ext4" => ("mkfs.ext4", [&self.partition.path.display().to_string()]),
             _ => unimplemented!(),
         };
         log::info!("Formatting {} as {}", self.partition.path.display(), self.filesystem);
-        log::trace!("Running: {command:?}");
+        log::trace!("Running: {exec:?} w/ {args:?}");
+
+        // For now we drop output, but we'll wire up stdout/stderr in context
+        let _ = Command::new(exec).args(args).output().await?;
+        Ok(())
     }
 
     pub(super) fn title(&self) -> String {
@@ -50,8 +55,9 @@ pub struct MountPartition<'a> {
 }
 
 impl<'a> MountPartition<'a> {
-    pub(super) fn execute(&self, _context: &mut Context) {
+    pub(super) async fn execute(&self, _context: &mut Context) -> Result<(), super::Error> {
         log::info!("Mounting {} to {}", self.partition.path.display(), self.mountpoint);
+        Ok(())
     }
 
     pub(super) fn title(&self) -> String {

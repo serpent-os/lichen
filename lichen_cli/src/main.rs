@@ -165,7 +165,8 @@ async fn main() -> color_eyre::Result<()> {
         progress_bar.enable_steady_tick(Duration::from_millis(150));
         total.inc(1);
 
-        step.execute(&mut context).await;
+        // TODO: On a step failure, we tear down context cleanly and dump an error
+        step.execute(&mut context).await?;
     }
 
     Ok(())

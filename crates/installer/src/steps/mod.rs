@@ -6,6 +6,13 @@
 
 mod context;
 pub use context::Context;
+use thiserror::Error;
+
+#[derive(Debug, Error)]
+pub enum Error {
+    #[error("io: {0}")]
+    IO(#[from] std::io::Error),
+}
 
 #[derive(Debug)]
 pub enum Step<'a> {
@@ -39,10 +46,10 @@ impl<'a> Step<'a> {
     }
 
     /// Execute a step asynchronously. Implementations can opt-in to async.
-    pub async fn execute(&self, context: &mut Context) {
+    pub async fn execute(&self, context: &mut Context) -> Result<(), Error> {
         match &self {
-            Step::Format(s) => s.execute(context),
-            Step::Mount(s) => s.execute(context),
+            Step::Format(s) => Ok(s.execute(context).await?),
+            Step::Mount(s) => Ok(s.execute(context).await?),
         }
     }
 }
