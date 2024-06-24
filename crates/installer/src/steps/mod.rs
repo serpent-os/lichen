@@ -19,6 +19,7 @@ pub enum Step<'a> {
     AddRepo(Box<packaging::AddRepo>),
     Bind(Box<partitions::BindMount>),
     Format(Box<partitions::FormatPartition<'a>>),
+    Install(Box<packaging::InstallPackages>),
     Mount(Box<partitions::MountPartition<'a>>),
 }
 
@@ -26,6 +27,10 @@ impl<'a> Step<'a> {
     /// Create new repo step
     pub fn add_repo(r: packaging::AddRepo) -> Self {
         Self::AddRepo(Box::new(r))
+    }
+
+    pub fn install_packages(p: packaging::InstallPackages) -> Self {
+        Self::Install(Box::new(p))
     }
 
     /// Create new FormatPartition step
@@ -49,6 +54,7 @@ impl<'a> Step<'a> {
             Step::AddRepo(_) => "add-repo",
             Step::Bind(_) => "bind-mount",
             Step::Format(_) => "format-partition",
+            Step::Install(_) => "install-packages",
             Step::Mount(_) => "mount-partition",
         }
     }
@@ -59,6 +65,7 @@ impl<'a> Step<'a> {
             Step::AddRepo(s) => s.title(),
             Step::Bind(s) => s.title(),
             Step::Format(s) => s.title(),
+            Step::Install(s) => s.title(),
             Step::Mount(s) => s.title(),
         }
     }
@@ -69,6 +76,7 @@ impl<'a> Step<'a> {
             Step::AddRepo(s) => s.describe(),
             Step::Bind(s) => s.describe(),
             Step::Format(s) => s.describe(),
+            Step::Install(s) => s.describe(),
             Step::Mount(s) => s.describe(),
         }
     }
@@ -79,6 +87,7 @@ impl<'a> Step<'a> {
             Step::AddRepo(s) => Ok(s.execute(context).await?),
             Step::Bind(s) => Ok(s.execute(context).await?),
             Step::Format(s) => Ok(s.execute(context).await?),
+            Step::Install(s) => Ok(s.execute(context).await?),
             Step::Mount(s) => Ok(s.execute(context).await?),
         }
     }
@@ -90,4 +99,4 @@ use std::fmt::Debug;
 pub use partitions::{BindMount, FormatPartition, MountPartition};
 
 mod packaging;
-pub use packaging::AddRepo;
+pub use packaging::{AddRepo, InstallPackages};
