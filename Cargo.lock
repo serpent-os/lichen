@@ -643,6 +643,8 @@ dependencies = [
  "human_bytes",
  "libc",
  "log",
+ "serde",
+ "serde_json",
  "system",
  "thiserror",
  "tokio",
