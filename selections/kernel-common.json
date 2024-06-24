@@ -1,0 +1,9 @@
+{
+  "name": "kernel-common",
+  "summary": "Common kernel runtime",
+  "required": [
+    "kmod",
+    "linux-firmware",
+    "lvm2"
+  ]
+}

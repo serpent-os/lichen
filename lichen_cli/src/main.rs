@@ -94,10 +94,12 @@ async fn main() -> color_eyre::Result<()> {
         selections::Group::from_str(include_str!("../../selections/base.json"))?,
         selections::Group::from_str(include_str!("../../selections/develop.json"))?,
         selections::Group::from_str(include_str!("../../selections/gnome.json"))?,
+        selections::Group::from_str(include_str!("../../selections/kernel-common.json"))?,
+        selections::Group::from_str(include_str!("../../selections/kernel-desktop.json"))?,
     ]);
     eprintln!(
         "debug: enabled the following package choices: {:?}",
-        selections.selections_with(["gnome", "develop"])?
+        selections.selections_with(["gnome", "develop", "kernel-desktop"])?
     );
 
     let load_spinner = indicatif::ProgressBar::new(1)

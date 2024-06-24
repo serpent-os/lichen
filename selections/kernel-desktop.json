@@ -1,0 +1,15 @@
+{
+  "name": "kernel-desktop",
+  "summary": "Desktop kernel",
+  "depends": [
+    "kernel-common"
+  ],
+  "required": [
+    "linux-desktop",
+    "linux-firmware",
+    "linux-firmware-amd",
+    "linux-firmware-intel",
+    "linux-firmware-iwlwifi",
+    "linux-firmware-nvidia"
+  ]
+}

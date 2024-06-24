@@ -13,14 +13,6 @@
     "font-hack",
     "font-noto-emoji",
     "loupe",
-    "nautilus",
-    "kmod",
-    "linux-desktop",
-    "linux-firmware",
-    "linux-firmware-amd",
-    "linux-firmware-intel",
-    "linux-firmware-iwlwifi",
-    "linux-firmware-nvidia",
-    "lvm2"
+    "nautilus"
   ]
 }
