@@ -153,20 +153,6 @@ impl Installer {
         let mut s: Vec<Step<'a>> = vec![];
         let boot_part = &model.boot_partition.esp;
 
-        // Mount efi..
-        s.push(Step::mount(MountPartition {
-            partition: boot_part,
-            mountpoint: "/efi".into(),
-        }));
-
-        // Mount xbootldr
-        if let Some(xbootldr) = model.boot_partition.xbootldr.as_ref() {
-            s.push(Step::mount(MountPartition {
-                partition: xbootldr,
-                mountpoint: "/boot".into(),
-            }));
-        };
-
         let root_partition = model
             .partitions
             .iter()
@@ -179,14 +165,31 @@ impl Installer {
             })
             .ok_or(Error::MissingPartition("/"))?;
 
+        // Must format and mount `/` before we can add more mounts
         s.push(Step::format(FormatPartition {
             partition: &root_partition.partition,
             filesystem: "ext4".into(),
         }));
         s.push(Step::mount(MountPartition {
             partition: &root_partition.partition,
-            mountpoint: "/".into(),
+            mountpoint: context.root.clone(),
         }));
+
+        // Mount the ESP
+        s.push(Step::mount(MountPartition {
+            partition: boot_part,
+            mountpoint: context.root.join("efi"),
+        }));
+
+        // Mount xbootldr at `/boot` if present
+        if let Some(xbootldr) = model.boot_partition.xbootldr.as_ref() {
+            s.push(Step::mount(MountPartition {
+                partition: xbootldr,
+                mountpoint: context.root.join("boot"),
+            }));
+        };
+
+        // Populate vfs bind mounts
         let mounts = self.create_vfs_mounts(&context.root);
         s.extend(mounts);
         Ok(s)

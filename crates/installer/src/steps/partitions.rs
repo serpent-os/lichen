@@ -7,7 +7,7 @@
 use std::path::PathBuf;
 
 use system::disk::Partition;
-use tokio::process::Command;
+use tokio::{fs::create_dir_all, process::Command};
 
 use super::Context;
 
@@ -53,12 +53,28 @@ pub struct MountPartition<'a> {
     pub(crate) partition: &'a Partition,
 
     /// Where are we mounting it?
-    pub(crate) mountpoint: String,
+    pub(crate) mountpoint: PathBuf,
 }
 
 impl<'a> MountPartition<'a> {
-    pub(super) async fn execute(&self, _context: &mut Context) -> Result<(), super::Error> {
-        log::info!("Mounting {} to {}", self.partition.path.display(), self.mountpoint);
+    pub(super) async fn execute(&self, context: &mut Context) -> Result<(), super::Error> {
+        log::info!(
+            "Mounting {} to {}",
+            self.partition.path.display(),
+            self.mountpoint.display()
+        );
+
+        // Ensure target exists
+        create_dir_all(&self.mountpoint).await?;
+        let source = self.partition.path.to_string_lossy().to_string();
+        let dest = self.mountpoint.to_string_lossy().to_string();
+        let mut cmd = Command::new("mount");
+        cmd.args([&source, &dest]);
+
+        // Run
+        let _ = cmd.output().await?;
+
+        context.push_mount(self.mountpoint.clone());
         Ok(())
     }
 
@@ -67,7 +83,7 @@ impl<'a> MountPartition<'a> {
     }
 
     pub(super) fn describe(&self) -> String {
-        format!("{} as {}", self.partition.path.display(), &self.mountpoint)
+        format!("{} as {}", self.partition.path.display(), self.mountpoint.display())
     }
 }
 
@@ -82,8 +98,19 @@ pub struct BindMount {
 }
 
 impl BindMount {
-    pub(super) async fn execute(&self, _context: &mut Context) -> Result<(), super::Error> {
+    pub(super) async fn execute(&self, context: &mut Context) -> Result<(), super::Error> {
         log::info!("Bind mounting {} to {}", self.source.display(), self.dest.display());
+
+        // Ensure target exists
+        create_dir_all(&self.dest).await?;
+        let source = self.source.to_string_lossy().to_string();
+        let dest = self.dest.to_string_lossy().to_string();
+        let mut cmd = Command::new("mount");
+        cmd.args(["--bind", &source, &dest]);
+
+        // Run
+        let _ = cmd.output().await?;
+        context.push_mount(self.dest.clone());
         Ok(())
     }
 
