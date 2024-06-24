@@ -97,10 +97,6 @@ async fn main() -> color_eyre::Result<()> {
         selections::Group::from_str(include_str!("../../selections/kernel-common.json"))?,
         selections::Group::from_str(include_str!("../../selections/kernel-desktop.json"))?,
     ]);
-    eprintln!(
-        "debug: enabled the following package choices: {:?}",
-        selections.selections_with(["gnome", "develop", "kernel-desktop"])?
-    );
 
     let load_spinner = indicatif::ProgressBar::new(1)
         .with_message(format!("{}", "Loading".blue()))
@@ -153,8 +149,14 @@ async fn main() -> color_eyre::Result<()> {
         return Ok(());
     }
 
+    // Push some packages into the installer based on selections
+
     // TODO: Use proper temp directory
-    let mut context = installer::steps::Context::new("/tmp/lichen");
+    let mut context = installer::steps::Context::new("/tmp/lichen").with_packages(selections.selections_with([
+        "develop",
+        "gnome",
+        "kernel-desktop",
+    ])?);
 
     let steps = inst.compile_to_steps(&model, &context)?;
     let multi = indicatif::MultiProgress::new();
