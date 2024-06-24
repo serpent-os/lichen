@@ -47,9 +47,6 @@ pub struct Installer {
     /// Complete locale registry
     locale_registry: locale::Registry,
 
-    /// All known/useful disks
-    disks: Vec<Disk>,
-
     /// Boot partitions
     boot_parts: Vec<BootPartition>,
 
@@ -117,7 +114,6 @@ impl Installer {
 
         Ok(Self {
             locale_registry,
-            disks,
             system_parts,
             boot_parts,
         })
