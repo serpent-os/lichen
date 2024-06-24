@@ -4,13 +4,13 @@
 
 //! Super basic CLI runner for lichen
 
-use std::time::Duration;
+use std::{str::FromStr, time::Duration};
 
 use console::{set_colors_enabled, style};
 use crossterm::style::Stylize;
 use dialoguer::theme::ColorfulTheme;
 use indicatif::ProgressStyle;
-use installer::{systemd, Account, BootPartition, Installer, Locale, SystemPartition};
+use installer::{selections, systemd, Account, BootPartition, Installer, Locale, SystemPartition};
 
 /// Craptastic header printing
 fn print_header(icon: &str, text: &str) {
@@ -88,6 +88,17 @@ fn ask_password() -> color_eyre::Result<String> {
 async fn main() -> color_eyre::Result<()> {
     color_eyre::install().unwrap();
     set_colors_enabled(true);
+
+    // Test selection management, force GNOME
+    let selections = selections::Manager::new().with_groups([
+        selections::Group::from_str(include_str!("../../selections/base.json"))?,
+        selections::Group::from_str(include_str!("../../selections/develop.json"))?,
+        selections::Group::from_str(include_str!("../../selections/gnome.json"))?,
+    ]);
+    eprintln!(
+        "debug: enabled the following package choices: {:?}",
+        selections.selections_with(["gnome", "develop"])?
+    );
 
     let load_spinner = indicatif::ProgressBar::new(1)
         .with_message(format!("{}", "Loading".blue()))

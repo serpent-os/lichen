@@ -111,7 +111,7 @@ impl Manager {
 mod tests {
     use std::str::FromStr;
 
-    use crate::{Group, Manager};
+    use crate::selections::{Group, Manager};
 
     #[test]
     fn test_decode() {

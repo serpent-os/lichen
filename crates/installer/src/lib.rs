@@ -23,5 +23,4 @@ pub use system::locale::Locale;
 
 pub mod steps;
 
-mod selections;
-pub use selections::{Group, Manager};
+pub mod selections;
