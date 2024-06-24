@@ -16,7 +16,7 @@ use tokio::task::JoinError;
 use topology::disk::builder::Builder;
 
 use crate::{
-    steps::{BindMount, Context, FormatPartition, MountPartition, Step},
+    steps::{AddRepo, BindMount, Context, FormatPartition, InstallPackages, MountPartition, Step},
     BootPartition, Model, SystemPartition,
 };
 
@@ -192,6 +192,52 @@ impl Installer {
         // Populate vfs bind mounts
         let mounts = self.create_vfs_mounts(&context.root);
         s.extend(mounts);
+
+        // HAX:
+        s.push(Step::add_repo(AddRepo {
+            uri: "https://dev.serpentos.com/volatile/x86_64/stone.index".into(),
+            name: "volatile".into(),
+            priority: 0,
+        }));
+        s.push(Step::install_packages(InstallPackages {
+            names: [
+                "bash",
+                "boulder",
+                "coreutils",
+                "dash",
+                "dbus",
+                "dbus-broker",
+                "file",
+                "gawk",
+                "git",
+                "grep",
+                "gzip",
+                "inetutils",
+                "iproute2",
+                "less",
+                "linux-kvm",
+                "moss",
+                "nano",
+                "neofetch",
+                "nss",
+                "openssh",
+                "procps",
+                "python",
+                "screen",
+                "sed",
+                "shadow",
+                "sudo",
+                "systemd",
+                "unzip",
+                "util-linux",
+                "vim",
+                "wget",
+                "which",
+            ]
+            .iter()
+            .map(|n| n.to_string())
+            .collect::<Vec<_>>(),
+        }));
         Ok(s)
     }
 
