@@ -4,6 +4,8 @@
 
 //! Concrete implementation of the isntaller
 
+use std::path::Path;
+
 use futures::stream::{self, StreamExt};
 use system::{
     disk::{self, Disk},
@@ -14,7 +16,7 @@ use tokio::task::JoinError;
 use topology::disk::builder::Builder;
 
 use crate::{
-    steps::{FormatPartition, MountPartition, Step},
+    steps::{BindMount, Context, FormatPartition, MountPartition, Step},
     BootPartition, Model, SystemPartition,
 };
 
@@ -147,7 +149,7 @@ impl Installer {
     }
 
     /// build the model into a set of install steps
-    pub fn compile_to_steps<'a>(&self, model: &'a Model) -> Result<Vec<Step<'a>>, Error> {
+    pub fn compile_to_steps<'a>(&'a self, model: &'a Model, context: &Context) -> Result<Vec<Step<'a>>, Error> {
         let mut s: Vec<Step<'a>> = vec![];
         let boot_part = &model.boot_partition.esp;
 
@@ -185,7 +187,27 @@ impl Installer {
             partition: &root_partition.partition,
             mountpoint: "/".into(),
         }));
-
+        let mounts = self.create_vfs_mounts(&context.root);
+        s.extend(mounts);
         Ok(s)
+    }
+
+    fn create_vfs_mounts(&self, prefix: &Path) -> Vec<Step> {
+        const PARTS: &[(&str, &str); 5] = &[
+            ("/dev", "dev"),
+            ("/dev/shm", "dev/shm"),
+            ("/dev/pts", "dev/pts"),
+            ("/proc", "proc"),
+            ("/sys", "sys"),
+        ];
+        PARTS
+            .iter()
+            .map(|(source, dest)| {
+                Step::bind_mount(BindMount {
+                    source: source.into(),
+                    dest: prefix.join(dest),
+                })
+            })
+            .collect::<Vec<_>>()
     }
 }

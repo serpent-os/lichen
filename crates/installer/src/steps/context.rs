@@ -8,7 +8,7 @@ use std::path::PathBuf;
 
 /// Context for the steps that are executing
 pub struct Context {
-    root: PathBuf,
+    pub root: PathBuf,
 }
 
 impl Context {

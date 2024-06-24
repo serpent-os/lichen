@@ -4,6 +4,8 @@
 
 //! Partititon formatting
 
+use std::path::PathBuf;
+
 use system::disk::Partition;
 use tokio::process::Command;
 
@@ -66,5 +68,30 @@ impl<'a> MountPartition<'a> {
 
     pub(super) fn describe(&self) -> String {
         format!("{} as {}", self.partition.path.display(), &self.mountpoint)
+    }
+}
+
+/// Bind mount a source dir into a target dir
+#[derive(Debug)]
+pub struct BindMount {
+    /// The source directory
+    pub(crate) source: PathBuf,
+
+    /// Destination directory
+    pub(crate) dest: PathBuf,
+}
+
+impl BindMount {
+    pub(super) async fn execute(&self, _context: &mut Context) -> Result<(), super::Error> {
+        log::info!("Bind mounting {} to {}", self.source.display(), self.dest.display());
+        Ok(())
+    }
+
+    pub(super) fn title(&self) -> String {
+        "Bind mount filesystem".into()
+    }
+
+    pub(super) fn describe(&self) -> String {
+        format!("{} on {}", self.source.display(), self.dest.display())
     }
 }

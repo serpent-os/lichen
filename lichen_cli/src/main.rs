@@ -140,17 +140,18 @@ async fn main() -> color_eyre::Result<()> {
         return Ok(());
     }
 
-    let steps = inst.compile_to_steps(&model)?;
+    // TODO: Use proper temp directory
+    let mut context = installer::steps::Context::new("/tmp/lichen");
+
+    let steps = inst.compile_to_steps(&model, &context)?;
     let multi = indicatif::MultiProgress::new();
     let total = indicatif::ProgressBar::new(steps.len() as u64).with_style(
         ProgressStyle::with_template("\n|{bar:20.cyan/blue}| {pos}/{len}")
             .unwrap()
             .progress_chars("■≡=- "),
     );
+
     let total = multi.add(total);
-
-    let mut context = installer::steps::Context::new("/tmp/");
-
     for step in steps {
         let progress_bar = multi.insert_before(
             &total,
