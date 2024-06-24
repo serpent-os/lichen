@@ -1,5 +1,5 @@
 {
-  "name": "GNOME",
+  "name": "gnome",
   "summary": "GNOME Desktop",
   "depends": [
     "base"

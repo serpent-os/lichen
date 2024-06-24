@@ -1,7 +1,9 @@
 {
-  "name": "Develop",
+  "name": "develop",
   "summary": "Development tooling",
-  "depends": "base",
+  "depends": [
+    "base"
+  ],
   "required": [
     "binary(boulder)",
     "binary(git)"

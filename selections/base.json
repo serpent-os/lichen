@@ -1,15 +1,13 @@
 {
-  "name": "Base",
+  "name": "base",
   "summary": "Base system",
   "required": [
     "bash-completion",
     "binary(bash)",
-    "binary(boulder)",
     "binary(dash)",
     "binary(file)",
     "binary(find)",
     "binary(gawk)",
-    "binary(git)",
     "binary(grep)",
     "binary(gzip)",
     "binary(less)",
