@@ -16,12 +16,18 @@ pub enum Error {
 
 #[derive(Debug)]
 pub enum Step<'a> {
+    AddRepo(Box<packaging::AddRepo>),
     Bind(Box<partitions::BindMount>),
     Format(Box<partitions::FormatPartition<'a>>),
     Mount(Box<partitions::MountPartition<'a>>),
 }
 
 impl<'a> Step<'a> {
+    /// Create new repo step
+    pub fn add_repo(r: packaging::AddRepo) -> Self {
+        Self::AddRepo(Box::new(r))
+    }
+
     /// Create new FormatPartition step
     pub fn format(f: partitions::FormatPartition<'a>) -> Self {
         Self::Format(Box::new(f))
@@ -40,6 +46,7 @@ impl<'a> Step<'a> {
     /// Return a unique short ID name for the steps
     pub fn name(&self) -> &'static str {
         match &self {
+            Step::AddRepo(_) => "add-repo",
             Step::Bind(_) => "bind-mount",
             Step::Format(_) => "format-partition",
             Step::Mount(_) => "mount-partition",
@@ -49,6 +56,7 @@ impl<'a> Step<'a> {
     /// Return the display title for a step
     pub fn title(&self) -> String {
         match &self {
+            Step::AddRepo(s) => s.title(),
             Step::Bind(s) => s.title(),
             Step::Format(s) => s.title(),
             Step::Mount(s) => s.title(),
@@ -58,6 +66,7 @@ impl<'a> Step<'a> {
     /// Describe the action/context for the step
     pub fn describe(&self) -> String {
         match &self {
+            Step::AddRepo(s) => s.describe(),
             Step::Bind(s) => s.describe(),
             Step::Format(s) => s.describe(),
             Step::Mount(s) => s.describe(),
@@ -67,6 +76,7 @@ impl<'a> Step<'a> {
     /// Execute a step asynchronously. Implementations can opt-in to async.
     pub async fn execute(&self, context: &mut Context) -> Result<(), Error> {
         match &self {
+            Step::AddRepo(s) => Ok(s.execute(context).await?),
             Step::Bind(s) => Ok(s.execute(context).await?),
             Step::Format(s) => Ok(s.execute(context).await?),
             Step::Mount(s) => Ok(s.execute(context).await?),
@@ -78,3 +88,6 @@ mod partitions;
 use std::fmt::Debug;
 
 pub use partitions::{BindMount, FormatPartition, MountPartition};
+
+mod packaging;
+pub use packaging::AddRepo;
