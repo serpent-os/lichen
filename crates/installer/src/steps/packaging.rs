@@ -26,8 +26,10 @@ impl AddRepo {
     }
 
     /// Run moss against the target, adding a repo
-    pub(super) async fn execute(&self, _context: &mut Context) -> Result<(), super::Error> {
+    pub(super) async fn execute(&self, context: &mut Context) -> Result<(), super::Error> {
         let mut cmd = Command::new("moss");
+        cmd.arg("-D");
+        cmd.arg(&context.root);
         cmd.args(["repo", "add", &self.name, &self.uri, "-p"]);
         cmd.arg(self.priority.to_string());
 
