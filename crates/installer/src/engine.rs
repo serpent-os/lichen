@@ -11,6 +11,7 @@ use system::{
 };
 use thiserror::Error;
 use tokio::task::JoinError;
+use topology::disk::builder::Builder;
 
 use crate::{
     steps::{FormatPartition, MountPartition, Step},
@@ -30,6 +31,9 @@ pub enum Error {
 
     #[error("unknown locale code: {0}")]
     UnknownLocale(String),
+
+    #[error("topology: {0}")]
+    Topology(#[from] topology::disk::Error),
 
     #[error("thread: {0}")]
     Thread(#[from] JoinError),
@@ -57,10 +61,31 @@ impl Installer {
         let locale_registry = locale::Registry::new().await?;
         let disks = Disk::discover().await?;
 
+        // Figure out where we live right now and exclude the rootfs
+        let probe = Builder::default().build()?;
+        let root_nodes = if let Ok(device) = probe.get_rootfs_device("/") {
+            let mut nodes = probe.get_device_chain(&device.path).unwrap_or_default();
+            nodes.push(device.path.into());
+            nodes
+        } else {
+            vec![]
+        };
+
+        // Exclude parent block devices related to `/` partition
+        let parents = root_nodes
+            .iter()
+            .filter_map(|n| probe.get_device_parent(n))
+            .collect::<Vec<_>>();
+
         let mut boot_parts = vec![];
         let mut system_parts = vec![];
-        for disk in disks.iter() {
+        for disk in disks.iter().filter(|d| !parents.iter().any(|r| *r == d.path)) {
             if let Ok(parts) = disk.partitions().await {
+                // Exclude partitions related to `/` partition
+                let parts = parts
+                    .into_iter()
+                    .filter(|p| !root_nodes.iter().any(|r| *r == p.path))
+                    .collect::<Vec<_>>();
                 if let Some(esp) = parts
                     .iter()
                     .find(|p| matches!(p.kind, disk::PartitionKind::ESP))
