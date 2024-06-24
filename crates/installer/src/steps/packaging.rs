@@ -23,7 +23,7 @@ impl AddRepo {
 
     /// Render the action
     pub(super) fn describe(&self) -> String {
-        format!("{} (priority {}", self.uri, self.name)
+        format!("{} (priority {})", self.uri, self.priority)
     }
 
     /// Run moss against the target, adding a repo
@@ -34,8 +34,8 @@ impl AddRepo {
         cmd.args(["repo", "add", &self.name, &self.uri, "-p"]);
         cmd.arg(self.priority.to_string());
 
-        // Run, ignore output
-        let _ = cmd.output().await?;
+        // Run,
+        let _ = cmd.spawn()?.wait().await?;
         Ok(())
     }
 }
@@ -65,8 +65,8 @@ impl InstallPackages {
         cmd.arg("install");
         cmd.args(&self.names);
 
-        // Run, ignore output
-        let _ = cmd.output().await?;
+        // Run
+        let _ = cmd.spawn()?.wait().await?;
         Ok(())
     }
 }
