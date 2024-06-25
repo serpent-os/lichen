@@ -31,9 +31,9 @@ impl AddRepo {
         let mut cmd = Command::new("moss");
         cmd.arg("-D");
         cmd.arg(&context.root);
-        cmd.arg("-y");
         cmd.args(["repo", "add", &self.name, &self.uri, "-p"]);
         cmd.arg(self.priority.to_string());
+        cmd.arg("-y");
 
         // Run,
         let _ = cmd.spawn()?.wait().await?;
@@ -65,6 +65,7 @@ impl InstallPackages {
         cmd.arg(&context.root);
         cmd.arg("install");
         cmd.args(&self.names);
+        cmd.arg("-y");
 
         // Run
         let _ = cmd.spawn()?.wait().await?;
