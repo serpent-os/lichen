@@ -16,7 +16,7 @@ use tokio::task::JoinError;
 use topology::disk::builder::Builder;
 
 use crate::{
-    steps::{AddRepo, BindMount, Context, FormatPartition, InstallPackages, MountPartition, Step},
+    steps::{AddRepo, BindMount, Cleanup, Context, FormatPartition, InstallPackages, MountPartition, Step, Unmount},
     BootPartition, Model, SystemPartition,
 };
 
@@ -145,8 +145,13 @@ impl Installer {
     }
 
     /// build the model into a set of install steps
-    pub fn compile_to_steps<'a>(&'a self, model: &'a Model, context: &Context) -> Result<Vec<Step<'a>>, Error> {
+    pub fn compile_to_steps<'a>(
+        &'a self,
+        model: &'a Model,
+        context: &Context,
+    ) -> Result<(Vec<Cleanup>, Vec<Step<'a>>), Error> {
         let mut s: Vec<Step<'a>> = vec![];
+        let mut c: Vec<Cleanup> = vec![];
         let boot_part = &model.boot_partition.esp;
 
         let root_partition = model
@@ -170,10 +175,16 @@ impl Installer {
             partition: &root_partition.partition,
             mountpoint: context.root.clone(),
         }));
+        c.push(Cleanup::unmount(Unmount {
+            mountpoint: context.root.clone(),
+        }));
 
         // Mount the ESP
         s.push(Step::mount(MountPartition {
             partition: boot_part,
+            mountpoint: context.root.join("efi"),
+        }));
+        c.push(Cleanup::unmount(Unmount {
             mountpoint: context.root.join("efi"),
         }));
 
@@ -183,11 +194,15 @@ impl Installer {
                 partition: xbootldr,
                 mountpoint: context.root.join("boot"),
             }));
+            c.push(Cleanup::unmount(Unmount {
+                mountpoint: context.root.join("boot"),
+            }));
         };
 
         // Populate vfs bind mounts
-        let mounts = self.create_vfs_mounts(&context.root);
+        let (mounts, unmounts) = self.create_vfs_mounts(&context.root);
         s.extend(mounts);
+        c.extend(unmounts);
 
         // HAX:
         s.push(Step::add_repo(AddRepo {
@@ -198,10 +213,13 @@ impl Installer {
         s.push(Step::install_packages(InstallPackages {
             names: context.packages.iter().cloned().collect::<Vec<_>>(),
         }));
-        Ok(s)
+
+        // Lastly, flip cleanups to front in reverse (due to mounts)
+        c.reverse();
+        Ok((c, s))
     }
 
-    fn create_vfs_mounts(&self, prefix: &Path) -> Vec<Step> {
+    fn create_vfs_mounts(&self, prefix: &Path) -> (Vec<Step>, Vec<Cleanup>) {
         const PARTS: &[(&str, &str); 5] = &[
             ("/dev", "dev"),
             ("/dev/shm", "dev/shm"),
@@ -212,11 +230,16 @@ impl Installer {
         PARTS
             .iter()
             .map(|(source, dest)| {
-                Step::bind_mount(BindMount {
-                    source: source.into(),
-                    dest: prefix.join(dest),
-                })
+                (
+                    Step::bind_mount(BindMount {
+                        source: source.into(),
+                        dest: prefix.join(dest),
+                    }),
+                    Cleanup::unmount(Unmount {
+                        mountpoint: prefix.join(dest),
+                    }),
+                )
             })
-            .collect::<Vec<_>>()
+            .collect::<(Vec<_>, Vec<_>)>()
     }
 }

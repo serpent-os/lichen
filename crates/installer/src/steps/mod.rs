@@ -96,7 +96,10 @@ impl<'a> Step<'a> {
 mod partitions;
 use std::fmt::Debug;
 
-pub use partitions::{BindMount, FormatPartition, MountPartition};
+pub use partitions::{BindMount, FormatPartition, MountPartition, Unmount};
 
 mod packaging;
 pub use packaging::{AddRepo, InstallPackages};
+
+mod cleanup;
+pub use cleanup::Cleanup;

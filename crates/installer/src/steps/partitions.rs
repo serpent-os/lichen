@@ -122,3 +122,30 @@ impl BindMount {
         format!("{} on {}", self.source.display(), self.dest.display())
     }
 }
+
+/// Unmount a given mountpoint
+#[derive(Debug)]
+pub struct Unmount {
+    pub(crate) mountpoint: PathBuf,
+}
+
+impl Unmount {
+    pub(super) fn title(&self) -> String {
+        "Unmount".to_string()
+    }
+
+    pub(super) fn describe(&self) -> String {
+        format!("{}", &self.mountpoint.display())
+    }
+
+    pub(super) async fn execute(&self, _: &mut Context) -> Result<(), super::Error> {
+        log::info!("Unmounting {}", self.mountpoint.display());
+
+        let dest = self.mountpoint.to_string_lossy().to_string();
+        let mut cmd = Command::new("umount");
+        cmd.arg(dest);
+
+        let _ = cmd.output().await?;
+        Ok(())
+    }
+}

@@ -158,9 +158,9 @@ async fn main() -> color_eyre::Result<()> {
         "kernel-desktop",
     ])?);
 
-    let steps = inst.compile_to_steps(&model, &context)?;
+    let (cleanups, steps) = inst.compile_to_steps(&model, &context)?;
     let multi = indicatif::MultiProgress::new();
-    let total = indicatif::ProgressBar::new(steps.len() as u64).with_style(
+    let total = indicatif::ProgressBar::new(steps.len() as u64 + cleanups.len() as u64).with_style(
         ProgressStyle::with_template("\n|{bar:20.cyan/blue}| {pos}/{len}")
             .unwrap()
             .progress_chars("■≡=- "),
@@ -183,6 +183,23 @@ async fn main() -> color_eyre::Result<()> {
 
         // TODO: On a step failure, we tear down context cleanly and dump an error
         step.execute(&mut context).await?;
+    }
+
+    // Execute all the cleanups
+    for cleanup in cleanups {
+        let progress_bar = multi.insert_before(
+            &total,
+            indicatif::ProgressBar::new(1)
+                .with_message(format!("{} {}", cleanup.title().yellow(), cleanup.describe().bold(),))
+                .with_style(
+                    ProgressStyle::with_template(" {spinner} {wide_msg} ")
+                        .unwrap()
+                        .tick_chars("--=≡■≡=--"),
+                ),
+        );
+        progress_bar.enable_steady_tick(Duration::from_millis(150));
+        total.inc(1);
+        cleanup.execute(&mut context).await?;
     }
 
     Ok(())
