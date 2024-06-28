@@ -4,13 +4,33 @@
 
 //! Super basic CLI runner for lichen
 
-use std::{str::FromStr, time::Duration};
+use std::{path::PathBuf, str::FromStr, time::Duration};
 
 use console::{set_colors_enabled, style};
 use crossterm::style::Stylize;
 use dialoguer::theme::ColorfulTheme;
 use indicatif::ProgressStyle;
-use installer::{selections, systemd, Account, BootPartition, Installer, Locale, SystemPartition};
+use installer::{selections, steps::Context, systemd, Account, BootPartition, Installer, Locale, SystemPartition};
+use tokio::process::Command;
+
+#[derive(Debug)]
+struct CliContext {
+    root: PathBuf,
+}
+
+impl<'a> Context<'a> for CliContext {
+    /// Return root of our ops
+    fn root(&'a self) -> &'a PathBuf {
+        &self.root
+    }
+
+    /// Run a step command
+    /// Right now all output is dumped to stdout/stderr
+    async fn run_command(&self, cmd: &mut Command) -> Result<(), installer::steps::Error> {
+        let _ = cmd.spawn()?.wait().await;
+        Ok(())
+    }
+}
 
 /// Craptastic header printing
 fn print_header(icon: &str, text: &str) {
@@ -153,8 +173,9 @@ async fn main() -> color_eyre::Result<()> {
     // Push some packages into the installer based on selections
 
     // TODO: Use proper temp directory
-    let mut context = installer::steps::Context::new("/tmp/lichen");
-
+    let context = CliContext {
+        root: "/tmp/lichen".into(),
+    };
     let (cleanups, steps) = inst.compile_to_steps(&model, &context)?;
     let multi = indicatif::MultiProgress::new();
     let total = indicatif::ProgressBar::new(steps.len() as u64 + cleanups.len() as u64).with_style(
@@ -179,7 +200,7 @@ async fn main() -> color_eyre::Result<()> {
         total.inc(1);
 
         // TODO: On a step failure, we tear down context cleanly and dump an error
-        step.execute(&mut context).await?;
+        step.execute(&context).await?;
     }
 
     // Execute all the cleanups
@@ -196,7 +217,7 @@ async fn main() -> color_eyre::Result<()> {
         );
         progress_bar.enable_steady_tick(Duration::from_millis(150));
         total.inc(1);
-        cleanup.execute(&mut context).await?;
+        cleanup.execute(&context).await?;
     }
 
     Ok(())

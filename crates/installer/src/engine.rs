@@ -148,7 +148,7 @@ impl Installer {
     pub fn compile_to_steps<'a>(
         &'a self,
         model: &'a Model,
-        context: &Context,
+        context: &'a impl Context<'a>,
     ) -> Result<(Vec<Cleanup>, Vec<Step<'a>>), Error> {
         let mut s: Vec<Step<'a>> = vec![];
         let mut c: Vec<Cleanup> = vec![];
@@ -173,34 +173,34 @@ impl Installer {
         }));
         s.push(Step::mount(MountPartition {
             partition: &root_partition.partition,
-            mountpoint: context.root.clone(),
+            mountpoint: context.root().clone(),
         }));
         c.push(Cleanup::unmount(Unmount {
-            mountpoint: context.root.clone(),
+            mountpoint: context.root().clone(),
         }));
 
         // Mount the ESP
         s.push(Step::mount(MountPartition {
             partition: boot_part,
-            mountpoint: context.root.join("efi"),
+            mountpoint: context.root().join("efi"),
         }));
         c.push(Cleanup::unmount(Unmount {
-            mountpoint: context.root.join("efi"),
+            mountpoint: context.root().join("efi"),
         }));
 
         // Mount xbootldr at `/boot` if present
         if let Some(xbootldr) = model.boot_partition.xbootldr.as_ref() {
             s.push(Step::mount(MountPartition {
                 partition: xbootldr,
-                mountpoint: context.root.join("boot"),
+                mountpoint: context.root().join("boot"),
             }));
             c.push(Cleanup::unmount(Unmount {
-                mountpoint: context.root.join("boot"),
+                mountpoint: context.root().join("boot"),
             }));
         };
 
         // Populate vfs bind mounts
-        let (mounts, unmounts) = self.create_vfs_mounts(&context.root);
+        let (mounts, unmounts) = self.create_vfs_mounts(context.root());
         s.extend(mounts);
         c.extend(unmounts);
 

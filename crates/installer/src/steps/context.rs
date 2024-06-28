@@ -2,18 +2,21 @@
 //
 // SPDX-License-Identifier: MPL-2.0
 
-//! Lichen installation steps
+//! Lichen step context
 
-use std::path::PathBuf;
+use std::{fmt::Debug, path::PathBuf};
+
+use futures::Future;
+use tokio::process::Command;
 
 /// Context for the steps that are executing
-pub struct Context {
-    pub root: PathBuf,
-}
+/// The context provides access to the core installation variables as
+/// well as simplified paths for executing commands in a consistent
+/// fashion.
+pub trait Context<'a>: Sized + Debug + Send {
+    /// Return the root directory of the installation
+    fn root(&'a self) -> &'a PathBuf;
 
-impl Context {
-    /// Create a new context
-    pub fn new(root: impl Into<PathBuf>) -> Self {
-        Self { root: root.into() }
-    }
+    /// Run the command asynchronously via the context
+    fn run_command(&self, cmd: &mut Command) -> impl Future<Output = Result<(), super::Error>> + Send;
 }

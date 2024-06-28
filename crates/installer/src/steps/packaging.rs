@@ -15,7 +15,7 @@ pub struct AddRepo {
     pub(crate) priority: u64,
 }
 
-impl AddRepo {
+impl<'a> AddRepo {
     /// Basic display title
     pub(super) fn title(&self) -> String {
         format!("Add repo {}", self.name)
@@ -27,17 +27,16 @@ impl AddRepo {
     }
 
     /// Run moss against the target, adding a repo
-    pub(super) async fn execute(&self, context: &mut Context) -> Result<(), super::Error> {
+    pub(super) async fn execute(&self, context: &'a impl Context<'a>) -> Result<(), super::Error> {
         let mut cmd = Command::new("moss");
         cmd.arg("-D");
-        cmd.arg(&context.root);
+        cmd.arg(context.root());
         cmd.args(["repo", "add", &self.name, &self.uri, "-p"]);
         cmd.arg(self.priority.to_string());
         cmd.arg("-y");
 
-        // Run,
-        let _ = cmd.spawn()?.wait().await?;
-        Ok(())
+        // Run
+        context.run_command(&mut cmd).await
     }
 }
 
@@ -47,7 +46,7 @@ pub struct InstallPackages {
     pub(crate) names: Vec<String>,
 }
 
-impl InstallPackages {
+impl<'a> InstallPackages {
     /// Basic display title
     pub(super) fn title(&self) -> String {
         "Install".into()
@@ -59,16 +58,14 @@ impl InstallPackages {
     }
 
     /// Run moss against the target, adding a repo
-    pub(super) async fn execute(&self, context: &mut Context) -> Result<(), super::Error> {
+    pub(super) async fn execute(&self, context: &'a impl Context<'a>) -> Result<(), super::Error> {
         let mut cmd = Command::new("moss");
         cmd.arg("-D");
-        cmd.arg(&context.root);
+        cmd.arg(context.root());
         cmd.arg("install");
         cmd.args(&self.names);
         cmd.arg("-y");
 
-        // Run
-        let _ = cmd.spawn()?.wait().await?;
-        Ok(())
+        context.run_command(&mut cmd).await
     }
 }

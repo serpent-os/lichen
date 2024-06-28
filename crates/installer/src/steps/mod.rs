@@ -82,7 +82,7 @@ impl<'a> Step<'a> {
     }
 
     /// Execute a step asynchronously. Implementations can opt-in to async.
-    pub async fn execute(&self, context: &mut Context) -> Result<(), Error> {
+    pub async fn execute(&self, context: &'a impl Context<'a>) -> Result<(), Error> {
         match &self {
             Step::AddRepo(s) => Ok(s.execute(context).await?),
             Step::Bind(s) => Ok(s.execute(context).await?),

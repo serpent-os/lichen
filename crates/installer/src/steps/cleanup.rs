@@ -17,7 +17,7 @@ pub enum Cleanup {
     Unmount(Box<partitions::Unmount>),
 }
 
-impl Cleanup {
+impl<'a> Cleanup {
     /// Create new unmount cleanup stage
     pub fn unmount(unmount: partitions::Unmount) -> Self {
         Self::Unmount(Box::new(unmount))
@@ -38,7 +38,7 @@ impl Cleanup {
     }
 
     /// Execute the cleanup step
-    pub async fn execute(&self, context: &mut Context) -> Result<(), super::Error> {
+    pub async fn execute(&self, context: &impl Context<'a>) -> Result<(), super::Error> {
         match &self {
             Cleanup::Unmount(s) => Ok(s.execute(context).await?),
         }

@@ -22,7 +22,7 @@ pub struct FormatPartition<'a> {
 }
 
 impl<'a> FormatPartition<'a> {
-    pub(super) async fn execute(&self, _context: &mut Context) -> Result<(), super::Error> {
+    pub(super) async fn execute(&self, context: &impl Context<'a>) -> Result<(), super::Error> {
         let fs = self.filesystem.to_lowercase();
         let (exec, args) = match fs.as_str() {
             "ext4" => ("mkfs.ext4", [&self.partition.path.display().to_string()]),
@@ -32,8 +32,9 @@ impl<'a> FormatPartition<'a> {
         log::trace!("Running: {exec:?} w/ {args:?}");
 
         // For now we drop output, but we'll wire up stdout/stderr in context
-        let _ = Command::new(exec).args(args).output().await?;
-        Ok(())
+        let mut cmd = Command::new(exec);
+        cmd.args(args);
+        context.run_command(&mut cmd).await
     }
 
     pub(super) fn title(&self) -> String {
@@ -57,7 +58,7 @@ pub struct MountPartition<'a> {
 }
 
 impl<'a> MountPartition<'a> {
-    pub(super) async fn execute(&self, _: &mut Context) -> Result<(), super::Error> {
+    pub(super) async fn execute(&self, context: &impl Context<'a>) -> Result<(), super::Error> {
         log::info!(
             "Mounting {} to {}",
             self.partition.path.display(),
@@ -72,8 +73,7 @@ impl<'a> MountPartition<'a> {
         cmd.args([&source, &dest]);
 
         // Run
-        let _ = cmd.output().await?;
-        Ok(())
+        context.run_command(&mut cmd).await
     }
 
     pub(super) fn title(&self) -> String {
@@ -95,8 +95,8 @@ pub struct BindMount {
     pub(crate) dest: PathBuf,
 }
 
-impl BindMount {
-    pub(super) async fn execute(&self, _: &mut Context) -> Result<(), super::Error> {
+impl<'a> BindMount {
+    pub(super) async fn execute(&self, context: &impl Context<'a>) -> Result<(), super::Error> {
         log::info!("Bind mounting {} to {}", self.source.display(), self.dest.display());
 
         // Ensure target exists
@@ -107,8 +107,7 @@ impl BindMount {
         cmd.args(["--bind", &source, &dest]);
 
         // Run
-        let _ = cmd.output().await?;
-        Ok(())
+        context.run_command(&mut cmd).await
     }
 
     pub(super) fn title(&self) -> String {
@@ -126,7 +125,7 @@ pub struct Unmount {
     pub(crate) mountpoint: PathBuf,
 }
 
-impl Unmount {
+impl<'a> Unmount {
     pub(super) fn title(&self) -> String {
         "Unmount".to_string()
     }
@@ -135,14 +134,13 @@ impl Unmount {
         format!("{}", &self.mountpoint.display())
     }
 
-    pub(super) async fn execute(&self, _: &mut Context) -> Result<(), super::Error> {
+    pub(super) async fn execute(&self, context: &impl Context<'a>) -> Result<(), super::Error> {
         log::info!("Unmounting {}", self.mountpoint.display());
 
         let dest = self.mountpoint.to_string_lossy().to_string();
         let mut cmd = Command::new("umount");
         cmd.arg(dest);
 
-        let _ = cmd.output().await?;
-        Ok(())
+        context.run_command(&mut cmd).await
     }
 }
