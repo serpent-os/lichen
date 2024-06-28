@@ -192,21 +192,24 @@ async fn main() -> color_eyre::Result<()> {
 
     let total = multi.add(total);
     for step in steps {
-        let progress_bar = multi.insert_before(
-            &total,
-            indicatif::ProgressBar::new(1)
-                .with_message(format!("{} {}", step.title().blue(), step.describe().bold(),))
-                .with_style(
-                    ProgressStyle::with_template(" {spinner} {wide_msg} ")
-                        .unwrap()
-                        .tick_chars("--=≡■≡=--"),
-                ),
-        );
-        progress_bar.enable_steady_tick(Duration::from_millis(150));
         total.inc(1);
-
-        // TODO: On a step failure, we tear down context cleanly and dump an error
-        step.execute(&context).await?;
+        if step.is_indeterminate() {
+            let progress_bar = multi.insert_before(
+                &total,
+                indicatif::ProgressBar::new(1)
+                    .with_message(format!("{} {}", step.title().blue(), step.describe().bold(),))
+                    .with_style(
+                        ProgressStyle::with_template(" {spinner} {wide_msg} ")
+                            .unwrap()
+                            .tick_chars("--=≡■≡=--"),
+                    ),
+            );
+            progress_bar.enable_steady_tick(Duration::from_millis(150));
+            step.execute(&context).await?;
+        } else {
+            multi.println(format!("{} {}", step.title().blue(), step.describe().bold()))?;
+            multi.suspend(|| step.execute(&context)).await?;
+        }
     }
 
     // Execute all the cleanups

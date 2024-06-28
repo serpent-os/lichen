@@ -91,6 +91,12 @@ impl<'a> Step<'a> {
             Step::Mount(s) => Ok(s.execute(context).await?),
         }
     }
+
+    /// Determine whether an indeterminate progress spinner is needed
+    /// In the CLI frontend this is abused to hide the progressbar when invoking moss.
+    pub fn is_indeterminate(&self) -> bool {
+        !matches!(self, Step::Install(_))
+    }
 }
 
 mod partitions;
