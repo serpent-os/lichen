@@ -34,7 +34,8 @@ impl<'a> FormatPartition<'a> {
         // For now we drop output, but we'll wire up stdout/stderr in context
         let mut cmd = Command::new(exec);
         cmd.args(args);
-        context.run_command(&mut cmd).await
+        let _ = context.run_command_captured(&mut cmd).await?;
+        Ok(())
     }
 
     pub(super) fn title(&self) -> String {
@@ -72,8 +73,8 @@ impl<'a> MountPartition<'a> {
         let mut cmd = Command::new("mount");
         cmd.args([&source, &dest]);
 
-        // Run
-        context.run_command(&mut cmd).await
+        let _ = context.run_command_captured(&mut cmd).await?;
+        Ok(())
     }
 
     pub(super) fn title(&self) -> String {
@@ -106,8 +107,8 @@ impl<'a> BindMount {
         let mut cmd = Command::new("mount");
         cmd.args(["--bind", &source, &dest]);
 
-        // Run
-        context.run_command(&mut cmd).await
+        let _ = context.run_command_captured(&mut cmd).await?;
+        Ok(())
     }
 
     pub(super) fn title(&self) -> String {
@@ -141,6 +142,7 @@ impl<'a> Unmount {
         let mut cmd = Command::new("umount");
         cmd.arg(dest);
 
-        context.run_command(&mut cmd).await
+        let _ = context.run_command_captured(&mut cmd).await?;
+        Ok(())
     }
 }

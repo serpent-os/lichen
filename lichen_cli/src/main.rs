@@ -4,7 +4,7 @@
 
 //! Super basic CLI runner for lichen
 
-use std::{path::PathBuf, str::FromStr, time::Duration};
+use std::{path::PathBuf, process::Output, str::FromStr, time::Duration};
 
 use console::{set_colors_enabled, style};
 use crossterm::style::Stylize;
@@ -29,6 +29,12 @@ impl<'a> Context<'a> for CliContext {
     async fn run_command(&self, cmd: &mut Command) -> Result<(), installer::steps::Error> {
         let _ = cmd.spawn()?.wait().await;
         Ok(())
+    }
+
+    /// Run a astep command, capture stdout
+    async fn run_command_captured(&self, cmd: &mut Command) -> Result<Output, installer::steps::Error> {
+        let output = cmd.output().await?;
+        Ok(output)
     }
 }
 

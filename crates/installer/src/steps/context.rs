@@ -4,7 +4,7 @@
 
 //! Lichen step context
 
-use std::{fmt::Debug, path::PathBuf};
+use std::{fmt::Debug, path::PathBuf, process::Output};
 
 use futures::Future;
 use tokio::process::Command;
@@ -19,4 +19,7 @@ pub trait Context<'a>: Sized + Debug + Send {
 
     /// Run the command asynchronously via the context
     fn run_command(&self, cmd: &mut Command) -> impl Future<Output = Result<(), super::Error>> + Send;
+
+    /// Run command, capture the output
+    fn run_command_captured(&self, cmd: &mut Command) -> impl Future<Output = Result<Output, super::Error>> + Send;
 }
