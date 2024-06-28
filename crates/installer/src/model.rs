@@ -25,4 +25,7 @@ pub struct Model<'a> {
 
     /// Timezone ID
     pub timezone: Option<String>,
+
+    /// Package selections
+    pub packages: BTreeSet<String>,
 }

@@ -211,7 +211,7 @@ impl Installer {
             priority: 0,
         }));
         s.push(Step::install_packages(InstallPackages {
-            names: context.packages.iter().cloned().collect::<Vec<_>>(),
+            names: model.packages.iter().cloned().collect::<Vec<_>>(),
         }));
 
         // Lastly, flip cleanups to front in reverse (due to mounts)

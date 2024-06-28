@@ -137,6 +137,7 @@ async fn main() -> color_eyre::Result<()> {
         partitions: [rootfs.clone()].into(),
         locale: Some(selected_locale),
         timezone: Some(timezone),
+        packages: selections.selections_with(["develop", "gnome", "kernel-desktop"])?,
     };
     println!("\n\n");
 
@@ -152,11 +153,7 @@ async fn main() -> color_eyre::Result<()> {
     // Push some packages into the installer based on selections
 
     // TODO: Use proper temp directory
-    let mut context = installer::steps::Context::new("/tmp/lichen").with_packages(selections.selections_with([
-        "develop",
-        "gnome",
-        "kernel-desktop",
-    ])?);
+    let mut context = installer::steps::Context::new("/tmp/lichen");
 
     let (cleanups, steps) = inst.compile_to_steps(&model, &context)?;
     let multi = indicatif::MultiProgress::new();
