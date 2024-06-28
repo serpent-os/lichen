@@ -15,6 +15,9 @@ use super::{partitions, Context};
 pub enum Cleanup {
     /// Unmount a mountpoint
     Unmount(Box<partitions::Unmount>),
+
+    /// Sync filesystems pre unmount
+    Sync(Box<partitions::SyncFS>),
 }
 
 impl<'a> Cleanup {
@@ -23,24 +26,32 @@ impl<'a> Cleanup {
         Self::Unmount(Box::new(unmount))
     }
 
+    /// Create new sync helper
+    pub fn sync_fs() -> Self {
+        Self::Sync(Box::new(partitions::SyncFS {}))
+    }
+
     /// Return cleanup step title
     pub fn title(&self) -> String {
         match &self {
             Self::Unmount(s) => s.title(),
+            Self::Sync(s) => s.title(),
         }
     }
 
     /// Fully describe cleanup step
     pub fn describe(&self) -> String {
         match &self {
-            Cleanup::Unmount(s) => s.describe(),
+            Self::Unmount(s) => s.describe(),
+            Self::Sync(s) => s.describe(),
         }
     }
 
     /// Execute the cleanup step
     pub async fn execute(&self, context: &impl Context<'a>) -> Result<(), super::Error> {
         match &self {
-            Cleanup::Unmount(s) => Ok(s.execute(context).await?),
+            Self::Unmount(s) => Ok(s.execute(context).await?),
+            Self::Sync(s) => Ok(s.execute(context).await?),
         }
     }
 }

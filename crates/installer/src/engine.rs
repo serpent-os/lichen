@@ -214,6 +214,8 @@ impl Installer {
             names: model.packages.iter().cloned().collect::<Vec<_>>(),
         }));
 
+        // Get the sync call in for unmounts
+        c.push(Cleanup::sync_fs());
         // Lastly, flip cleanups to front in reverse (due to mounts)
         c.reverse();
         Ok((c, s))

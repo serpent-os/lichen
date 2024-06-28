@@ -146,3 +146,24 @@ impl<'a> Unmount {
         Ok(())
     }
 }
+
+/// A cleanup helper that invokes `sync`
+pub struct SyncFS {}
+
+impl<'a> SyncFS {
+    pub(super) fn title(&self) -> String {
+        "Sync".into()
+    }
+
+    pub(super) fn describe(&self) -> String {
+        "filesystems".into()
+    }
+
+    pub(super) async fn execute(&self, context: &impl Context<'a>) -> Result<(), super::Error> {
+        log::info!("Syncing filesystems");
+
+        let mut cmd = Command::new("sync");
+        let _ = context.run_command_captured(&mut cmd).await;
+        Ok(())
+    }
+}
