@@ -57,7 +57,7 @@ pub struct MountPartition<'a> {
 }
 
 impl<'a> MountPartition<'a> {
-    pub(super) async fn execute(&self, context: &mut Context) -> Result<(), super::Error> {
+    pub(super) async fn execute(&self, _: &mut Context) -> Result<(), super::Error> {
         log::info!(
             "Mounting {} to {}",
             self.partition.path.display(),
@@ -73,8 +73,6 @@ impl<'a> MountPartition<'a> {
 
         // Run
         let _ = cmd.output().await?;
-
-        context.push_mount(self.mountpoint.clone());
         Ok(())
     }
 
@@ -98,7 +96,7 @@ pub struct BindMount {
 }
 
 impl BindMount {
-    pub(super) async fn execute(&self, context: &mut Context) -> Result<(), super::Error> {
+    pub(super) async fn execute(&self, _: &mut Context) -> Result<(), super::Error> {
         log::info!("Bind mounting {} to {}", self.source.display(), self.dest.display());
 
         // Ensure target exists
@@ -110,7 +108,6 @@ impl BindMount {
 
         // Run
         let _ = cmd.output().await?;
-        context.push_mount(self.dest.clone());
         Ok(())
     }
 
