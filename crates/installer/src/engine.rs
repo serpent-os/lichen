@@ -13,7 +13,7 @@ use system::{
 };
 use thiserror::Error;
 use tokio::task::JoinError;
-use topology::disk::builder::Builder;
+use topology::disk::Builder;
 
 use crate::{
     steps::{AddRepo, BindMount, Cleanup, Context, FormatPartition, InstallPackages, MountPartition, Step, Unmount},
