@@ -6,28 +6,28 @@
 #[derive(Debug, Clone, PartialEq, PartialOrd, Eq, Ord)]
 pub struct Account {
     /// User ID
-    uid: libc::uid_t,
+    pub uid: libc::uid_t,
 
     /// Group ID
-    gid: libc::gid_t,
+    pub gid: libc::gid_t,
 
     /// Account name
-    username: String,
+    pub username: String,
 
     /// Human username string
-    gecos: Option<String>,
+    pub gecos: Option<String>,
 
     /// Home directory
-    homedir: String,
+    pub homedir: String,
 
     /// Which shell to use
-    shell: String,
+    pub shell: String,
 
     /// New password
-    password: Option<String>,
+    pub password: Option<String>,
 
     /// Builtin user? (root)
-    builtin: bool,
+    pub builtin: bool,
 }
 
 impl Default for Account {

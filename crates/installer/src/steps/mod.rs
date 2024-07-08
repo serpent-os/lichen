@@ -21,6 +21,7 @@ pub enum Step<'a> {
     Format(Box<partitions::FormatPartition<'a>>),
     Install(Box<packaging::InstallPackages>),
     Mount(Box<partitions::MountPartition<'a>>),
+    SetPassword(Box<postinstall::SetPassword<'a>>),
 }
 
 impl<'a> Step<'a> {
@@ -48,6 +49,10 @@ impl<'a> Step<'a> {
         Self::Bind(Box::new(b))
     }
 
+    pub fn set_password(a: postinstall::SetPassword<'a>) -> Self {
+        Self::SetPassword(Box::new(a))
+    }
+
     /// Return a unique short ID name for the steps
     pub fn name(&self) -> &'static str {
         match &self {
@@ -56,6 +61,7 @@ impl<'a> Step<'a> {
             Step::Format(_) => "format-partition",
             Step::Install(_) => "install-packages",
             Step::Mount(_) => "mount-partition",
+            Step::SetPassword(_) => "set-password",
         }
     }
 
@@ -67,6 +73,7 @@ impl<'a> Step<'a> {
             Step::Format(s) => s.title(),
             Step::Install(s) => s.title(),
             Step::Mount(s) => s.title(),
+            Step::SetPassword(s) => s.title(),
         }
     }
 
@@ -78,6 +85,7 @@ impl<'a> Step<'a> {
             Step::Format(s) => s.describe(),
             Step::Install(s) => s.describe(),
             Step::Mount(s) => s.describe(),
+            Step::SetPassword(s) => s.describe(),
         }
     }
 
@@ -89,6 +97,7 @@ impl<'a> Step<'a> {
             Step::Format(s) => Ok(s.execute(context).await?),
             Step::Install(s) => Ok(s.execute(context).await?),
             Step::Mount(s) => Ok(s.execute(context).await?),
+            Step::SetPassword(s) => Ok(s.execute(context).await?),
         }
     }
 
@@ -109,3 +118,6 @@ pub use packaging::{AddRepo, InstallPackages};
 
 mod cleanup;
 pub use cleanup::Cleanup;
+
+mod postinstall;
+pub use postinstall::SetPassword;

@@ -4,13 +4,19 @@
 
 //! Super basic CLI runner for lichen
 
-use std::{path::PathBuf, process::Output, str::FromStr, time::Duration};
+use std::{
+    path::PathBuf,
+    process::{Output, Stdio},
+    str::FromStr,
+    time::Duration,
+};
 
 use console::{set_colors_enabled, style};
 use crossterm::style::Stylize;
 use dialoguer::theme::ColorfulTheme;
 use indicatif::ProgressStyle;
 use installer::{selections, steps::Context, systemd, Account, BootPartition, Installer, Locale, SystemPartition};
+use tokio::io::AsyncWriteExt;
 use tokio::process::Command;
 
 #[derive(Debug)]
@@ -32,8 +38,23 @@ impl<'a> Context<'a> for CliContext {
     }
 
     /// Run a astep command, capture stdout
-    async fn run_command_captured(&self, cmd: &mut Command) -> Result<Output, installer::steps::Error> {
-        let output = cmd.output().await?;
+    async fn run_command_captured(
+        &self,
+        cmd: &mut Command,
+        input: Option<&str>,
+    ) -> Result<Output, installer::steps::Error> {
+        cmd.stdin(Stdio::piped());
+        cmd.stdout(Stdio::piped());
+        cmd.stderr(Stdio::piped());
+        let mut ps = cmd.spawn()?;
+        let mut stdin = ps.stdin.take().expect("stdin failure");
+
+        if let Some(input) = input {
+            stdin.write_all(input.as_bytes()).await?;
+        }
+        drop(stdin);
+
+        let output = ps.wait_with_output().await?;
         Ok(output)
     }
 }

@@ -21,5 +21,10 @@ pub trait Context<'a>: Sized + Debug + Send {
     fn run_command(&self, cmd: &mut Command) -> impl Future<Output = Result<(), super::Error>> + Send;
 
     /// Run command, capture the output
-    fn run_command_captured(&self, cmd: &mut Command) -> impl Future<Output = Result<Output, super::Error>> + Send;
+    /// Accepts optional string to write as stdin
+    fn run_command_captured(
+        &self,
+        cmd: &mut Command,
+        input: Option<&str>,
+    ) -> impl Future<Output = Result<Output, super::Error>> + Send;
 }

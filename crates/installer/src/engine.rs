@@ -16,7 +16,10 @@ use tokio::task::JoinError;
 use topology::disk::Builder;
 
 use crate::{
-    steps::{AddRepo, BindMount, Cleanup, Context, FormatPartition, InstallPackages, MountPartition, Step, Unmount},
+    steps::{
+        AddRepo, BindMount, Cleanup, Context, FormatPartition, InstallPackages, MountPartition, SetPassword, Step,
+        Unmount,
+    },
     BootPartition, Model, SystemPartition,
 };
 
@@ -213,6 +216,14 @@ impl Installer {
         s.push(Step::install_packages(InstallPackages {
             names: model.packages.iter().cloned().collect::<Vec<_>>(),
         }));
+
+        // Update any passwords
+        for account in model.accounts.iter() {
+            // TODO: Add any new accounts
+            if let Some(password) = account.password.clone() {
+                s.push(Step::set_password(SetPassword { account, password }));
+            }
+        }
 
         // Get the sync call in for unmounts
         c.push(Cleanup::sync_fs());

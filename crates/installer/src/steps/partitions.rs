@@ -34,7 +34,7 @@ impl<'a> FormatPartition<'a> {
         // For now we drop output, but we'll wire up stdout/stderr in context
         let mut cmd = Command::new(exec);
         cmd.args(args);
-        let _ = context.run_command_captured(&mut cmd).await?;
+        let _ = context.run_command_captured(&mut cmd, None).await?;
         Ok(())
     }
 
@@ -73,7 +73,7 @@ impl<'a> MountPartition<'a> {
         let mut cmd = Command::new("mount");
         cmd.args([&source, &dest]);
 
-        let _ = context.run_command_captured(&mut cmd).await?;
+        let _ = context.run_command_captured(&mut cmd, None).await?;
         Ok(())
     }
 
@@ -107,7 +107,7 @@ impl<'a> BindMount {
         let mut cmd = Command::new("mount");
         cmd.args(["--bind", &source, &dest]);
 
-        let _ = context.run_command_captured(&mut cmd).await?;
+        let _ = context.run_command_captured(&mut cmd, None).await?;
         Ok(())
     }
 
@@ -142,7 +142,7 @@ impl<'a> Unmount {
         let mut cmd = Command::new("umount");
         cmd.arg(dest);
 
-        let _ = context.run_command_captured(&mut cmd).await?;
+        let _ = context.run_command_captured(&mut cmd, None).await?;
         Ok(())
     }
 }
@@ -163,7 +163,7 @@ impl<'a> SyncFS {
         log::info!("Syncing filesystems");
 
         let mut cmd = Command::new("sync");
-        let _ = context.run_command_captured(&mut cmd).await;
+        let _ = context.run_command_captured(&mut cmd, None).await;
         Ok(())
     }
 }
