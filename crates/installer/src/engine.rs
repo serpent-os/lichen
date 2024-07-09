@@ -17,8 +17,8 @@ use topology::disk::Builder;
 
 use crate::{
     steps::{
-        AddRepo, BindMount, Cleanup, Context, FormatPartition, InstallPackages, MountPartition, SetLocale, SetPassword,
-        Step, Unmount,
+        self, AddRepo, BindMount, Cleanup, Context, EmitFstab, FormatPartition, FstabEntry, InstallPackages,
+        MountPartition, SetLocale, SetPassword, Step, Unmount,
     },
     BootPartition, Model, SystemPartition,
 };
@@ -33,6 +33,9 @@ pub enum Error {
 
     #[error("missing mandatory partition: {0}")]
     MissingPartition(&'static str),
+
+    #[error("steps: {0}")]
+    Steps(#[from] steps::Error),
 
     #[error("unknown locale code: {0}")]
     UnknownLocale(String),
@@ -232,6 +235,10 @@ impl Installer {
 
         // Ensure we get a machine-id..
         s.push(Step::set_machine_id());
+
+        // Write the fstab
+        let fstab = EmitFstab::default().with_entries([FstabEntry::try_from(root_partition)?]);
+        s.push(Step::emit_fstab(fstab));
 
         // Get the sync call in for unmounts
         c.push(Cleanup::sync_fs());

@@ -12,6 +12,12 @@ use thiserror::Error;
 pub enum Error {
     #[error("io: {0}")]
     IO(#[from] std::io::Error),
+
+    #[error("unknown filesystem")]
+    UnknownFilesystem,
+
+    #[error("no mountpoint given")]
+    NoMountpoint,
 }
 
 #[derive(Debug)]
@@ -24,6 +30,7 @@ pub enum Step<'a> {
     SetPassword(Box<postinstall::SetPassword<'a>>),
     SetLocale(Box<postinstall::SetLocale<'a>>),
     SetMachineID(Box<postinstall::SetMachineID>),
+    WriteFstab(Box<postinstall::EmitFstab>),
 }
 
 impl<'a> Step<'a> {
@@ -66,6 +73,11 @@ impl<'a> Step<'a> {
         Self::SetMachineID(Box::new(postinstall::SetMachineID {}))
     }
 
+    // Emit the given fstab
+    pub fn emit_fstab(f: postinstall::EmitFstab) -> Self {
+        Self::WriteFstab(Box::new(f))
+    }
+
     /// Return a unique short ID name for the steps
     pub fn name(&self) -> &'static str {
         match &self {
@@ -77,6 +89,7 @@ impl<'a> Step<'a> {
             Step::SetPassword(_) => "set-password",
             Step::SetLocale(_) => "set-locale",
             Step::SetMachineID(_) => "set-machine-id",
+            Step::WriteFstab(_) => "write-fstab",
         }
     }
 
@@ -91,6 +104,7 @@ impl<'a> Step<'a> {
             Step::SetPassword(s) => s.title(),
             Step::SetLocale(s) => s.title(),
             Step::SetMachineID(s) => s.title(),
+            Step::WriteFstab(s) => s.title(),
         }
     }
 
@@ -105,6 +119,7 @@ impl<'a> Step<'a> {
             Step::SetPassword(s) => s.describe(),
             Step::SetLocale(s) => s.describe(),
             Step::SetMachineID(s) => s.describe(),
+            Step::WriteFstab(s) => s.describe(),
         }
     }
 
@@ -119,6 +134,7 @@ impl<'a> Step<'a> {
             Step::SetPassword(s) => Ok(s.execute(context).await?),
             Step::SetLocale(s) => Ok(s.execute(context).await?),
             Step::SetMachineID(s) => Ok(s.execute(context).await?),
+            Step::WriteFstab(s) => Ok(s.execute(context).await?),
         }
     }
 
@@ -141,4 +157,4 @@ mod cleanup;
 pub use cleanup::Cleanup;
 
 mod postinstall;
-pub use postinstall::{SetLocale, SetMachineID, SetPassword};
+pub use postinstall::{EmitFstab, FstabEntry, SetLocale, SetMachineID, SetPassword};

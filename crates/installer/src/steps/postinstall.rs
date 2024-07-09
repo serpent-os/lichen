@@ -4,10 +4,12 @@
 
 //! Post-installation tasks
 
+use std::fmt::Display;
+
 use system::locale::Locale;
 use tokio::process::Command;
 
-use crate::Account;
+use crate::{Account, SystemPartition};
 
 use super::{Context, Error};
 
@@ -88,6 +90,123 @@ impl<'a> SetMachineID {
         cmd.arg("systemd-machine-id-setup");
         context.run_command_captured(&mut cmd, None).await?;
 
+        Ok(())
+    }
+}
+
+#[derive(Debug)]
+pub enum FstabEntry {
+    Comment(String),
+    Device {
+        fs: String,
+        mountpoint: String,
+        kind: String,
+        opts: String,
+        dump: u8,
+        pass: u8,
+    },
+}
+
+impl Display for FstabEntry {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            FstabEntry::Comment(c) => f.write_fmt(format_args!("# {c}")),
+            FstabEntry::Device {
+                fs,
+                mountpoint,
+                kind,
+                opts,
+                dump,
+                pass,
+            } => f.write_fmt(format_args!("{fs}\t{mountpoint}\t{kind}\t{opts}\t{dump}\t{pass}")),
+        }
+    }
+}
+
+// Emit the fstab
+#[derive(Debug)]
+pub struct EmitFstab {
+    entries: Vec<FstabEntry>,
+}
+
+impl Default for EmitFstab {
+    fn default() -> Self {
+        Self {
+            entries: vec![
+                // template header
+                FstabEntry::Comment("/etc/fstab: static filesystem information.".to_string()),
+                FstabEntry::Comment(String::new()),
+                FstabEntry::Comment("<fs>      <mountpoint> <type> <opts>      <dump/pass>".to_string()),
+                FstabEntry::Comment(String::new()),
+                FstabEntry::Comment("/dev/ROOT   /            ext3    noatime        0 1".to_string()),
+                FstabEntry::Comment("/dev/SWAP   none         swap    sw             0 0".to_string()),
+                FstabEntry::Comment("/dev/fd0    /mnt/floppy  auto    noauto         0 0".to_string()),
+                // proc
+                FstabEntry::Device {
+                    fs: "none".into(),
+                    mountpoint: "/proc".into(),
+                    kind: "proc".into(),
+                    opts: "nosuid,noexec".into(),
+                    dump: 0,
+                    pass: 0,
+                },
+                // shm
+                FstabEntry::Device {
+                    fs: "none".into(),
+                    mountpoint: "/dev/shm".into(),
+                    kind: "tmpfs".into(),
+                    opts: "defaults".into(),
+                    dump: 0,
+                    pass: 0,
+                },
+            ],
+        }
+    }
+}
+
+impl TryFrom<&SystemPartition> for FstabEntry {
+    type Error = self::Error;
+    fn try_from(value: &SystemPartition) -> Result<Self, Error> {
+        // Honestly, this is a bit ext4 centric, no ssd care given
+        let s = Self::Device {
+            fs: format!("UUID={}", &value.partition.uuid),
+            mountpoint: value.mountpoint.clone().ok_or_else(|| Error::NoMountpoint)?,
+            kind: value
+                .partition
+                .sb
+                .as_ref()
+                .map(|sb| sb.to_string())
+                .ok_or_else(|| Error::UnknownFilesystem)?,
+            opts: "rw,errors=remount-ro".to_string(),
+            dump: 0,
+            pass: 1,
+        };
+
+        Ok(s)
+    }
+}
+
+impl<'a> EmitFstab {
+    // Create with a bunch of entries
+    pub fn with_entries(self, entries: impl IntoIterator<Item = FstabEntry>) -> Self {
+        Self {
+            entries: self.entries.into_iter().chain(entries).collect::<Vec<_>>(),
+        }
+    }
+
+    pub(super) fn title(&self) -> String {
+        "Generate fstab".into()
+    }
+
+    pub(super) fn describe(&self) -> String {
+        "".into()
+    }
+
+    /// Write the filesystem table
+    pub(super) async fn execute(&self, context: &'a impl Context<'a>) -> Result<(), Error> {
+        let file = context.root().join("etc").join("fstab");
+        let entries = self.entries.iter().map(|e| e.to_string()).collect::<Vec<_>>();
+        tokio::fs::write(file, entries.join("\n")).await?;
         Ok(())
     }
 }
