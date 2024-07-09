@@ -23,6 +23,7 @@ pub enum Step<'a> {
     Mount(Box<partitions::MountPartition<'a>>),
     SetPassword(Box<postinstall::SetPassword<'a>>),
     SetLocale(Box<postinstall::SetLocale<'a>>),
+    SetMachineID(Box<postinstall::SetMachineID>),
 }
 
 impl<'a> Step<'a> {
@@ -55,8 +56,14 @@ impl<'a> Step<'a> {
         Self::SetLocale(Box::new(l))
     }
 
+    /// Set an account password
     pub fn set_password(a: postinstall::SetPassword<'a>) -> Self {
         Self::SetPassword(Box::new(a))
+    }
+
+    /// Construct a dbus/systemd machine id
+    pub fn set_machine_id() -> Self {
+        Self::SetMachineID(Box::new(postinstall::SetMachineID {}))
     }
 
     /// Return a unique short ID name for the steps
@@ -69,6 +76,7 @@ impl<'a> Step<'a> {
             Step::Mount(_) => "mount-partition",
             Step::SetPassword(_) => "set-password",
             Step::SetLocale(_) => "set-locale",
+            Step::SetMachineID(_) => "set-machine-id",
         }
     }
 
@@ -82,6 +90,7 @@ impl<'a> Step<'a> {
             Step::Mount(s) => s.title(),
             Step::SetPassword(s) => s.title(),
             Step::SetLocale(s) => s.title(),
+            Step::SetMachineID(s) => s.title(),
         }
     }
 
@@ -95,6 +104,7 @@ impl<'a> Step<'a> {
             Step::Mount(s) => s.describe(),
             Step::SetPassword(s) => s.describe(),
             Step::SetLocale(s) => s.describe(),
+            Step::SetMachineID(s) => s.describe(),
         }
     }
 
@@ -108,6 +118,7 @@ impl<'a> Step<'a> {
             Step::Mount(s) => Ok(s.execute(context).await?),
             Step::SetPassword(s) => Ok(s.execute(context).await?),
             Step::SetLocale(s) => Ok(s.execute(context).await?),
+            Step::SetMachineID(s) => Ok(s.execute(context).await?),
         }
     }
 
@@ -130,4 +141,4 @@ mod cleanup;
 pub use cleanup::Cleanup;
 
 mod postinstall;
-pub use postinstall::{SetLocale, SetPassword};
+pub use postinstall::{SetLocale, SetMachineID, SetPassword};

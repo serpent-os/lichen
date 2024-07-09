@@ -63,3 +63,31 @@ impl<'a> SetLocale<'a> {
         Ok(())
     }
 }
+
+/// Set a machine ID up in the root
+#[derive(Debug)]
+pub struct SetMachineID {}
+
+impl<'a> SetMachineID {
+    pub(super) fn title(&self) -> String {
+        "Allocate machine-id".to_string()
+    }
+
+    pub(super) fn describe(&self) -> String {
+        "via systemd-machine-id-setup".to_string()
+    }
+
+    pub(super) async fn execute(&self, context: &'a impl Context<'a>) -> Result<(), Error> {
+        let file = context.root().join("etc").join("machine-id");
+        if file.exists() {
+            tokio::fs::remove_file(file).await?;
+        }
+
+        let mut cmd = Command::new("chroot");
+        cmd.arg(context.root().clone());
+        cmd.arg("systemd-machine-id-setup");
+        context.run_command_captured(&mut cmd, None).await?;
+
+        Ok(())
+    }
+}

@@ -230,6 +230,9 @@ impl Installer {
             s.push(Step::set_locale(SetLocale { locale }));
         }
 
+        // Ensure we get a machine-id..
+        s.push(Step::set_machine_id());
+
         // Get the sync call in for unmounts
         c.push(Cleanup::sync_fs());
         // Lastly, flip cleanups to front in reverse (due to mounts)
