@@ -4,6 +4,7 @@
 
 //! Post-installation tasks
 
+use system::locale::Locale;
 use tokio::process::Command;
 
 use crate::Account;
@@ -34,6 +35,30 @@ impl<'a> SetPassword<'a> {
 
         let password_text = format!("{}:{}\n", &self.account.username, self.password);
         context.run_command_captured(&mut cmd, Some(&password_text)).await?;
+
+        Ok(())
+    }
+}
+
+/// Update locale in `locale.conf`
+#[derive(Debug)]
+pub struct SetLocale<'a> {
+    pub(crate) locale: &'a Locale<'a>,
+}
+
+impl<'a> SetLocale<'a> {
+    pub(super) fn title(&self) -> String {
+        "Set system locale".to_string()
+    }
+
+    pub(super) fn describe(&self) -> String {
+        self.locale.display_name.clone()
+    }
+
+    pub(super) async fn execute(&self, context: &'a impl Context<'a>) -> Result<(), Error> {
+        let contents = format!("LANG={}\n", self.locale.name);
+        let path = context.root().join("etc").join("locale.conf");
+        tokio::fs::write(path, &contents).await?;
 
         Ok(())
     }

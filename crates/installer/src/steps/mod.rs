@@ -22,6 +22,7 @@ pub enum Step<'a> {
     Install(Box<packaging::InstallPackages>),
     Mount(Box<partitions::MountPartition<'a>>),
     SetPassword(Box<postinstall::SetPassword<'a>>),
+    SetLocale(Box<postinstall::SetLocale<'a>>),
 }
 
 impl<'a> Step<'a> {
@@ -49,6 +50,11 @@ impl<'a> Step<'a> {
         Self::Bind(Box::new(b))
     }
 
+    /// Set system locale
+    pub fn set_locale(l: postinstall::SetLocale<'a>) -> Self {
+        Self::SetLocale(Box::new(l))
+    }
+
     pub fn set_password(a: postinstall::SetPassword<'a>) -> Self {
         Self::SetPassword(Box::new(a))
     }
@@ -62,6 +68,7 @@ impl<'a> Step<'a> {
             Step::Install(_) => "install-packages",
             Step::Mount(_) => "mount-partition",
             Step::SetPassword(_) => "set-password",
+            Step::SetLocale(_) => "set-locale",
         }
     }
 
@@ -74,6 +81,7 @@ impl<'a> Step<'a> {
             Step::Install(s) => s.title(),
             Step::Mount(s) => s.title(),
             Step::SetPassword(s) => s.title(),
+            Step::SetLocale(s) => s.title(),
         }
     }
 
@@ -86,6 +94,7 @@ impl<'a> Step<'a> {
             Step::Install(s) => s.describe(),
             Step::Mount(s) => s.describe(),
             Step::SetPassword(s) => s.describe(),
+            Step::SetLocale(s) => s.describe(),
         }
     }
 
@@ -98,6 +107,7 @@ impl<'a> Step<'a> {
             Step::Install(s) => Ok(s.execute(context).await?),
             Step::Mount(s) => Ok(s.execute(context).await?),
             Step::SetPassword(s) => Ok(s.execute(context).await?),
+            Step::SetLocale(s) => Ok(s.execute(context).await?),
         }
     }
 
@@ -120,4 +130,4 @@ mod cleanup;
 pub use cleanup::Cleanup;
 
 mod postinstall;
-pub use postinstall::SetPassword;
+pub use postinstall::{SetLocale, SetPassword};

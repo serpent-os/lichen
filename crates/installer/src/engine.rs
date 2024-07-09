@@ -17,8 +17,8 @@ use topology::disk::Builder;
 
 use crate::{
     steps::{
-        AddRepo, BindMount, Cleanup, Context, FormatPartition, InstallPackages, MountPartition, SetPassword, Step,
-        Unmount,
+        AddRepo, BindMount, Cleanup, Context, FormatPartition, InstallPackages, MountPartition, SetLocale, SetPassword,
+        Step, Unmount,
     },
     BootPartition, Model, SystemPartition,
 };
@@ -223,6 +223,11 @@ impl Installer {
             if let Some(password) = account.password.clone() {
                 s.push(Step::set_password(SetPassword { account, password }));
             }
+        }
+
+        // System locale
+        if let Some(locale) = model.locale {
+            s.push(Step::set_locale(SetLocale { locale }));
         }
 
         // Get the sync call in for unmounts
