@@ -136,11 +136,11 @@ impl Default for EmitFstab {
                 // template header
                 FstabEntry::Comment("/etc/fstab: static filesystem information.".to_string()),
                 FstabEntry::Comment(String::new()),
-                FstabEntry::Comment("<fs>      <mountpoint> <type> <opts>      <dump/pass>".to_string()),
+                FstabEntry::Comment("<fs>	<mountpoint>	<type>	<opts>	<dump>	<pass>".to_string()),
                 FstabEntry::Comment(String::new()),
-                FstabEntry::Comment("/dev/ROOT   /            ext3    noatime        0 1".to_string()),
-                FstabEntry::Comment("/dev/SWAP   none         swap    sw             0 0".to_string()),
-                FstabEntry::Comment("/dev/fd0    /mnt/floppy  auto    noauto         0 0".to_string()),
+                FstabEntry::Comment("/dev/ROOT	/	ext3 	noatime	0	1".to_string()),
+                FstabEntry::Comment("/dev/SWAP	none	swap	sw	0	0".to_string()),
+                FstabEntry::Comment("/dev/fd0	/mnt/floppy	auto	noauto	0	0".to_string()),
                 // proc
                 FstabEntry::Device {
                     fs: "none".into(),
@@ -169,7 +169,8 @@ impl TryFrom<&SystemPartition> for FstabEntry {
     fn try_from(value: &SystemPartition) -> Result<Self, Error> {
         // Honestly, this is a bit ext4 centric, no ssd care given
         let s = Self::Device {
-            fs: format!("UUID={}", &value.partition.uuid),
+            // NOTE: This is always PartUUID for us, we only do GPT.
+            fs: format!("PARTUUID={}", &value.partition.uuid),
             mountpoint: value.mountpoint.clone().ok_or_else(|| Error::NoMountpoint)?,
             kind: value
                 .partition

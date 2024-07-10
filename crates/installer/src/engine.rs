@@ -237,7 +237,13 @@ impl Installer {
         s.push(Step::set_machine_id());
 
         // Write the fstab
-        let fstab = EmitFstab::default().with_entries([FstabEntry::try_from(root_partition)?]);
+        let fstab = EmitFstab::default().with_entries([
+            FstabEntry::Comment(format!(
+                "{} at time of installation",
+                root_partition.partition.path.display()
+            )),
+            FstabEntry::try_from(root_partition)?,
+        ]);
         s.push(Step::emit_fstab(fstab));
 
         // Get the sync call in for unmounts
