@@ -248,5 +248,12 @@ async fn main() -> color_eyre::Result<()> {
         cleanup.execute(&context).await?;
     }
 
+    multi.clear()?;
+    println!();
+    println!(
+        "🎉 🥳 Succesfully installed {}! Reboot now to start using it!",
+        style("Serpent OS").bold()
+    );
+
     Ok(())
 }
