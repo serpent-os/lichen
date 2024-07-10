@@ -188,8 +188,6 @@ async fn main() -> color_eyre::Result<()> {
     };
     println!("\n\n");
 
-    eprintln!("model: {model:?}");
-
     let y = dialoguer::Confirm::with_theme(&ColorfulTheme::default())
         .with_prompt("Proceed with installation?")
         .interact()?;
