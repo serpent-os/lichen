@@ -5,14 +5,15 @@
     "base"
   ],
   "required": [
-    "sysbinary(gdm)",
+    "flatpak",
+    "font-hack",
+    "font-noto-emoji",
     "gnome-backgrounds",
     "gnome-console",
     "gnome-control-center",
     "gnome-text-editor",
-    "font-hack",
-    "font-noto-emoji",
     "loupe",
-    "nautilus"
+    "nautilus",
+    "sysbinary(gdm)"
   ]
 }
