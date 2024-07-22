@@ -14,6 +14,7 @@
     "gnome-text-editor",
     "loupe",
     "nautilus",
+    "serpent-gnome-defaults",
     "sysbinary(gdm)"
   ]
 }
