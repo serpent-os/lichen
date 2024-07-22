@@ -58,9 +58,12 @@ impl<'a> CreateAccount<'a> {
     }
 
     pub(super) async fn execute(&self, context: &'a impl Context<'a>) -> Result<(), Error> {
-        let mut cmd = Command::new("useradd");
+        let mut cmd = Command::new("chroot");
+        cmd.arg(context.root().clone());
+        cmd.arg("useradd");
         cmd.arg(self.account.username.clone());
         cmd.args(["-M", "-U", "-G", "disk,audio,adm,wheel,render,kvm,input,users"]);
+
         if let Some(gecos) = self.account.gecos.as_ref() {
             cmd.arg("-C");
             cmd.arg(gecos.clone());
