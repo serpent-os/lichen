@@ -20,6 +20,12 @@ pub struct SetPassword<'a> {
     pub(crate) password: String,
 }
 
+/// Create an account
+#[derive(Debug)]
+pub struct CreateAccount<'a> {
+    pub(crate) account: &'a Account,
+}
+
 impl<'a> SetPassword<'a> {
     pub(super) fn title(&self) -> String {
         "Set account password".to_string()
@@ -38,6 +44,30 @@ impl<'a> SetPassword<'a> {
         let password_text = format!("{}:{}\n", &self.account.username, self.password);
         context.run_command_captured(&mut cmd, Some(&password_text)).await?;
 
+        Ok(())
+    }
+}
+
+impl<'a> CreateAccount<'a> {
+    pub(super) fn title(&self) -> String {
+        "Create account".to_string()
+    }
+
+    pub(super) fn describe(&self) -> String {
+        self.account.username.clone()
+    }
+
+    pub(super) async fn execute(&self, context: &'a impl Context<'a>) -> Result<(), Error> {
+        let mut cmd = Command::new("useradd");
+        cmd.arg(self.account.username.clone());
+        cmd.args(["-M", "-U", "-G", "disk,audio,adm,wheel,render,kvm,input,users"]);
+        if let Some(gecos) = self.account.gecos.as_ref() {
+            cmd.arg("-C");
+            cmd.arg(gecos.clone());
+        }
+        cmd.arg("-s");
+        cmd.arg(self.account.shell.clone());
+        context.run_command_captured(&mut cmd, None).await?;
         Ok(())
     }
 }

@@ -17,8 +17,8 @@ use topology::disk::Builder;
 
 use crate::{
     steps::{
-        self, AddRepo, BindMount, Cleanup, Context, EmitFstab, FormatPartition, FstabEntry, InstallPackages,
-        MountPartition, SetLocale, SetPassword, Step, Unmount,
+        self, AddRepo, BindMount, Cleanup, Context, CreateAccount, EmitFstab, FormatPartition, FstabEntry,
+        InstallPackages, MountPartition, SetLocale, SetPassword, Step, Unmount,
     },
     BootPartition, Model, SystemPartition,
 };
@@ -222,7 +222,9 @@ impl Installer {
 
         // Update any passwords
         for account in model.accounts.iter() {
-            // TODO: Add any new accounts
+            if !account.builtin {
+                s.push(Step::create_user(CreateAccount { account }));
+            }
             if let Some(password) = account.password.clone() {
                 s.push(Step::set_password(SetPassword { account, password }));
             }

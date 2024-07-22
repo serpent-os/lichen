@@ -131,6 +131,21 @@ fn ask_password() -> color_eyre::Result<String> {
     Ok(password)
 }
 
+fn create_user() -> color_eyre::Result<Account> {
+    print_header("", "We need to create a default (admin) user for the new installation");
+    let username: String = dialoguer::Input::with_theme(&ColorfulTheme::default())
+        .with_prompt("Username?")
+        .interact_text()?;
+    let password = dialoguer::Password::with_theme(&ColorfulTheme::default())
+        .with_prompt("Pick a password")
+        .with_confirmation("Now confirm the password", "Those passwords did not match")
+        .interact()?;
+
+    Ok(Account::new(username)
+        .with_password(password)
+        .with_shell("/usr/bin/bash"))
+}
+
 #[tokio::main]
 async fn main() -> color_eyre::Result<()> {
     color_eyre::install().unwrap();
@@ -165,6 +180,7 @@ async fn main() -> color_eyre::Result<()> {
     let selected_locale = ask_locale(&locales).await?;
     let timezone = ask_timezone()?;
     let rootpw = ask_password()?;
+    let user_account = create_user()?;
 
     let esp = ask_esp(boots)?;
 
@@ -179,7 +195,7 @@ async fn main() -> color_eyre::Result<()> {
     print_summary_item("Root (/) filesystem", &rootfs);
 
     let model = installer::Model {
-        accounts: [Account::root().with_password(rootpw)].into(),
+        accounts: [Account::root().with_password(rootpw), user_account].into(),
         boot_partition: esp.to_owned(),
         partitions: [rootfs.clone()].into(),
         locale: Some(selected_locale),

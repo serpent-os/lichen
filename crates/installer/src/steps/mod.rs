@@ -24,6 +24,7 @@ pub enum Error {
 pub enum Step<'a> {
     AddRepo(Box<packaging::AddRepo>),
     Bind(Box<partitions::BindMount>),
+    CreateUser(Box<postinstall::CreateAccount<'a>>),
     Format(Box<partitions::FormatPartition<'a>>),
     Install(Box<packaging::InstallPackages>),
     Mount(Box<partitions::MountPartition<'a>>),
@@ -37,6 +38,10 @@ impl<'a> Step<'a> {
     /// Create new repo step
     pub fn add_repo(r: packaging::AddRepo) -> Self {
         Self::AddRepo(Box::new(r))
+    }
+
+    pub fn create_user(u: postinstall::CreateAccount<'a>) -> Self {
+        Self::CreateUser(Box::new(u))
     }
 
     pub fn install_packages(p: packaging::InstallPackages) -> Self {
@@ -83,6 +88,7 @@ impl<'a> Step<'a> {
         match &self {
             Step::AddRepo(_) => "add-repo",
             Step::Bind(_) => "bind-mount",
+            Step::CreateUser(_) => "create-user",
             Step::Format(_) => "format-partition",
             Step::Install(_) => "install-packages",
             Step::Mount(_) => "mount-partition",
@@ -98,6 +104,7 @@ impl<'a> Step<'a> {
         match &self {
             Step::AddRepo(s) => s.title(),
             Step::Bind(s) => s.title(),
+            Step::CreateUser(s) => s.title(),
             Step::Format(s) => s.title(),
             Step::Install(s) => s.title(),
             Step::Mount(s) => s.title(),
@@ -113,6 +120,7 @@ impl<'a> Step<'a> {
         match &self {
             Step::AddRepo(s) => s.describe(),
             Step::Bind(s) => s.describe(),
+            Step::CreateUser(s) => s.describe(),
             Step::Format(s) => s.describe(),
             Step::Install(s) => s.describe(),
             Step::Mount(s) => s.describe(),
@@ -128,6 +136,7 @@ impl<'a> Step<'a> {
         match &self {
             Step::AddRepo(s) => Ok(s.execute(context).await?),
             Step::Bind(s) => Ok(s.execute(context).await?),
+            Step::CreateUser(s) => Ok(s.execute(context).await?),
             Step::Format(s) => Ok(s.execute(context).await?),
             Step::Install(s) => Ok(s.execute(context).await?),
             Step::Mount(s) => Ok(s.execute(context).await?),
@@ -157,4 +166,4 @@ mod cleanup;
 pub use cleanup::Cleanup;
 
 mod postinstall;
-pub use postinstall::{EmitFstab, FstabEntry, SetLocale, SetMachineID, SetPassword};
+pub use postinstall::{CreateAccount, EmitFstab, FstabEntry, SetLocale, SetMachineID, SetPassword};
