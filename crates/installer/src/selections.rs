@@ -124,6 +124,6 @@ mod tests {
             .selections_with(["develop"])
             .expect("Needed empty set of base selections");
         assert_eq!(pkgs_partial.len(), 32);
-        assert_eq!(pkgs.len(), 34);
+        assert_eq!(pkgs.len(), 35);
     }
 }

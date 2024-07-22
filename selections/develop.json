@@ -6,6 +6,7 @@
   ],
   "required": [
     "binary(boulder)",
-    "binary(git)"
+    "binary(git)",
+    "binary(zed)"
   ]
 }
