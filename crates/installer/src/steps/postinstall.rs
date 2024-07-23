@@ -62,7 +62,7 @@ impl<'a> CreateAccount<'a> {
         cmd.arg(context.root().clone());
         cmd.arg("useradd");
         cmd.arg(self.account.username.clone());
-        cmd.args(["-M", "-U", "-G", "disk,audio,adm,wheel,render,kvm,input,users"]);
+        cmd.args(["-m", "-U", "-G", "disk,audio,adm,wheel,render,kvm,input,users"]);
 
         if let Some(gecos) = self.account.gecos.as_ref() {
             cmd.arg("-C");
