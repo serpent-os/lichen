@@ -7,6 +7,7 @@
   "required": [
     "flatpak",
     "font-hack",
+    "font-noto",
     "font-noto-emoji",
     "firefox",
     "gnome-backgrounds",
@@ -14,6 +15,7 @@
     "gnome-control-center",
     "gnome-software",
     "gnome-text-editor",
+    "liberation-fonts-ttf",
     "loupe",
     "nautilus",
     "serpent-gnome-defaults",
