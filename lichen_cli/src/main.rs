@@ -150,6 +150,7 @@ fn create_user() -> color_eyre::Result<Account> {
 
 #[tokio::main]
 async fn main() -> color_eyre::Result<()> {
+    env_logger::init();
     color_eyre::install().unwrap();
     set_colors_enabled(true);
 
