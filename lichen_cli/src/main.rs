@@ -11,11 +11,13 @@ use std::{
     time::Duration,
 };
 
+use color_eyre::eyre::bail;
 use console::{set_colors_enabled, style};
 use crossterm::style::Stylize;
 use dialoguer::theme::ColorfulTheme;
 use indicatif::ProgressStyle;
 use installer::{selections, steps::Context, systemd, Account, BootPartition, Installer, Locale, SystemPartition};
+use nix::libc::geteuid;
 use tokio::io::AsyncWriteExt;
 use tokio::process::Command;
 
@@ -150,6 +152,11 @@ fn create_user() -> color_eyre::Result<Account> {
 async fn main() -> color_eyre::Result<()> {
     color_eyre::install().unwrap();
     set_colors_enabled(true);
+
+    let euid = unsafe { geteuid() };
+    if euid != 0 {
+        bail!("lichen must be run as root. Re-run with sudo")
+    }
 
     // Test selection management, force GNOME
     let selections = selections::Manager::new().with_groups([

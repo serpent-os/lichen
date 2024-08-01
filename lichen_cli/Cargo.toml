@@ -13,3 +13,4 @@ futures.workspace = true
 tokio.workspace = true
 installer = { path = "../crates/installer" }
 console = "0.15.8"
+nix = "0.29"
