@@ -68,12 +68,16 @@ impl Installer {
 
         // Figure out where we live right now and exclude the rootfs
         let probe = Builder::default().build()?;
-        let root_nodes = if let Ok(device) = probe.get_rootfs_device("/") {
-            let mut nodes = probe.get_device_chain(&device.path).unwrap_or_default();
-            nodes.push(device.path.into());
-            nodes
-        } else {
-            vec![]
+        let root_nodes = match probe.get_rootfs_device("/") {
+            Ok(device) => {
+                let mut nodes = probe.get_device_chain(&device.path).unwrap_or_default();
+                nodes.push(device.path.into());
+                nodes
+            }
+            Err(e) => {
+                log::error!("Failed to determine the device mounted to `/`: {e}");
+                vec![]
+            }
         };
 
         // Exclude parent block devices related to `/` partition
@@ -85,37 +89,43 @@ impl Installer {
         let mut boot_parts = vec![];
         let mut system_parts = vec![];
         for disk in disks.iter().filter(|d| !parents.iter().any(|r| *r == d.path)) {
-            if let Ok(parts) = disk.partitions().await {
-                // Exclude partitions related to `/` partition
-                let parts = parts
-                    .into_iter()
-                    .filter(|p| !root_nodes.iter().any(|r| *r == p.path))
-                    .collect::<Vec<_>>();
-                if let Some(esp) = parts
-                    .iter()
-                    .find(|p| matches!(p.kind, disk::PartitionKind::ESP))
-                    .cloned()
-                {
-                    let xbootldr = parts
-                        .iter()
-                        .find(|p| matches!(p.kind, disk::PartitionKind::XBOOTLDR))
-                        .cloned();
-                    boot_parts.push(BootPartition {
-                        esp,
-                        xbootldr,
-                        parent_desc: disk.to_string(),
-                    })
+            let parts = match disk.partitions().await {
+                Ok(parts) => parts,
+                Err(e) => {
+                    log::error!("Failed to get partitions for `{disk}`: {e}");
+                    continue;
                 }
-                let others = parts
+            };
+
+            // Exclude partitions related to `/` partition
+            let parts = parts
+                .into_iter()
+                .filter(|p| !root_nodes.iter().any(|r| *r == p.path))
+                .collect::<Vec<_>>();
+            if let Some(esp) = parts
+                .iter()
+                .find(|p| matches!(p.kind, disk::PartitionKind::ESP))
+                .cloned()
+            {
+                let xbootldr = parts
                     .iter()
-                    .filter(|p| matches!(p.kind, disk::PartitionKind::Regular))
+                    .find(|p| matches!(p.kind, disk::PartitionKind::XBOOTLDR))
                     .cloned();
-                system_parts.extend(others.map(|p| SystemPartition {
-                    partition: p,
-                    mountpoint: None,
+                boot_parts.push(BootPartition {
+                    esp,
+                    xbootldr,
                     parent_desc: disk.to_string(),
-                }));
+                })
             }
+            let others = parts
+                .iter()
+                .filter(|p| matches!(p.kind, disk::PartitionKind::Regular))
+                .cloned();
+            system_parts.extend(others.map(|p| SystemPartition {
+                partition: p,
+                mountpoint: None,
+                parent_desc: disk.to_string(),
+            }));
         }
 
         Ok(Self {
