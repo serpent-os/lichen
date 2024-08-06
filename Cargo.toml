@@ -18,10 +18,10 @@ libc = "0.2.155"
 log = "0.4.22"
 ratatui = { version = "0.27.0", features = ["all-widgets", "macros", "document-features", "crossterm", "serde", "unstable"] }
 serde = { version = "1.0.204", features = ["derive"] }
-serde_json = "1.0.120"
+serde_json = "1.0.122"
 superblock = { git = "https://github.com/serpent-os/blsforme.git"}
 topology = { git = "https://github.com/serpent-os/blsforme.git"}
-thiserror = "1.0.61"
-tokio = { version = "1.38.0", features = ["full"] }
+thiserror = "1.0.63"
+tokio = { version = "1.39.2", features = ["full"] }
 tokio-util = "0.7.11"
 tokio-stream = { version = "0.1.15", features = ["full"] }
