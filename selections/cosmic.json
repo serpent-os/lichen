@@ -1,0 +1,19 @@
+{
+  "name": "cosmic",
+  "summary": "COSMIC Desktop",
+  "depends": [
+    "base"
+  ],
+  "required": [
+    "cosmic-desktop",
+    "flatpak",
+    "font-firacode",
+    "font-hack",
+    "font-noto",
+    "font-noto-emoji",
+    "firefox",
+    "gnome-backgrounds",
+    "liberation-fonts-ttf",
+    "serpent-artwork"
+  ]
+}
