@@ -1,0 +1,9 @@
+[package]
+name = "lichen_gui"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+libcosmic = { git = "https://github.com/pop-os/libcosmic.git", version = "0.1.0", features = ["wayland", "tokio", "a11y", "wgpu"] }
+tokio.workspace = true
+installer = { path = "../crates/installer" }
