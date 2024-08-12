@@ -2,13 +2,13 @@
 //
 // SPDX-License-Identifier: MPL-2.0
 
-use cosmic::{
-    iced::Length,
-    widget::{self, combo_box},
-    Element,
-};
+use cosmic::widget;
+use cosmic::{widget::combo_box, Element};
 
+use crate::pages::Plugin;
 use crate::Message;
+
+use super::{IconVariant, InstallerPage};
 
 pub struct Page {
     languages: combo_box::State<String>,
@@ -22,29 +22,33 @@ impl Default for Page {
     }
 }
 
-impl Page {
-    pub fn view(&self) -> Element<Message> {
-        widget::column::with_children(vec![
-            widget::row::with_children(vec![
-                widget::icon::from_name("preferences-desktop-locale").size(96).into(),
-                widget::column::with_children(vec![
-                    widget::text::title1("Region & language").into(),
-                    widget::text::title4("Make your laptop talk the right lingo").into(),
-                ])
-                .spacing(8)
-                .padding(8)
-                .into(),
-            ])
-            .into(),
-            widget::combo_box(&self.languages, "Type to select your language", None, |_| {
-                crate::Message::LanguagePicked
-            })
-            .padding(8)
-            .into(),
-        ])
-        .height(Length::Fill)
-        .spacing(16)
-        .padding(12)
+impl InstallerPage for Page {
+    fn name(&self) -> &str {
+        "Language"
+    }
+
+    fn view(&self) -> Element<Message> {
+        widget::combo_box(&self.languages, "Type to select your language", None, |_| {
+            crate::Message::LanguagePicked
+        })
+        .padding(8)
         .into()
     }
+
+    fn title(&self) -> &str {
+        "Region & Language"
+    }
+
+    fn subtitle(&self) -> &str {
+        "Configure your system locale"
+    }
+
+    fn icon(&self, variant: IconVariant) -> widget::icon::Named {
+        match variant {
+            IconVariant::Normal => widget::icon::from_name("preferences-desktop-locale"),
+            IconVariant::Symbolic => widget::icon::from_name("preferences-desktop-locale-symbolic"),
+        }
+    }
 }
+
+inventory::submit! { Plugin { name: "language", page: || Box::new(Page::default()) }}

@@ -2,6 +2,8 @@
 //
 // SPDX-License-Identifier: MPL-2.0
 
+use std::collections::BTreeMap;
+
 use cosmic::{
     app::{Core, Settings},
     cosmic_theme::ThemeBuilder,
@@ -10,14 +12,38 @@ use cosmic::{
     widget::{self, icon, nav_bar, JustifyContent},
     Application, Command,
 };
-use lichen_gui::pages::Page;
+use lichen_gui::pages::{IconVariant, InstallerPage, Plugin};
 use lichen_gui::Message;
 
 pub struct App {
     core: Core,
     model: nav_bar::Model,
-    views: Vec<Page>,
+    views: Vec<Box<dyn InstallerPage>>,
     page_num: usize,
+}
+
+impl App {
+    // fancy page header above the page view
+    fn page_header<'a>(&'a self, page: &'a dyn InstallerPage) -> Element<Message> {
+        widget::column::with_children(vec![
+            widget::row::with_children(vec![
+                page.icon(IconVariant::Normal).size(96).into(),
+                widget::column::with_children(vec![
+                    widget::text::title1(page.title().to_owned()).into(),
+                    widget::text::title4(page.subtitle().to_owned()).into(),
+                ])
+                .spacing(8)
+                .padding(8)
+                .into(),
+            ])
+            .into(),
+            page.view(),
+        ])
+        .height(Length::Fill)
+        .spacing(16)
+        .padding(12)
+        .into()
+    }
 }
 
 impl Application for App {
@@ -49,7 +75,7 @@ impl Application for App {
             page_num: 0,
         };
 
-        let layout: [(&str, &str, Page); 7] = [
+        /*let layout: [(&str, &str, Page); 7] = [
             ("Welcome", "go-home-symbolic", Page::welcome()),
             ("Language", "preferences-desktop-locale-symbolic", Page::language()),
             ("Timezone", "preferences-system-time-symbolic", Page::none()),
@@ -57,10 +83,24 @@ impl Application for App {
             ("Users", "system-users-symbolic", Page::none()),
             ("Selections", "edit-select-all-symbolic", Page::none()),
             ("Review settings", "edit-find-symbolic", Page::none()),
-        ];
+        ];*/
 
-        for (name, icon_name, page) in layout.into_iter() {
-            app.model.insert().text(name).icon(icon::from_name(icon_name));
+        let plugins = inventory::iter::<Plugin>
+            .into_iter()
+            .map(|p| (p.name, p))
+            .collect::<BTreeMap<_, _>>();
+
+        static WANTED: [&str; 2] = ["welcome", "language"];
+
+        for item in WANTED {
+            let plugin = plugins
+                .get(item)
+                .unwrap_or_else(|| panic!("failed to locate plugin: {item}"));
+            let page = (plugin.page)();
+            app.model
+                .insert()
+                .text(page.name().to_owned())
+                .icon(page.icon(IconVariant::Symbolic));
             app.views.push(page);
         }
 
@@ -106,7 +146,7 @@ impl Application for App {
         let current = self.views.get(self.page_num).unwrap();
 
         widget::column::with_children(vec![
-            current.view(),
+            self.page_header(current.as_ref()),
             widget::flex_row(vec![back.into(), next.into()])
                 .justify_content(JustifyContent::FlexEnd)
                 .into(),

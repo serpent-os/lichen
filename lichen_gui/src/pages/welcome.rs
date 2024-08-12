@@ -3,10 +3,7 @@
 // SPDX-License-Identifier: MPL-2.0
 
 use cosmic::{
-    iced::{
-        alignment::{Horizontal, Vertical},
-        Length,
-    },
+    iced::alignment::{Horizontal, Vertical},
     theme,
     widget::{self},
     Element,
@@ -14,35 +11,44 @@ use cosmic::{
 
 use crate::Message;
 
+use super::{IconVariant, InstallerPage, Plugin};
+
 #[derive(Default)]
 pub struct Page {}
 
-impl Page {
-    pub fn view(&self) -> Element<Message> {
-        widget::column::with_children(vec![
-            widget::row::with_children(vec![
-                widget::icon::from_name("system-software-install").size(96).into(),
-                widget::column::with_children(vec![
-                    widget::text::title1("Welcome to the future").into(),
-                    widget::text::title4("We're about to install Serpent OS onto your device").into(),
-                ])
-                .spacing(8)
-                .padding(8)
-                .into(),
-            ])
-            .into(),
-            widget::container(
-                widget::text::body("TODO: Confirm setup steps\n✅ Thing 1\n✅ Thing 2\n✅ Thing 3")
-                    .horizontal_alignment(Horizontal::Center)
-                    .vertical_alignment(Vertical::Center),
-            )
-            .style(theme::Container::Dialog)
-            .padding(8)
-            .into(),
-        ])
-        .height(Length::Fill)
-        .spacing(16)
-        .padding(12)
+impl InstallerPage for Page {
+    fn name(&self) -> &str {
+        "Welcome"
+    }
+
+    fn view(&self) -> Element<Message> {
+        widget::container(
+            widget::text::body("TODO: Confirm setup steps\n✅ Thing 1\n✅ Thing 2\n✅ Thing 3")
+                .horizontal_alignment(Horizontal::Center)
+                .vertical_alignment(Vertical::Center),
+        )
+        .style(theme::Container::Dialog)
+        .padding(8)
         .into()
     }
+
+    fn title(&self) -> &str {
+        "Welcome to the future"
+    }
+
+    fn subtitle(&self) -> &str {
+        "We're about to install Serpent OS on your device"
+    }
+
+    fn icon(&self, variant: IconVariant) -> widget::icon::Named {
+        match variant {
+            IconVariant::Normal => widget::icon::from_name("system-software-install"),
+            IconVariant::Symbolic => widget::icon::from_name("go-home-symbolic"),
+        }
+    }
 }
+
+inventory::submit! { Plugin {
+    name: "welcome",
+    page: || Box::new(Page::default())
+}}
