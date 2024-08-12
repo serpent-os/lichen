@@ -20,6 +20,12 @@ pub struct App {
     model: nav_bar::Model,
     views: Vec<Box<dyn InstallerPage>>,
     page_num: usize,
+    state: AppState,
+}
+
+enum AppState {
+    // running main wizard
+    Running,
 }
 
 impl App {
@@ -42,6 +48,27 @@ impl App {
         .height(Length::Fill)
         .spacing(16)
         .padding(12)
+        .into()
+    }
+
+    /// Main view for when the application is running
+    fn view_running(&self) -> Element<Message> {
+        let back = widget::button::icon(icon::from_name("go-previous-symbolic"))
+            .label("Previous")
+            .on_press(Message::GoBack);
+        let next = widget::button::icon(icon::from_name("go-next-symbolic"))
+            .label("Next")
+            .on_press(Message::GoForwards);
+        let current = self.views.get(self.page_num).unwrap();
+
+        widget::column::with_children(vec![
+            self.page_header(current.as_ref()),
+            widget::flex_row(vec![back.into(), next.into()])
+                .justify_content(JustifyContent::FlexEnd)
+                .into(),
+        ])
+        .height(Length::Fill)
+        .width(Length::Fill)
         .into()
     }
 }
@@ -73,6 +100,7 @@ impl Application for App {
             model: nav_bar::Model::default(),
             views: vec![],
             page_num: 0,
+            state: AppState::Running,
         };
 
         /*let layout: [(&str, &str, Page); 7] = [
@@ -137,23 +165,9 @@ impl Application for App {
 
     /// return current view
     fn view(&self) -> Element<Self::Message> {
-        let back = widget::button::icon(icon::from_name("go-previous-symbolic"))
-            .label("Previous")
-            .on_press(Message::GoBack);
-        let next = widget::button::icon(icon::from_name("go-next-symbolic"))
-            .label("Next")
-            .on_press(Message::GoForwards);
-        let current = self.views.get(self.page_num).unwrap();
-
-        widget::column::with_children(vec![
-            self.page_header(current.as_ref()),
-            widget::flex_row(vec![back.into(), next.into()])
-                .justify_content(JustifyContent::FlexEnd)
-                .into(),
-        ])
-        .height(Length::Fill)
-        .width(Length::Fill)
-        .into()
+        match self.state {
+            AppState::Running => self.view_running(),
+        }
     }
 }
 

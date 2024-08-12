@@ -5,6 +5,8 @@
 mod language;
 mod welcome;
 
+use std::fmt::Debug;
+
 use cosmic::{widget::icon, Element};
 use installer::Installer;
 
@@ -21,7 +23,7 @@ pub struct Plugin {
     pub page: fn() -> Box<dyn InstallerPage>,
 }
 
-pub trait InstallerPage: Send {
+pub trait InstallerPage: Send + Debug {
     /// Init using the installer crate
     fn init(&mut self, _installer: &Installer) {}
 

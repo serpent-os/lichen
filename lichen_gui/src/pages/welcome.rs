@@ -13,7 +13,7 @@ use crate::Message;
 
 use super::{IconVariant, InstallerPage, Plugin};
 
-#[derive(Default)]
+#[derive(Default, Debug, Clone)]
 pub struct Page {}
 
 impl InstallerPage for Page {

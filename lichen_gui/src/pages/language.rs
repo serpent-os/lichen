@@ -10,6 +10,7 @@ use crate::Message;
 
 use super::{IconVariant, InstallerPage};
 
+#[derive(Debug, Clone)]
 pub struct Page {
     languages: combo_box::State<String>,
 }
