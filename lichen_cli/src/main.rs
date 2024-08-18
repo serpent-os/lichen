@@ -16,7 +16,11 @@ use console::{set_colors_enabled, style};
 use crossterm::style::Stylize;
 use dialoguer::theme::ColorfulTheme;
 use indicatif::ProgressStyle;
-use installer::{selections, steps::Context, systemd, Account, BootPartition, Installer, Locale, SystemPartition};
+use installer::{
+    selections::{self, Group},
+    steps::Context,
+    systemd, Account, BootPartition, Installer, Locale, SystemPartition,
+};
 use nix::libc::geteuid;
 use tokio::io::AsyncWriteExt;
 use tokio::process::Command;
@@ -148,6 +152,15 @@ fn create_user() -> color_eyre::Result<Account> {
         .with_shell("/usr/bin/bash"))
 }
 
+fn ask_desktop<'a>(desktops: &'a [&Group]) -> color_eyre::Result<&'a selections::Group> {
+    print_header("", "What desktop environment do you want to use?");
+    let index = dialoguer::Select::with_theme(&ColorfulTheme::default())
+        .items(desktops)
+        .default(1)
+        .interact()?;
+    Ok(desktops[index])
+}
+
 #[tokio::main]
 async fn main() -> color_eyre::Result<()> {
     env_logger::init();
@@ -169,6 +182,11 @@ async fn main() -> color_eyre::Result<()> {
         selections::Group::from_str(include_str!("../../selections/kernel-desktop.json"))?,
     ]);
 
+    let desktops = selections
+        .groups()
+        .filter(|g| g.name == "cosmic" || g.name == "gnome")
+        .collect::<Vec<_>>();
+
     let load_spinner = indicatif::ProgressBar::new(1)
         .with_message(format!("{}", "Loading".blue()))
         .with_style(
@@ -186,6 +204,7 @@ async fn main() -> color_eyre::Result<()> {
 
     load_spinner.finish_and_clear();
 
+    let selected_desktop = ask_desktop(&desktops)?;
     let selected_locale = ask_locale(&locales).await?;
     let timezone = ask_timezone()?;
     let rootpw = ask_password()?;
@@ -209,7 +228,7 @@ async fn main() -> color_eyre::Result<()> {
         partitions: [rootfs.clone()].into(),
         locale: Some(selected_locale),
         timezone: Some(timezone),
-        packages: selections.selections_with(["develop", "gnome", "kernel-desktop"])?,
+        packages: selections.selections_with(["develop", &selected_desktop.name, "kernel-desktop"])?,
     };
     println!("\n\n");
 

@@ -6,6 +6,7 @@
 
 use std::{
     collections::{BTreeMap, BTreeSet},
+    fmt::Display,
     str::FromStr,
 };
 
@@ -36,6 +37,12 @@ pub struct Group {
 
     /// A set of package names (moss-encoded) that form this selection
     pub required: Vec<String>,
+}
+
+impl Display for Group {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.summary)
+    }
 }
 
 impl FromStr for Group {
