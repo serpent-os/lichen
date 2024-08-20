@@ -14,14 +14,14 @@ color-eyre = { version = "0.6.3", features = ["issue-url"] }
 crossterm = { version = "0.27.0", features = ["serde", "event-stream"] }
 human_bytes = "0.4.3"
 futures = "0.3.30"
-libc = "0.2.155"
+libc = "0.2.158"
 log = "0.4.22"
 ratatui = { version = "0.27.0", features = ["all-widgets", "macros", "document-features", "crossterm", "serde", "unstable"] }
-serde = { version = "1.0.204", features = ["derive"] }
-serde_json = "1.0.120"
+serde = { version = "1.0.208", features = ["derive"] }
+serde_json = "1.0.125"
 superblock = { git = "https://github.com/serpent-os/blsforme.git"}
 topology = { git = "https://github.com/serpent-os/blsforme.git"}
-thiserror = "1.0.61"
-tokio = { version = "1.38.0", features = ["full"] }
+thiserror = "1.0.63"
+tokio = { version = "1.39.3", features = ["full"] }
 tokio-util = "0.7.11"
 tokio-stream = { version = "0.1.15", features = ["full"] }
