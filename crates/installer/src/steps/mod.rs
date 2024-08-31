@@ -4,9 +4,11 @@
 
 //! Lichen installation steps
 
+use std::{fmt::Debug, process::ExitStatus};
+use thiserror::Error;
+
 mod context;
 pub use context::Context;
-use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum Error {
@@ -18,6 +20,9 @@ pub enum Error {
 
     #[error("no mountpoint given")]
     NoMountpoint,
+
+    #[error("command `{program}` exited with {status}")]
+    CommandFailed { program: String, status: ExitStatus },
 }
 
 #[derive(Debug)]
@@ -155,7 +160,6 @@ impl<'a> Step<'a> {
 }
 
 mod partitions;
-use std::fmt::Debug;
 
 pub use partitions::{BindMount, FormatPartition, MountPartition, Unmount};
 
