@@ -6,6 +6,7 @@
 
 use std::fmt::Display;
 
+use fs_err::tokio as fs;
 use system::locale::Locale;
 use tokio::process::Command;
 
@@ -93,7 +94,7 @@ impl<'a> SetLocale<'a> {
     pub(super) async fn execute(&self, context: &'a impl Context<'a>) -> Result<(), Error> {
         let contents = format!("LANG={}\n", self.locale.name);
         let path = context.root().join("etc").join("locale.conf");
-        tokio::fs::write(path, &contents).await?;
+        fs::write(path, &contents).await?;
 
         Ok(())
     }
@@ -115,7 +116,7 @@ impl<'a> SetMachineID {
     pub(super) async fn execute(&self, context: &'a impl Context<'a>) -> Result<(), Error> {
         let file = context.root().join("etc").join("machine-id");
         if file.exists() {
-            tokio::fs::remove_file(file).await?;
+            fs::remove_file(file).await?;
         }
 
         let mut cmd = Command::new("chroot");
@@ -240,7 +241,7 @@ impl<'a> EmitFstab {
     pub(super) async fn execute(&self, context: &'a impl Context<'a>) -> Result<(), Error> {
         let file = context.root().join("etc").join("fstab");
         let entries = self.entries.iter().map(|e| e.to_string()).collect::<Vec<_>>();
-        tokio::fs::write(file, entries.join("\n")).await?;
+        fs::write(file, entries.join("\n")).await?;
         Ok(())
     }
 }

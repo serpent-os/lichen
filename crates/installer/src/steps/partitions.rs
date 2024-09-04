@@ -6,8 +6,9 @@
 
 use std::path::PathBuf;
 
+use fs_err::tokio as fs;
 use system::disk::Partition;
-use tokio::{fs::create_dir_all, process::Command};
+use tokio::process::Command;
 
 use super::Context;
 
@@ -67,7 +68,7 @@ impl<'a> MountPartition<'a> {
         );
 
         // Ensure target exists
-        create_dir_all(&self.mountpoint).await?;
+        fs::create_dir_all(&self.mountpoint).await?;
         let source = self.partition.path.to_string_lossy().to_string();
         let dest = self.mountpoint.to_string_lossy().to_string();
         let mut cmd = Command::new("mount");
@@ -101,7 +102,7 @@ impl<'a> BindMount {
         log::info!("Bind mounting {} to {}", self.source.display(), self.dest.display());
 
         // Ensure target exists
-        create_dir_all(&self.dest).await?;
+        fs::create_dir_all(&self.dest).await?;
         let source = self.source.to_string_lossy().to_string();
         let dest = self.dest.to_string_lossy().to_string();
         let mut cmd = Command::new("mount");

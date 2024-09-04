@@ -5,10 +5,10 @@
 //! Partition APIs
 
 use std::fmt::Display;
-use std::fs;
 use std::io::{Cursor, Read};
 use std::path::PathBuf;
 
+use fs_err as fs;
 use gpt::disk::LogicalBlockSize;
 use gpt::partition_types;
 
