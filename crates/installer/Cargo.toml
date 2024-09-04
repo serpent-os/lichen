@@ -14,3 +14,4 @@ system = { path = "../system" }
 thiserror.workspace = true
 tokio.workspace = true
 topology.workspace = true
+fs-err.workspace = true

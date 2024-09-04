@@ -9,9 +9,10 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use fs_err::tokio as fs;
 use futures::StreamExt;
 use gpt::GptConfig;
-use tokio::{fs, task::spawn_blocking};
+use tokio::task::spawn_blocking;
 use tokio_stream::wrappers::ReadDirStream;
 
 use super::{Error, Partition};
@@ -76,7 +77,7 @@ impl Disk {
         }
 
         // Root level devices, not interested in child partitions as yet.
-        let ancestors = ReadDirStream::new(fs::read_dir(slavedir).await?)
+        let ancestors = ReadDirStream::new(tokio::fs::read_dir(slavedir).await?)
             .filter_map(|m| async move { m.ok() })
             .collect::<Vec<_>>()
             .await;
@@ -126,7 +127,7 @@ impl Disk {
 
     /// Discover all disks on the system
     pub async fn discover() -> Result<Vec<Self>, Error> {
-        let disks = ReadDirStream::new(fs::read_dir("/sys/class/block").await?)
+        let disks = ReadDirStream::new(tokio::fs::read_dir("/sys/class/block").await?)
             .filter_map(|f| async move {
                 let f = f.ok()?;
                 Disk::from_sysfs_path(f.path()).await.ok()

@@ -6,7 +6,7 @@
 
 use std::collections::HashMap;
 
-use tokio::fs;
+use fs_err::tokio as fs;
 
 use super::{iso_3166, iso_639_2, iso_639_3, Error, Language, Locale, Territory};
 
