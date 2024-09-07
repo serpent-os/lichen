@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MPL-2.0
 
 //! Package management encapsulation (moss only)
-use tokio::process::Command;
+use std::process::Command;
 
 use super::Context;
 
@@ -27,7 +27,7 @@ impl<'a> AddRepo {
     }
 
     /// Run moss against the target, adding a repo
-    pub(super) async fn execute(&self, context: &'a impl Context<'a>) -> Result<(), super::Error> {
+    pub(super) fn execute(&self, context: &'a impl Context<'a>) -> Result<(), super::Error> {
         let mut cmd = Command::new("moss");
         cmd.arg("-D");
         cmd.arg(context.root());
@@ -36,7 +36,7 @@ impl<'a> AddRepo {
         cmd.arg("-y");
 
         // Run
-        context.run_command(&mut cmd).await
+        context.run_command(&mut cmd)
     }
 }
 
@@ -58,7 +58,7 @@ impl<'a> InstallPackages {
     }
 
     /// Run moss against the target, adding a repo
-    pub(super) async fn execute(&self, context: &'a impl Context<'a>) -> Result<(), super::Error> {
+    pub(super) fn execute(&self, context: &'a impl Context<'a>) -> Result<(), super::Error> {
         let mut cmd = Command::new("moss");
         cmd.arg("-D");
         cmd.arg(context.root());
@@ -66,6 +66,6 @@ impl<'a> InstallPackages {
         cmd.args(&self.names);
         cmd.arg("-y");
 
-        context.run_command(&mut cmd).await
+        context.run_command(&mut cmd)
     }
 }

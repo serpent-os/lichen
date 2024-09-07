@@ -9,8 +9,6 @@ chrono-tz.workspace = true
 crossterm.workspace = true
 dialoguer = { version = "0.11.0", features = ["completion", "fuzzy-matcher", "fuzzy-select"] }
 indicatif = "0.17.8"
-futures.workspace = true
-tokio.workspace = true
 installer = { path = "../crates/installer" }
 console = "0.15.8"
 nix = "0.29"

@@ -813,11 +813,9 @@ dependencies = [
  "crossterm",
  "dialoguer",
  "env_logger",
- "futures",
  "indicatif",
  "installer",
  "nix 0.29.0",
- "tokio",
 ]
 
 [[package]]

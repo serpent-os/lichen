@@ -4,10 +4,9 @@
 
 //! systemd helpers
 
-use std::{io, string::FromUtf8Error};
+use std::{io, process::Command, string::FromUtf8Error};
 
 use thiserror::Error;
-use tokio::process::Command;
 
 #[derive(Debug, Error)]
 pub enum Error {
@@ -19,8 +18,8 @@ pub enum Error {
 }
 
 /// List all locales according to localectl
-pub async fn localectl_list_locales() -> Result<Vec<String>, Error> {
-    let output = Command::new("localectl").arg("list-locales").output().await?;
+pub fn localectl_list_locales() -> Result<Vec<String>, Error> {
+    let output = Command::new("localectl").arg("list-locales").output()?;
     let text = String::from_utf8(output.stdout)?;
     Ok(text.lines().map(|l| l.to_string()).collect::<Vec<_>>())
 }

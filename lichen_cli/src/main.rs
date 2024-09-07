@@ -5,8 +5,9 @@
 //! Super basic CLI runner for lichen
 
 use std::{
+    io::Write,
     path::PathBuf,
-    process::{Output, Stdio},
+    process::{Command, Output, Stdio},
     str::FromStr,
     time::Duration,
 };
@@ -22,8 +23,6 @@ use installer::{
     systemd, Account, BootPartition, Installer, Locale, SystemPartition,
 };
 use nix::libc::geteuid;
-use tokio::io::AsyncWriteExt;
-use tokio::process::Command;
 
 #[derive(Debug)]
 struct CliContext {
@@ -38,17 +37,13 @@ impl<'a> Context<'a> for CliContext {
 
     /// Run a step command
     /// Right now all output is dumped to stdout/stderr
-    async fn run_command(&self, cmd: &mut Command) -> Result<(), installer::steps::Error> {
-        let _ = cmd.spawn()?.wait().await;
+    fn run_command(&self, cmd: &mut Command) -> Result<(), installer::steps::Error> {
+        let _ = cmd.spawn()?.wait();
         Ok(())
     }
 
     /// Run a astep command, capture stdout
-    async fn run_command_captured(
-        &self,
-        cmd: &mut Command,
-        input: Option<&str>,
-    ) -> Result<Output, installer::steps::Error> {
+    fn run_command_captured(&self, cmd: &mut Command, input: Option<&str>) -> Result<Output, installer::steps::Error> {
         cmd.stdin(Stdio::piped());
         cmd.stdout(Stdio::piped());
         cmd.stderr(Stdio::piped());
@@ -56,11 +51,11 @@ impl<'a> Context<'a> for CliContext {
         let mut stdin = ps.stdin.take().expect("stdin failure");
 
         if let Some(input) = input {
-            stdin.write_all(input.as_bytes()).await?;
+            stdin.write_all(input.as_bytes())?;
         }
         drop(stdin);
 
-        let output = ps.wait_with_output().await?;
+        let output = ps.wait_with_output()?;
         Ok(output)
     }
 }
@@ -78,7 +73,7 @@ fn print_summary_item(name: &str, item: &impl ToString) {
 }
 
 /// Ask the user what locale to use
-async fn ask_locale<'a>(locales: &'a [Locale<'a>]) -> color_eyre::Result<&'a Locale> {
+fn ask_locale<'a>(locales: &'a [Locale<'a>]) -> color_eyre::Result<&'a Locale<'a>> {
     print_header("🌐", "Now, we need to set the default system locale");
     let index = dialoguer::FuzzySelect::with_theme(&ColorfulTheme::default())
         .with_prompt("Please select a locale")
@@ -161,8 +156,7 @@ fn ask_desktop<'a>(desktops: &'a [&Group]) -> color_eyre::Result<&'a selections:
     Ok(desktops[index])
 }
 
-#[tokio::main]
-async fn main() -> color_eyre::Result<()> {
+fn main() -> color_eyre::Result<()> {
     env_logger::init();
     color_eyre::install().unwrap();
     set_colors_enabled(true);
@@ -197,15 +191,15 @@ async fn main() -> color_eyre::Result<()> {
     load_spinner.enable_steady_tick(Duration::from_millis(150));
 
     // Load all the things
-    let inst = Installer::new().await?;
+    let inst = Installer::new()?;
     let boots = inst.boot_partitions();
     let parts = inst.system_partitions();
-    let locales = inst.locales_for_ids(systemd::localectl_list_locales().await?).await?;
+    let locales = inst.locales_for_ids(systemd::localectl_list_locales()?)?;
 
     load_spinner.finish_and_clear();
 
     let selected_desktop = ask_desktop(&desktops)?;
-    let selected_locale = ask_locale(&locales).await?;
+    let selected_locale = ask_locale(&locales)?;
     let timezone = ask_timezone()?;
     let rootpw = ask_password()?;
     let user_account = create_user()?;
@@ -268,10 +262,10 @@ async fn main() -> color_eyre::Result<()> {
                     ),
             );
             progress_bar.enable_steady_tick(Duration::from_millis(150));
-            step.execute(&context).await?;
+            step.execute(&context)?;
         } else {
             multi.println(format!("{} {}", step.title().blue(), step.describe().bold()))?;
-            multi.suspend(|| step.execute(&context)).await?;
+            multi.suspend(|| step.execute(&context))?;
         }
     }
 
@@ -289,7 +283,7 @@ async fn main() -> color_eyre::Result<()> {
         );
         progress_bar.enable_steady_tick(Duration::from_millis(150));
         total.inc(1);
-        cleanup.execute(&context).await?;
+        cleanup.execute(&context)?;
     }
 
     multi.clear()?;

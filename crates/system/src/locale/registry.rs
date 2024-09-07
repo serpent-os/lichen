@@ -6,7 +6,7 @@
 
 use std::collections::HashMap;
 
-use fs_err::tokio as fs;
+use fs_err as fs;
 
 use super::{iso_3166, iso_639_2, iso_639_3, Error, Language, Locale, Territory};
 
@@ -23,8 +23,8 @@ pub struct Registry {
 
 impl Registry {
     /// Create a new locale registry from the system iso-code JSON definitions
-    pub async fn new() -> Result<Self, Error> {
-        let places = Self::load_territories().await?;
+    pub fn new() -> Result<Self, Error> {
+        let places = Self::load_territories()?;
         let mut places_lookup = HashMap::new();
         for (index, item) in places.iter().enumerate() {
             places_lookup.insert(item.code2.to_lowercase(), index);
@@ -32,8 +32,8 @@ impl Registry {
         }
 
         //  Convert all languages into usable ones with mapping
-        let mut languages = Self::load_languages_2().await?;
-        languages.extend(Self::load_languages_3().await?);
+        let mut languages = Self::load_languages_2()?;
+        languages.extend(Self::load_languages_3()?);
         let mut languages_lookup = HashMap::new();
         for (index, language) in languages.iter().enumerate() {
             if let Some(code2) = language.code2.as_ref() {
@@ -51,28 +51,28 @@ impl Registry {
     }
 
     /// Load all the territories
-    async fn load_territories() -> Result<Vec<Territory>, Error> {
+    fn load_territories() -> Result<Vec<Territory>, Error> {
         // Load the territories in
         let territories = format!("{}/iso_3166-1.json", ISO_CODES_BASE);
-        let contents = fs::read_to_string(territories).await?;
+        let contents = fs::read_to_string(territories)?;
         let parser = serde_json::from_str::<iso_3166::Document>(&contents)?;
 
         Ok(parser.entries.iter().map(|e| e.into()).collect::<Vec<_>>())
     }
 
     /// Load the 2 DB
-    async fn load_languages_2() -> Result<Vec<Language>, Error> {
+    fn load_languages_2() -> Result<Vec<Language>, Error> {
         let languages = format!("{}/iso_639-2.json", ISO_CODES_BASE);
-        let contents = fs::read_to_string(languages).await?;
+        let contents = fs::read_to_string(languages)?;
         let parser = serde_json::from_str::<iso_639_2::Document>(&contents)?;
 
         Ok(parser.entries.iter().map(|e| e.into()).collect::<Vec<_>>())
     }
 
     /// Load the 3 DB
-    async fn load_languages_3() -> Result<Vec<Language>, Error> {
+    fn load_languages_3() -> Result<Vec<Language>, Error> {
         let languages = format!("{}/iso_639-3.json", ISO_CODES_BASE);
-        let contents = fs::read_to_string(languages).await?;
+        let contents = fs::read_to_string(languages)?;
         let parser = serde_json::from_str::<iso_639_3::Document>(&contents)?;
 
         Ok(parser.entries.iter().map(|e| e.into()).collect::<Vec<_>>())
@@ -164,13 +164,13 @@ impl Registry {
 
 #[cfg(test)]
 mod tests {
-    use tokio::process::Command;
+    use std::process::Command;
 
     use super::Registry;
 
-    #[tokio::test]
-    async fn test_territory() {
-        let r = Registry::new().await.expect("Failed to initialise registry");
+    #[test]
+    fn test_territory() {
+        let r = Registry::new().expect("Failed to initialise registry");
         let ie = r.territory("ie").expect("Cannot find Ireland by ie");
         let irl = r.territory("irl").expect("Cannot find Ireland by irl");
         assert_eq!(ie, irl);
@@ -181,9 +181,9 @@ mod tests {
         eprintln!("dk = {dk:?}");
     }
 
-    #[tokio::test]
-    async fn test_language() {
-        let r = Registry::new().await.expect("Failed to initialise registry");
+    #[test]
+    fn test_language() {
+        let r = Registry::new().expect("Failed to initialise registry");
         let en = r.language("en").expect("Cannot find English by en");
         assert_eq!(en.display_name, "English");
 
@@ -192,9 +192,9 @@ mod tests {
         assert_eq!(dan, dn);
     }
 
-    #[tokio::test]
-    async fn test_locale() {
-        let r = Registry::new().await.expect("Failed to initialise registry");
+    #[test]
+    fn test_locale() {
+        let r = Registry::new().expect("Failed to initialise registry");
         let en_ie = r.locale("en_IE.UTF-8").expect("Failed to find en_IE.UTF-8");
         assert_eq!(en_ie.display_name, "English (Ireland)");
         let ga_ie = r.locale("ga_IE.UTF-8").expect("Failed to find ga_IE.UTF-8");
@@ -204,13 +204,12 @@ mod tests {
         eprintln!("ga_IE = {ga_ie:?}");
     }
 
-    #[tokio::test]
-    async fn test_get_locales() {
-        let r = Registry::new().await.expect("Failed to initialise registry");
+    #[test]
+    fn test_get_locales() {
+        let r = Registry::new().expect("Failed to initialise registry");
         let output = Command::new("localectl")
             .arg("list-locales")
             .output()
-            .await
             .expect("Failed to run localectl");
         let output = String::from_utf8(output.stdout).expect("Cannot decode output");
         for line in output.lines() {

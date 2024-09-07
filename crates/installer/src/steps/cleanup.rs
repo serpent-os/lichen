@@ -48,10 +48,10 @@ impl<'a> Cleanup {
     }
 
     /// Execute the cleanup step
-    pub async fn execute(&self, context: &impl Context<'a>) -> Result<(), super::Error> {
+    pub fn execute(&self, context: &impl Context<'a>) -> Result<(), super::Error> {
         match &self {
-            Self::Unmount(s) => Ok(s.execute(context).await?),
-            Self::Sync(s) => Ok(s.execute(context).await?),
+            Self::Unmount(s) => Ok(s.execute(context)?),
+            Self::Sync(s) => Ok(s.execute(context)?),
         }
     }
 }

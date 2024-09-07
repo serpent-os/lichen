@@ -4,11 +4,10 @@
 
 //! Post-installation tasks
 
-use std::fmt::Display;
+use std::{fmt::Display, process::Command};
 
-use fs_err::tokio as fs;
+use fs_err as fs;
 use system::locale::Locale;
-use tokio::process::Command;
 
 use crate::{Account, SystemPartition};
 
@@ -37,13 +36,13 @@ impl<'a> SetPassword<'a> {
     }
 
     /// Execute to configure the account
-    pub(super) async fn execute(&self, context: &'a impl Context<'a>) -> Result<(), Error> {
+    pub(super) fn execute(&self, context: &'a impl Context<'a>) -> Result<(), Error> {
         let mut cmd = Command::new("chroot");
         cmd.arg(context.root().clone());
         cmd.arg("chpasswd");
 
         let password_text = format!("{}:{}\n", &self.account.username, self.password);
-        context.run_command_captured(&mut cmd, Some(&password_text)).await?;
+        context.run_command_captured(&mut cmd, Some(&password_text))?;
 
         Ok(())
     }
@@ -58,7 +57,7 @@ impl<'a> CreateAccount<'a> {
         self.account.username.clone()
     }
 
-    pub(super) async fn execute(&self, context: &'a impl Context<'a>) -> Result<(), Error> {
+    pub(super) fn execute(&self, context: &'a impl Context<'a>) -> Result<(), Error> {
         let mut cmd = Command::new("chroot");
         cmd.arg(context.root().clone());
         cmd.arg("useradd");
@@ -71,7 +70,7 @@ impl<'a> CreateAccount<'a> {
         }
         cmd.arg("-s");
         cmd.arg(self.account.shell.clone());
-        context.run_command_captured(&mut cmd, None).await?;
+        context.run_command_captured(&mut cmd, None)?;
         Ok(())
     }
 }
@@ -91,10 +90,10 @@ impl<'a> SetLocale<'a> {
         self.locale.display_name.clone()
     }
 
-    pub(super) async fn execute(&self, context: &'a impl Context<'a>) -> Result<(), Error> {
+    pub(super) fn execute(&self, context: &'a impl Context<'a>) -> Result<(), Error> {
         let contents = format!("LANG={}\n", self.locale.name);
         let path = context.root().join("etc").join("locale.conf");
-        fs::write(path, &contents).await?;
+        fs::write(path, &contents)?;
 
         Ok(())
     }
@@ -113,16 +112,16 @@ impl<'a> SetMachineID {
         "via systemd-machine-id-setup".to_string()
     }
 
-    pub(super) async fn execute(&self, context: &'a impl Context<'a>) -> Result<(), Error> {
+    pub(super) fn execute(&self, context: &'a impl Context<'a>) -> Result<(), Error> {
         let file = context.root().join("etc").join("machine-id");
         if file.exists() {
-            fs::remove_file(file).await?;
+            fs::remove_file(file)?;
         }
 
         let mut cmd = Command::new("chroot");
         cmd.arg(context.root().clone());
         cmd.arg("systemd-machine-id-setup");
-        context.run_command_captured(&mut cmd, None).await?;
+        context.run_command_captured(&mut cmd, None)?;
 
         Ok(())
     }
@@ -238,10 +237,10 @@ impl<'a> EmitFstab {
     }
 
     /// Write the filesystem table
-    pub(super) async fn execute(&self, context: &'a impl Context<'a>) -> Result<(), Error> {
+    pub(super) fn execute(&self, context: &'a impl Context<'a>) -> Result<(), Error> {
         let file = context.root().join("etc").join("fstab");
         let entries = self.entries.iter().map(|e| e.to_string()).collect::<Vec<_>>();
-        fs::write(file, entries.join("\n")).await?;
+        fs::write(file, entries.join("\n"))?;
         Ok(())
     }
 }
