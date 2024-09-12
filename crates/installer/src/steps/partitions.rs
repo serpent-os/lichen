@@ -4,11 +4,10 @@
 
 //! Partititon formatting
 
-use std::path::PathBuf;
+use std::{path::PathBuf, process::Command};
 
-use fs_err::tokio as fs;
+use fs_err as fs;
 use system::disk::Partition;
-use tokio::process::Command;
 
 use super::Context;
 
@@ -23,7 +22,7 @@ pub struct FormatPartition<'a> {
 }
 
 impl<'a> FormatPartition<'a> {
-    pub(super) async fn execute(&self, context: &impl Context<'a>) -> Result<(), super::Error> {
+    pub(super) fn execute(&self, context: &impl Context<'a>) -> Result<(), super::Error> {
         let fs = self.filesystem.to_lowercase();
         let (exec, args) = match fs.as_str() {
             "ext4" => ("mkfs.ext4", [&self.partition.path.display().to_string()]),
@@ -35,7 +34,7 @@ impl<'a> FormatPartition<'a> {
         // For now we drop output, but we'll wire up stdout/stderr in context
         let mut cmd = Command::new(exec);
         cmd.args(args);
-        let _ = context.run_command_captured(&mut cmd, None).await?;
+        let _ = context.run_command_captured(&mut cmd, None)?;
         Ok(())
     }
 
@@ -60,7 +59,7 @@ pub struct MountPartition<'a> {
 }
 
 impl<'a> MountPartition<'a> {
-    pub(super) async fn execute(&self, context: &impl Context<'a>) -> Result<(), super::Error> {
+    pub(super) fn execute(&self, context: &impl Context<'a>) -> Result<(), super::Error> {
         log::info!(
             "Mounting {} to {}",
             self.partition.path.display(),
@@ -68,13 +67,13 @@ impl<'a> MountPartition<'a> {
         );
 
         // Ensure target exists
-        fs::create_dir_all(&self.mountpoint).await?;
+        fs::create_dir_all(&self.mountpoint)?;
         let source = self.partition.path.to_string_lossy().to_string();
         let dest = self.mountpoint.to_string_lossy().to_string();
         let mut cmd = Command::new("mount");
         cmd.args([&source, &dest]);
 
-        let _ = context.run_command_captured(&mut cmd, None).await?;
+        let _ = context.run_command_captured(&mut cmd, None)?;
         Ok(())
     }
 
@@ -98,17 +97,17 @@ pub struct BindMount {
 }
 
 impl<'a> BindMount {
-    pub(super) async fn execute(&self, context: &impl Context<'a>) -> Result<(), super::Error> {
+    pub(super) fn execute(&self, context: &impl Context<'a>) -> Result<(), super::Error> {
         log::info!("Bind mounting {} to {}", self.source.display(), self.dest.display());
 
         // Ensure target exists
-        fs::create_dir_all(&self.dest).await?;
+        fs::create_dir_all(&self.dest)?;
         let source = self.source.to_string_lossy().to_string();
         let dest = self.dest.to_string_lossy().to_string();
         let mut cmd = Command::new("mount");
         cmd.args(["--bind", &source, &dest]);
 
-        let _ = context.run_command_captured(&mut cmd, None).await?;
+        let _ = context.run_command_captured(&mut cmd, None)?;
         Ok(())
     }
 
@@ -136,14 +135,14 @@ impl<'a> Unmount {
         format!("{}", &self.mountpoint.display())
     }
 
-    pub(super) async fn execute(&self, context: &impl Context<'a>) -> Result<(), super::Error> {
+    pub(super) fn execute(&self, context: &impl Context<'a>) -> Result<(), super::Error> {
         log::info!("Unmounting {}", self.mountpoint.display());
 
         let dest = self.mountpoint.to_string_lossy().to_string();
         let mut cmd = Command::new("umount");
         cmd.arg(dest);
 
-        let _ = context.run_command_captured(&mut cmd, None).await?;
+        let _ = context.run_command_captured(&mut cmd, None)?;
         Ok(())
     }
 }
@@ -160,11 +159,11 @@ impl<'a> SyncFS {
         "filesystems".into()
     }
 
-    pub(super) async fn execute(&self, context: &impl Context<'a>) -> Result<(), super::Error> {
+    pub(super) fn execute(&self, context: &impl Context<'a>) -> Result<(), super::Error> {
         log::info!("Syncing filesystems");
 
         let mut cmd = Command::new("sync");
-        let _ = context.run_command_captured(&mut cmd, None).await;
+        let _ = context.run_command_captured(&mut cmd, None);
         Ok(())
     }
 }

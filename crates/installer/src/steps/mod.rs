@@ -132,18 +132,18 @@ impl<'a> Step<'a> {
     }
 
     /// Execute a step asynchronously. Implementations can opt-in to async.
-    pub async fn execute(&self, context: &'a impl Context<'a>) -> Result<(), Error> {
+    pub fn execute(&self, context: &'a impl Context<'a>) -> Result<(), Error> {
         match &self {
-            Step::AddRepo(s) => Ok(s.execute(context).await?),
-            Step::Bind(s) => Ok(s.execute(context).await?),
-            Step::CreateUser(s) => Ok(s.execute(context).await?),
-            Step::Format(s) => Ok(s.execute(context).await?),
-            Step::Install(s) => Ok(s.execute(context).await?),
-            Step::Mount(s) => Ok(s.execute(context).await?),
-            Step::SetPassword(s) => Ok(s.execute(context).await?),
-            Step::SetLocale(s) => Ok(s.execute(context).await?),
-            Step::SetMachineID(s) => Ok(s.execute(context).await?),
-            Step::WriteFstab(s) => Ok(s.execute(context).await?),
+            Step::AddRepo(s) => Ok(s.execute(context)?),
+            Step::Bind(s) => Ok(s.execute(context)?),
+            Step::CreateUser(s) => Ok(s.execute(context)?),
+            Step::Format(s) => Ok(s.execute(context)?),
+            Step::Install(s) => Ok(s.execute(context)?),
+            Step::Mount(s) => Ok(s.execute(context)?),
+            Step::SetPassword(s) => Ok(s.execute(context)?),
+            Step::SetLocale(s) => Ok(s.execute(context)?),
+            Step::SetMachineID(s) => Ok(s.execute(context)?),
+            Step::WriteFstab(s) => Ok(s.execute(context)?),
         }
     }
 

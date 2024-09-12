@@ -6,7 +6,6 @@
 
 use std::path::Path;
 
-use futures::stream::{self, StreamExt};
 use system::{
     disk::{self, Disk},
     locale::{self, Locale},
@@ -62,9 +61,9 @@ pub struct Installer {
 
 impl Installer {
     /// Return a newly initialised installer
-    pub async fn new() -> Result<Self, Error> {
-        let locale_registry = locale::Registry::new().await?;
-        let disks = Disk::discover().await?;
+    pub fn new() -> Result<Self, Error> {
+        let locale_registry = locale::Registry::new()?;
+        let disks = Disk::discover()?;
 
         // Figure out where we live right now and exclude the rootfs
         let probe = Builder::default().build()?;
@@ -89,7 +88,7 @@ impl Installer {
         let mut boot_parts = vec![];
         let mut system_parts = vec![];
         for disk in disks.iter().filter(|d| !parents.iter().any(|r| *r == d.path)) {
-            let parts = match disk.partitions().await {
+            let parts = match disk.partitions() {
                 Ok(parts) => parts,
                 Err(e) => {
                     log::error!("Failed to get partitions for `{disk}`: {e}");
@@ -140,12 +139,12 @@ impl Installer {
         &self.locale_registry
     }
 
-    /// Generate/load the locale map as async stream
-    pub async fn locales_for_ids<S: IntoIterator<Item = impl AsRef<str>>>(&self, ids: S) -> Result<Vec<Locale>, Error> {
-        let res = stream::iter(ids.into_iter())
-            .filter_map(|id| async move { self.locale_registry.locale(id) })
-            .collect::<Vec<_>>()
-            .await;
+    /// Generate/load the locale map
+    pub fn locales_for_ids<S: IntoIterator<Item = impl AsRef<str>>>(&self, ids: S) -> Result<Vec<Locale>, Error> {
+        let res = ids
+            .into_iter()
+            .filter_map(|id| self.locale_registry.locale(id))
+            .collect::<Vec<_>>();
 
         Ok(res)
     }
