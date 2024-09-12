@@ -43,8 +43,7 @@ impl<'a> FormatPartition<'a> {
     }
 
     pub(super) fn describe(&self) -> String {
-        // TODO: More than ext4 xD
-        format!("{} as ext4", self.partition.path.display())
+        format!("{} as {}", self.partition.path.display(), self.filesystem)
     }
 }
 
