@@ -15,14 +15,14 @@ crossterm = { version = "0.27.0", features = ["serde", "event-stream"] }
 human_bytes = "0.4.3"
 fs-err = { version = "2.11.0", features = ["tokio"] }
 futures = "0.3.30"
-libc = "0.2.155"
+libc = "0.2.159"
 log = "0.4.22"
 ratatui = { version = "0.27.0", features = ["all-widgets", "macros", "document-features", "crossterm", "serde", "unstable"] }
-serde = { version = "1.0.204", features = ["derive"] }
-serde_json = "1.0.120"
+serde = { version = "1.0.210", features = ["derive"] }
+serde_json = "1.0.128"
 superblock = { git = "https://github.com/serpent-os/blsforme.git"}
 topology = { git = "https://github.com/serpent-os/blsforme.git"}
-thiserror = "1.0.61"
-tokio = { version = "1.38.0", features = ["full"] }
-tokio-util = "0.7.11"
-tokio-stream = { version = "0.1.15", features = ["full"] }
+thiserror = "1.0.64"
+tokio = { version = "1.40.0", features = ["full"] }
+tokio-util = "0.7.12"
+tokio-stream = { version = "0.1.16", features = ["full"] }
