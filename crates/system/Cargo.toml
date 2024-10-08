@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 futures.workspace = true
-gpt = "3.1.0"
+gpt = "4.0.0"
 thiserror.workspace = true
 tokio.workspace = true
 tokio-stream.workspace = true
