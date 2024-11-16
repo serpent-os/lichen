@@ -170,10 +170,7 @@ impl<'a, Message> Widget<Message> for TextBox<'a> {
 
         frame.render_widget(block, layout.area);
 
-        frame.render_widget(
-            &state.area,
-            layout::pad_rect(layout.area, Padding::new(2, 2, 1, 1)),
-        );
+        frame.render_widget(&state.area, layout::pad_rect(layout.area, Padding::new(2, 2, 1, 1)));
     }
 
     fn flatten(&self) -> Vec<widget::Info> {
