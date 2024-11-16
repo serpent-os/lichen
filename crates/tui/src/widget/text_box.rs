@@ -171,7 +171,7 @@ impl<'a, Message> Widget<Message> for TextBox<'a> {
         frame.render_widget(block, layout.area);
 
         frame.render_widget(
-            state.area.widget(),
+            &state.area,
             layout::pad_rect(layout.area, Padding::new(2, 2, 1, 1)),
         );
     }
