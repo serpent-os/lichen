@@ -73,8 +73,7 @@ impl Installer {
                 nodes.push(device.path.into());
                 nodes
             }
-            Err(e) => {
-                log::error!("Failed to determine the device mounted to `/`: {e}");
+            _ => {
                 vec![]
             }
         };
