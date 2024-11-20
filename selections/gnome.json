@@ -5,13 +5,13 @@
     "base"
   ],
   "required": [
+    "binary(ptyxis)",
     "flatpak",
     "font-hack",
     "font-noto",
     "font-noto-emoji",
     "firefox",
     "gnome-backgrounds",
-    "gnome-console",
     "gnome-control-center",
     "gnome-system-monitor",
     "gnome-software",
