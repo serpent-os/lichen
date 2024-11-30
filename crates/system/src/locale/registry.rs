@@ -217,7 +217,7 @@ mod tests {
                 continue;
             }
             eprintln!("looking up {line}");
-            let locale = r.locale(line).expect("Failed to find a predefined locale");
+            let locale = r.locale(line).unwrap_or_else(|| panic!("Failed to find a predefined locale {line}"));
             eprintln!("locale {line} = {locale:?}");
         }
     }
