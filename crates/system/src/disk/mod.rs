@@ -20,9 +20,6 @@ pub enum Error {
     #[error("invalid disk")]
     InvalidDisk,
 
-    #[error("thread: {0}")]
-    Thread(#[from] JoinError),
-
     #[error("superblock: {0}")]
     Superblock(#[from] superblock::Error),
 }
@@ -32,6 +29,5 @@ pub use disks::Disk;
 mod partition;
 pub use partition::Kind as PartitionKind;
 pub use partition::Partition;
-use tokio::task::JoinError;
 
 pub use superblock::Kind as SuperblockKind;
