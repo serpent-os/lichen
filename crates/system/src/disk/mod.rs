@@ -14,6 +14,9 @@ pub enum Error {
     #[error("io: {0}")]
     IO(#[from] io::Error),
 
+    #[error("gpt: {0}")]
+    Gpt(#[from] gpt::GptError),
+
     #[error("numbers: {0}")]
     Numbers(#[from] ParseIntError),
 
