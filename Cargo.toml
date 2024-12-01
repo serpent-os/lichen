@@ -1,28 +1,21 @@
 [workspace]
 members = [
     "crates/*",
-    "lichen_tui",
     "lichen_cli",
 ]
 resolver = "2"
 
 [workspace.dependencies]
 bitflags = "2.6.0"
-chrono = { version = "0.4.38", features = ["unstable-locales"] }
-chrono-tz = "0.9.0"
+chrono-tz = "0.10.0"
 color-eyre = { version = "0.6.3", features = ["issue-url"] }
-crossterm = { version = "0.27.0", features = ["serde", "event-stream"] }
+crossterm = { version = "0.28.1", features = ["serde", "event-stream"] }
 human_bytes = "0.4.3"
-fs-err = { version = "2.11.0", features = ["tokio"] }
-futures = "0.3.30"
+fs-err = { version = "3.0.0", features = ["tokio"] }
 libc = "0.2.155"
 log = "0.4.22"
-ratatui = { version = "0.27.0", features = ["all-widgets", "macros", "document-features", "crossterm", "serde", "unstable"] }
 serde = { version = "1.0.204", features = ["derive"] }
 serde_json = "1.0.120"
 superblock = { git = "https://github.com/serpent-os/blsforme.git"}
 topology = { git = "https://github.com/serpent-os/blsforme.git"}
-thiserror = "1.0.61"
-tokio = { version = "1.38.0", features = ["full"] }
-tokio-util = "0.7.11"
-tokio-stream = { version = "0.1.15", features = ["full"] }
+thiserror = "2.0.3"

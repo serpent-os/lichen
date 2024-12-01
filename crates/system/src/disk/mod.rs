@@ -14,14 +14,14 @@ pub enum Error {
     #[error("io: {0}")]
     IO(#[from] io::Error),
 
+    #[error("gpt: {0}")]
+    Gpt(#[from] gpt::GptError),
+
     #[error("numbers: {0}")]
     Numbers(#[from] ParseIntError),
 
     #[error("invalid disk")]
     InvalidDisk,
-
-    #[error("thread: {0}")]
-    Thread(#[from] JoinError),
 
     #[error("superblock: {0}")]
     Superblock(#[from] superblock::Error),
@@ -32,6 +32,5 @@ pub use disks::Disk;
 mod partition;
 pub use partition::Kind as PartitionKind;
 pub use partition::Partition;
-use tokio::task::JoinError;
 
 pub use superblock::Kind as SuperblockKind;

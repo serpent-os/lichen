@@ -11,7 +11,6 @@ use system::{
     locale::{self, Locale},
 };
 use thiserror::Error;
-use tokio::task::JoinError;
 use topology::disk::Builder;
 
 use crate::{
@@ -41,9 +40,6 @@ pub enum Error {
 
     #[error("topology: {0}")]
     Topology(#[from] topology::disk::Error),
-
-    #[error("thread: {0}")]
-    Thread(#[from] JoinError),
 }
 
 /// The installer does some initial probing and is used with a Model

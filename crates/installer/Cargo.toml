@@ -7,11 +7,9 @@ edition = "2021"
 libc.workspace = true
 log.workspace = true
 human_bytes.workspace = true
-futures.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 system = { path = "../system" }
 thiserror.workspace = true
-tokio.workspace = true
 topology.workspace = true
 fs-err.workspace = true

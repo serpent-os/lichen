@@ -204,13 +204,13 @@ impl TryFrom<&SystemPartition> for FstabEntry {
         let s = Self::Device {
             // NOTE: This is always PartUUID for us, we only do GPT.
             fs: format!("PARTUUID={}", &value.partition.uuid),
-            mountpoint: value.mountpoint.clone().ok_or_else(|| Error::NoMountpoint)?,
+            mountpoint: value.mountpoint.clone().ok_or(Error::NoMountpoint)?,
             kind: value
                 .partition
                 .sb
                 .as_ref()
                 .map(|sb| sb.to_string())
-                .ok_or_else(|| Error::UnknownFilesystem)?,
+                .ok_or(Error::UnknownFilesystem)?,
             opts: "rw,errors=remount-ro".to_string(),
             dump: 0,
             pass: 1,

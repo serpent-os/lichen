@@ -129,10 +129,7 @@ impl Disk {
         let path = self.path.clone();
         let path: &PathBuf = &path;
         let device = Box::new(fs::File::open(path)?);
-        let table = GptConfig::default()
-            .writable(false)
-            .initialized(true)
-            .open_from_device(device)?;
+        let table = GptConfig::default().writable(false).open_from_device(device)?;
         let block_size = table.logical_block_size();
         let mut parts = vec![];
         for (_, part) in table.partitions().iter() {
