@@ -1,0 +1,27 @@
+# Disk enumeration APIs for Lichen
+interface com.serpentos.lichen.disks
+
+type Disk(
+    kind: (ssd, hdd),
+    path: string,
+    model: ?string,
+    vendor: ?string,
+    size: int,
+    block_size: int
+)
+
+type Partition(
+    path: string,
+    kind: (esp, xbootldr, regular),
+    size: int,
+    uuid: string,
+    superblock_kind: (btrfs, ext4, f2fs, luks2, xfs, unknown)
+)
+
+error DiskError(
+    message: string
+)
+
+# Enumerate all known disks
+method GetDisks() -> (disks:[]Disk)
+method GetPartitions(disk: string) -> (partitions:[]Partition)

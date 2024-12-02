@@ -11,5 +11,5 @@ dialoguer = { version = "0.11.0", features = ["completion", "fuzzy-matcher", "fu
 indicatif = "0.17.8"
 installer = { path = "../crates/installer" }
 console = "0.15.8"
-nix = "0.29"
-env_logger = "0.11.5"
+nix.workspace = true
+env_logger.workspace = true

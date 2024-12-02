@@ -30,7 +30,9 @@ pub enum Error {
 mod disks;
 pub use disks::Disk;
 mod partition;
+pub use disks::Kind as DiskKind;
 pub use partition::Kind as PartitionKind;
 pub use partition::Partition;
 
 pub use superblock::Kind as SuperblockKind;
+pub use superblock::Superblock;
