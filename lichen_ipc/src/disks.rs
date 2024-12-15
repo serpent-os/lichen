@@ -4,14 +4,14 @@
 
 use log::debug;
 
-use crate::disks_rpc;
+use crate::disks_ipc;
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
 /// Disk Service struct for Lichen
 pub struct Service {
-    disks_cache: Arc<RwLock<Vec<disks_rpc::Disk>>>,
-    parts_cache: Arc<RwLock<HashMap<String, Vec<disks_rpc::Partition>>>>,
+    disks_cache: Arc<RwLock<Vec<disks_ipc::Disk>>>,
+    parts_cache: Arc<RwLock<HashMap<String, Vec<disks_ipc::Partition>>>>,
 }
 
 impl Default for Service {
@@ -30,9 +30,9 @@ impl Service {
     }
 }
 
-impl disks_rpc::VarlinkInterface for Service {
+impl disks_ipc::VarlinkInterface for Service {
     /// Retrieves the list of disks
-    fn get_disks(&self, call: &mut dyn disks_rpc::Call_GetDisks) -> varlink::Result<()> {
+    fn get_disks(&self, call: &mut dyn disks_ipc::Call_GetDisks) -> varlink::Result<()> {
         if let Ok(read_cell) = self.disks_cache.read() {
             if !read_cell.is_empty() {
                 debug!("restoring from disk cache");
@@ -51,10 +51,10 @@ impl disks_rpc::VarlinkInterface for Service {
             Ok(disks) => {
                 let ret = disks
                     .iter()
-                    .map(|d| disks_rpc::Disk {
+                    .map(|d| disks_ipc::Disk {
                         kind: match d.kind {
-                            system::disk::DiskKind::HDD => disks_rpc::Disk_kind::hdd,
-                            system::disk::DiskKind::SSD => disks_rpc::Disk_kind::ssd,
+                            system::disk::DiskKind::HDD => disks_ipc::Disk_kind::hdd,
+                            system::disk::DiskKind::SSD => disks_ipc::Disk_kind::ssd,
                         },
                         path: d.path.to_string_lossy().to_string(),
                         model: d.model.clone(),
@@ -73,7 +73,7 @@ impl disks_rpc::VarlinkInterface for Service {
     }
 
     /// Retrieves the list of partitions for a given disk
-    fn get_partitions(&self, call: &mut dyn disks_rpc::Call_GetPartitions, disk: String) -> varlink::Result<()> {
+    fn get_partitions(&self, call: &mut dyn disks_ipc::Call_GetPartitions, disk: String) -> varlink::Result<()> {
         if let Ok(read_cell) = self.parts_cache.read() {
             if let Some(cache) = read_cell.get(&disk) {
                 debug!("restoring from partition cache");
@@ -93,25 +93,25 @@ impl disks_rpc::VarlinkInterface for Service {
                 Ok(partitions) => {
                     let res = partitions
                         .iter()
-                        .map(|p| disks_rpc::Partition {
+                        .map(|p| disks_ipc::Partition {
                             path: p.path.to_string_lossy().to_string(),
                             kind: match p.kind {
-                                system::disk::PartitionKind::ESP => disks_rpc::Partition_kind::esp,
-                                system::disk::PartitionKind::XBOOTLDR => disks_rpc::Partition_kind::xbootldr,
-                                system::disk::PartitionKind::Regular => disks_rpc::Partition_kind::regular,
+                                system::disk::PartitionKind::ESP => disks_ipc::Partition_kind::esp,
+                                system::disk::PartitionKind::XBOOTLDR => disks_ipc::Partition_kind::xbootldr,
+                                system::disk::PartitionKind::Regular => disks_ipc::Partition_kind::regular,
                             },
                             size: p.size as i64,
                             uuid: p.uuid.clone(),
                             superblock_kind: if let Some(sb) = p.sb.as_ref() {
                                 match sb {
-                                    system::disk::SuperblockKind::Btrfs => disks_rpc::Partition_superblock_kind::btrfs,
-                                    system::disk::SuperblockKind::Ext4 => disks_rpc::Partition_superblock_kind::ext4,
-                                    system::disk::SuperblockKind::LUKS2 => disks_rpc::Partition_superblock_kind::luks2,
-                                    system::disk::SuperblockKind::F2FS => disks_rpc::Partition_superblock_kind::f2fs,
-                                    system::disk::SuperblockKind::XFS => disks_rpc::Partition_superblock_kind::xfs,
+                                    system::disk::SuperblockKind::Btrfs => disks_ipc::Partition_superblock_kind::btrfs,
+                                    system::disk::SuperblockKind::Ext4 => disks_ipc::Partition_superblock_kind::ext4,
+                                    system::disk::SuperblockKind::LUKS2 => disks_ipc::Partition_superblock_kind::luks2,
+                                    system::disk::SuperblockKind::F2FS => disks_ipc::Partition_superblock_kind::f2fs,
+                                    system::disk::SuperblockKind::XFS => disks_ipc::Partition_superblock_kind::xfs,
                                 }
                             } else {
-                                disks_rpc::Partition_superblock_kind::unknown
+                                disks_ipc::Partition_superblock_kind::unknown
                             },
                         })
                         .collect::<Vec<_>>();

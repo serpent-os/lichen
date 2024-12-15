@@ -747,7 +747,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "lichen_rpc"
+name = "lichen_ipc"
 version = "0.1.0"
 dependencies = [
  "clap",

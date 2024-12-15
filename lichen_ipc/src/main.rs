@@ -6,7 +6,7 @@ use std::env;
 
 use clap::Parser;
 use color_eyre::eyre::bail;
-use lichen_rpc::{disks, disks_rpc};
+use lichen_ipc::{disks, disks_ipc};
 use pretty_env_logger::formatted_builder;
 use varlink::VarlinkService;
 
@@ -32,11 +32,11 @@ fn main() -> color_eyre::Result<()> {
     } else if let Ok(varlink_address) = env::var("VARLINK_ADDRESS") {
         varlink_address
     } else {
-        bail!("Usage: lichen-rpc --varlink <socket>");
+        bail!("Usage: lichen-ipc --varlink <socket>");
     };
 
     // bind our interfaces to the varlink service
-    let interface = disks_rpc::new(Box::new(disks::Service::new()));
+    let interface = disks_ipc::new(Box::new(disks::Service::new()));
     let service = VarlinkService::new(
         "Serpent OS",
         "Lichen Installer",
@@ -45,7 +45,7 @@ fn main() -> color_eyre::Result<()> {
         vec![Box::new(interface)],
     );
 
-    log::info!("lichen-rpc now listening on {socket}");
+    log::info!("lichen-ipc now listening on {socket}");
 
     varlink::listen(
         service,

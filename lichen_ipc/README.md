@@ -1,6 +1,6 @@
-# lichen_rpc
+# lichen_ipc
 
-This crate contains the `lichen_rpc` executable, a helper backend for the lichen
+This crate contains the `lichen_ipc` executable, a helper backend for the lichen
 installer that communicates using the [varlink](https://varlink.org) protocol over
 a local UNIX socket.
 
@@ -15,7 +15,7 @@ It is in a very early stage, but eventually will be the entire backend of our in
 First, launch the backend:
 
 ```sh
-pkexec ./target/debug/lichen_rpc --varlink=unix:@testinglichen
+pkexec ./target/debug/lichen_ipc --varlink=unix:@testinglichen
 ```
 
 Then, in another terminal, run the [varlink cli](https://crates.io/crates/varlink-cli)

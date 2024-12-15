@@ -2,11 +2,10 @@
 members = [
     "crates/*",
     "lichen_cli",
-    "lichen_rpc"
+    "lichen_ipc"
 ]
 default-members = [
-    "lichen_cli",
-    "lichen_rpc"
+    "lichen_cli"
 ]
 resolver = "2"
 
