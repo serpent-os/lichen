@@ -5,21 +5,28 @@
     "base"
   ],
   "required": [
+    "binary(celluloid)",
+    "binary(file-roller)",
+    "binary(firefox)",
+    "binary(gnome-control-center)",
+    "binary(gnome-disks)",
+    "binary(gnome-software)",
+    "binary(gnome-text-editor)",
+    "binary(gnome-tweaks)",
+    "binary(loupe)",
+    "binary(nautilus)",
     "binary(ptyxis)",
+    "binary(resources)",
+    "binary(starship)",
     "flatpak",
     "font-hack",
     "font-noto",
     "font-noto-emoji",
-    "firefox",
     "gnome-backgrounds",
-    "gnome-control-center",
-    "gnome-system-monitor",
-    "gnome-software",
-    "gnome-text-editor",
     "liberation-fonts-ttf",
     "loupe",
-    "nautilus",
     "serpent-gnome-defaults",
-    "sysbinary(gdm)"
+    "sysbinary(gdm)",
+    "sysbinary(plymouthd)"
   ]
 }
