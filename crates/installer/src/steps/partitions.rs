@@ -25,7 +25,9 @@ impl<'a> FormatPartition<'a> {
     pub(super) fn execute(&self, context: &impl Context<'a>) -> Result<(), super::Error> {
         let fs = self.filesystem.to_lowercase();
         let (exec, args) = match fs.as_str() {
-            "ext4" => ("mkfs.ext4", [&self.partition.path.display().to_string()]),
+            "ext4" => ("mkfs.ext4", ["-F", &self.partition.path.display().to_string()]),
+            "xfs" => ("mkfs.xfs", ["-f", &self.partition.path.display().to_string()]),
+            "f2fs" => ("mkfs.f2fs", ["-f", &self.partition.path.display().to_string()]),
             _ => unimplemented!(),
         };
         log::info!("Formatting {} as {}", self.partition.path.display(), self.filesystem);
