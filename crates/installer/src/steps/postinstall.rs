@@ -99,6 +99,32 @@ impl<'a> SetLocale<'a> {
     }
 }
 
+// Update the timezone
+#[derive(Debug)]
+pub struct SetTimezone<'a> {
+    pub(crate) timezone: &'a str,
+}
+
+impl<'a> SetTimezone<'a> {
+    pub(super) fn title(&self) -> String {
+        "Set system timezone".to_string()
+    }
+
+    pub(super) fn describe(&self) -> String {
+        self.timezone.to_string()
+    }
+
+    pub(super) fn execute(&self, context: &'a impl Context<'a>) -> Result<(), Error> {
+        fs::remove_file(context.root().join("etc").join("localtime")).ok();
+        std::os::unix::fs::symlink(
+            format!("../usr/share/zoneinfo/{}", self.timezone),
+            context.root().join("etc").join("localtime"),
+        )?;
+
+        Ok(())
+    }
+}
+
 /// Set a machine ID up in the root
 #[derive(Debug)]
 pub struct SetMachineID {}

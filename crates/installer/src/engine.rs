@@ -239,6 +239,11 @@ impl Installer {
             s.push(Step::set_locale(SetLocale { locale }));
         }
 
+        // System timezone
+        if let Some(timezone) = model.timezone.as_ref() {
+            s.push(Step::set_timezone(steps::SetTimezone { timezone }));
+        }
+
         // Ensure we get a machine-id..
         s.push(Step::set_machine_id());
 
