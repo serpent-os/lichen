@@ -179,7 +179,7 @@ impl Installer {
         // Must format and mount `/` before we can add more mounts
         s.push(Step::format(FormatPartition {
             partition: &root_partition.partition,
-            filesystem: "ext4".into(),
+            filesystem: "xfs".into(),
         }));
         s.push(Step::mount(MountPartition {
             partition: &root_partition.partition,
