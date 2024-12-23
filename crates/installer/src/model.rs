@@ -28,4 +28,7 @@ pub struct Model<'a> {
 
     /// Package selections
     pub packages: BTreeSet<String>,
+
+    /// rootfs format
+    pub rootfs_type: String,
 }

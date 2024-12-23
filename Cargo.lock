@@ -224,6 +224,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f46ad14479a25103f283c0f10005961cf086d8dc42205bb44c46ac563475dca6"
 
 [[package]]
+name = "cliclack"
+version = "0.3.5"
+source = "git+https://github.com/ikeycode/cliclack.git?rev=35a1882c601b90bf1398c3cb867cc6b20bbe9ce9#35a1882c601b90bf1398c3cb867cc6b20bbe9ce9"
+dependencies = [
+ "console",
+ "indicatif",
+ "once_cell",
+ "strsim",
+ "termsize",
+ "textwrap",
+ "zeroize",
+]
+
+[[package]]
 name = "color-eyre"
 version = "0.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -736,6 +750,7 @@ name = "lichen_cli"
 version = "0.1.0"
 dependencies = [
  "chrono-tz",
+ "cliclack",
  "color-eyre",
  "console",
  "crossterm",
@@ -1204,6 +1219,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3c5e1a9a646d36c3599cd173a41282daf47c44583ad367b8e6837255952e5c67"
 
 [[package]]
+name = "smawk"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b7c388c1b5e93756d0c740965c41e8822f866621d41acbdf6336a6a168f8840c"
+
+[[package]]
 name = "stable_deref_trait"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1290,6 +1311,27 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "06794f8f6c5c898b3275aebefa6b8a1cb24cd2c6c79397ab15774837a0bc5755"
 dependencies = [
  "winapi-util",
+]
+
+[[package]]
+name = "termsize"
+version = "0.1.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6f11ff5c25c172608d5b85e2fb43ee9a6d683a7f4ab7f96ae07b3d8b590368fd"
+dependencies = [
+ "libc",
+ "winapi",
+]
+
+[[package]]
+name = "textwrap"
+version = "0.16.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "23d434d3f8967a09480fb04132ebe0a3e088c173e6d0ee7897abbdf4eab0f8b9"
+dependencies = [
+ "smawk",
+ "unicode-linebreak",
+ "unicode-width 0.1.14",
 ]
 
 [[package]]
@@ -1431,6 +1473,12 @@ name = "unicode-ident"
 version = "1.0.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "adb9e6ca4f869e1180728b7950e35922a7fc6397f7b641499e8f3ef06e50dc83"
+
+[[package]]
+name = "unicode-linebreak"
+version = "0.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3b09c83c3c29d37506a3e260c08c03743a6bb66a9cd432c6934ab501a190571f"
 
 [[package]]
 name = "unicode-width"
@@ -1784,6 +1832,20 @@ name = "zeroize"
 version = "1.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ced3678a2879b30306d323f4542626697a464a97c0a07c9aebf7ebca65cd4dde"
+dependencies = [
+ "zeroize_derive",
+]
+
+[[package]]
+name = "zeroize_derive"
+version = "1.4.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ce36e65b0d2999d2aafac989fb249189a141aee1f53c612c1f37d72631959f69"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.90",
+]
 
 [[package]]
 name = "zerovec"

@@ -15,7 +15,6 @@ use std::{
 use color_eyre::eyre::bail;
 use console::{set_colors_enabled, style};
 use crossterm::style::Stylize;
-use dialoguer::theme::ColorfulTheme;
 use indicatif::ProgressStyle;
 use installer::{
     selections::{self, Group},
@@ -64,41 +63,30 @@ impl<'a> Context<'a> for CliContext {
     }
 }
 
-/// Craptastic header printing
-fn print_header(icon: &str, text: &str) {
-    println!("\n\n  {}   {}", style(icon).cyan(), style(text).bright().bold());
-    println!("\n\n")
-}
-
-/// Crappy print of a summary field
-fn print_summary_item(name: &str, item: &impl ToString) {
-    let name = console::pad_str(name, 20, console::Alignment::Left, None);
-    println!("      {}   -  {}", style(name).bold(), item.to_string());
-}
-
 /// Ask the user what locale to use
 fn ask_locale<'a>(locales: &'a [Locale<'a>]) -> color_eyre::Result<&'a Locale<'a>> {
-    print_header("🌐", "Now, we need to set the default system locale");
-    let index = dialoguer::FuzzySelect::with_theme(&ColorfulTheme::default())
-        .with_prompt("Please select a locale")
-        .default(0)
-        .with_initial_text("english")
-        .highlight_matches(true)
-        .max_length(20)
-        .items(locales)
+    let locales_disp = locales.iter().enumerate().map(|(i, l)| (i, l, "")).collect::<Vec<_>>();
+    let index = cliclack::select("Pick a locale")
+        .items(locales_disp.as_slice())
+        .initial_value(0)
+        .filter_mode()
+        .set_size(20)
         .interact()?;
+
     Ok(&locales[index])
 }
 
 fn ask_timezone() -> color_eyre::Result<String> {
-    print_header("🕒", "Now we need to set the system timezone");
-
-    let index = dialoguer::FuzzySelect::with_theme(&ColorfulTheme::default())
-        .with_prompt("Start typing")
-        .items(&chrono_tz::TZ_VARIANTS)
-        .default(0)
-        .highlight_matches(true)
-        .max_length(10)
+    let variants = chrono_tz::TZ_VARIANTS
+        .iter()
+        .enumerate()
+        .map(|(i, v)| (i, v, ""))
+        .collect::<Vec<_>>();
+    let index = cliclack::select("Pick a timezone")
+        .items(variants.as_slice())
+        .initial_value(0)
+        .filter_mode()
+        .set_size(10)
         .interact()?;
 
     Ok(chrono_tz::TZ_VARIANTS[index].to_string())
@@ -106,57 +94,87 @@ fn ask_timezone() -> color_eyre::Result<String> {
 
 /// Pick an ESP please...
 fn ask_esp(parts: &[BootPartition]) -> color_eyre::Result<&BootPartition> {
-    print_header("", "Please choose an EFI System Partition for Serpent OS to use");
-    let index = dialoguer::Select::with_theme(&ColorfulTheme::default())
-        .with_prompt("Pick a suitably sized ESP")
-        .items(parts)
-        .default(0)
+    let parts_disp = parts
+        .iter()
+        .enumerate()
+        .map(|(i, p)| (i, p.to_string(), ""))
+        .collect::<Vec<_>>();
+    let index = cliclack::select("Pick a boot partition")
+        .items(parts_disp.as_slice())
+        .initial_value(0)
         .interact()?;
     Ok(&parts[index])
 }
 
 /// Where's it going?
 fn ask_rootfs(parts: &[SystemPartition]) -> color_eyre::Result<&SystemPartition> {
-    print_header("", "Please choose a partition to format and install Serpent OS to (/)");
-    let index = dialoguer::Select::with_theme(&ColorfulTheme::default())
-        .with_prompt("Pick a suitably sized partition")
-        .items(parts)
-        .default(0)
+    let parts_disp = parts
+        .iter()
+        .enumerate()
+        .map(|(i, p)| (i, p.to_string(), ""))
+        .collect::<Vec<_>>();
+    let index = cliclack::select("Pick a suitably sized partition for the root filesystem")
+        .items(parts_disp.as_slice())
+        .initial_value(0)
         .interact()?;
     Ok(&parts[index])
 }
 
+fn ask_filesystem() -> color_eyre::Result<String> {
+    let variants = [
+        ("xfs", "XFS", "For reliability (journaling)"),
+        ("f2fs", "F2FS", "For flash storage (speed)"),
+        ("ext4", "Ext4", "Not recommended due to small hardlink limit"),
+    ];
+    let index = cliclack::select("Pick a filesystem for your rootfs")
+        .items(&variants)
+        .initial_value("xfs")
+        .interact()?;
+    Ok(index.into())
+}
+
 // Grab a password for the root account
 fn ask_password() -> color_eyre::Result<String> {
-    print_header("🔑", "You'll need to set a default root (administrator) password");
-    let password = dialoguer::Password::with_theme(&ColorfulTheme::default())
-        .with_prompt("Type the password")
-        .with_confirmation("Confirm your password", "Those passwords did not match")
+    let password = cliclack::password("You'll need to set a default root (administrator) password").interact()?;
+    let confirmed = cliclack::password("Confirm your password")
+        .validate_interactively(move |v: &String| {
+            if *v != password {
+                return Err("Those passwords do not match");
+            }
+            Ok(())
+        })
         .interact()?;
-    Ok(password)
+    Ok(confirmed)
 }
 
 fn create_user() -> color_eyre::Result<Account> {
-    print_header("", "We need to create a default (admin) user for the new installation");
-    let username: String = dialoguer::Input::with_theme(&ColorfulTheme::default())
-        .with_prompt("Username?")
-        .interact_text()?;
-    let password = dialoguer::Password::with_theme(&ColorfulTheme::default())
-        .with_prompt("Pick a password")
-        .with_confirmation("Now confirm the password", "Those passwords did not match")
+    cliclack::log::info("We now need to create a default (admin) user")?;
+    let username: String = cliclack::input("Username?").interact()?;
+    let password = cliclack::password("Pick a password").interact()?;
+    let confirmed = cliclack::password("Now confirm the password")
+        .validate_interactively(move |v: &String| {
+            if *v != password {
+                return Err("Those passwords do not match");
+            }
+            Ok(())
+        })
         .interact()?;
-
     Ok(Account::new(username)
-        .with_password(password)
+        .with_password(confirmed)
         .with_shell("/usr/bin/bash"))
 }
 
 fn ask_desktop<'a>(desktops: &'a [&Group]) -> color_eyre::Result<&'a selections::Group> {
-    print_header("", "What desktop environment do you want to use?");
-    let index = dialoguer::Select::with_theme(&ColorfulTheme::default())
-        .items(desktops)
-        .default(1)
+    let displayable = desktops
+        .iter()
+        .enumerate()
+        .map(|(i, d)| (i, &d.summary, ""))
+        .collect::<Vec<_>>();
+    let index = cliclack::select("Pick a desktop environment to use")
+        .items(displayable.as_slice())
+        .initial_value(1)
         .interact()?;
+
     Ok(desktops[index])
 }
 
@@ -185,14 +203,8 @@ fn main() -> color_eyre::Result<()> {
         .filter(|g| g.name == "cosmic" || g.name == "gnome")
         .collect::<Vec<_>>();
 
-    let load_spinner = indicatif::ProgressBar::new(1)
-        .with_message(format!("{}", "Loading".blue()))
-        .with_style(
-            ProgressStyle::with_template(" {spinner} {wide_msg} ")
-                .unwrap()
-                .tick_chars("--=≡■≡=--"),
-        );
-    load_spinner.enable_steady_tick(Duration::from_millis(150));
+    let sp = cliclack::spinner();
+    sp.start("Loading");
 
     // Load all the things
     let inst = Installer::new()?;
@@ -200,7 +212,13 @@ fn main() -> color_eyre::Result<()> {
     let parts = inst.system_partitions();
     let locales = inst.locales_for_ids(systemd::localectl_list_locales()?)?;
 
-    load_spinner.finish_and_clear();
+    sp.clear();
+
+    cliclack::intro(style("Install Serpent OS").bold())?;
+    cliclack::log::warning(format!(
+        "{} - this is an alpha quality installer.",
+        style("Be warned!").bold()
+    ))?;
 
     let selected_desktop = ask_desktop(&desktops)?;
     let selected_locale = ask_locale(&locales)?;
@@ -208,17 +226,23 @@ fn main() -> color_eyre::Result<()> {
     let rootpw = ask_password()?;
     let user_account = create_user()?;
 
+    cliclack::log::info("We)'ll now configure your disk")?;
     let esp = ask_esp(boots)?;
-
-    // Set / partition
     let mut rootfs = ask_rootfs(parts)?.clone();
     rootfs.mountpoint = Some("/".into());
+    let fs = ask_filesystem()?;
 
-    print_header("🕮", "Quickly review your settings");
-    print_summary_item("Locale", selected_locale);
-    print_summary_item("Timezone", &timezone);
-    print_summary_item("Bootloader", esp);
-    print_summary_item("Root (/) filesystem", &rootfs);
+    let summary = |title: &str, value: &str| format!("{}: {}", style(title).bold(), value);
+
+    let note = [
+        summary("Locale", &selected_locale.to_string()),
+        summary("Timezone", &timezone),
+        summary("Bootloader", &esp.to_string()),
+        summary("Root (/) partition", &rootfs.to_string()),
+        summary("Root (/) filesystem", &fs),
+    ];
+
+    cliclack::note("Installation summary", note.join("\n"))?;
 
     let model = installer::Model {
         accounts: [Account::root().with_password(rootpw), user_account].into(),
@@ -226,18 +250,17 @@ fn main() -> color_eyre::Result<()> {
         partitions: [rootfs.clone()].into(),
         locale: Some(selected_locale),
         timezone: Some(timezone),
+        rootfs_type: fs,
         packages: selections.selections_with(["develop", &selected_desktop.name, "kernel-desktop"])?,
     };
-    println!("\n\n");
 
-    let y = dialoguer::Confirm::with_theme(&ColorfulTheme::default())
-        .with_prompt("Proceed with installation?")
-        .interact()?;
+    let y = cliclack::confirm("Do you want to install?").interact()?;
     if !y {
+        cliclack::outro_cancel("No changes have been made to your system")?;
         return Ok(());
     }
 
-    // Push some packages into the installer based on selections
+    cliclack::outro("Now proceeding with installation")?;
 
     // TODO: Use proper temp directory
     let context = CliContext {
@@ -291,7 +314,6 @@ fn main() -> color_eyre::Result<()> {
     }
 
     multi.clear()?;
-    println!();
     println!(
         "🎉 🥳 Succesfully installed {}! Reboot now to start using it!",
         style("Serpent OS").bold()
