@@ -86,7 +86,7 @@ impl Installer {
             let parts = match disk.partitions() {
                 Ok(parts) => parts,
                 Err(e) => {
-                    log::error!("Failed to get partitions for `{disk}`: {e}");
+                    log::trace!("Failed to get partitions for `{disk}`: {e}");
                     continue;
                 }
             };
