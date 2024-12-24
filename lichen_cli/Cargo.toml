@@ -11,6 +11,6 @@ cliclack = { git = "https://github.com/ikeycode/cliclack.git", rev = "35a1882c60
 dialoguer = { version = "0.11.0", features = ["completion", "fuzzy-matcher", "fuzzy-select"] }
 indicatif = "0.17.8"
 installer = { path = "../crates/installer" }
-console = "0.15.8"
+console = "0.15.10"
 nix.workspace = true
 env_logger.workspace = true
