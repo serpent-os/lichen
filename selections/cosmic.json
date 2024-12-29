@@ -35,6 +35,7 @@
     "font-noto",
     "font-noto-emoji",
     "firefox",
-    "liberation-fonts-ttf"
+    "liberation-fonts-ttf",
+    "sysbinary(plymouthd)"
   ]
 }
