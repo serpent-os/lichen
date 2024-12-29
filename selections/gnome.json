@@ -10,6 +10,7 @@
     "binary(file-roller)",
     "binary(firefox)",
     "binary(gnome-calculator)",
+    "binary(gnome-calendar)",
     "binary(gnome-clocks)",
     "binary(gnome-control-center)",
     "binary(gnome-disks)",
