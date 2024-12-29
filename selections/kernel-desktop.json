@@ -1,6 +1,7 @@
 {
   "name": "kernel-desktop",
   "summary": "Desktop kernel",
+  "description": "Kernel optimized for desktop use",
   "depends": [
     "kernel-common"
   ],

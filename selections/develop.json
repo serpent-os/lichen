@@ -1,6 +1,7 @@
 {
   "name": "develop",
   "summary": "Development tooling",
+  "description": "Install software for packaging and development.",
   "depends": [
     "base"
   ],

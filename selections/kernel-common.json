@@ -1,6 +1,7 @@
 {
   "name": "kernel-common",
   "summary": "Common kernel runtime",
+  "description": "Common kernel runtime",
   "required": [
     "kmod",
     "linux-firmware",

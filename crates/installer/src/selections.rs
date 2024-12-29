@@ -31,6 +31,9 @@ pub struct Group {
     /// User-visible summary for this selection group
     pub summary: String,
 
+    /// User visible description for this selection group
+    pub description: String,
+
     /// Optionally a set of selection groups forming the basis of this one
     #[serde(default)]
     pub depends: Vec<String>,

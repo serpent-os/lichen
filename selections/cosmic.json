@@ -1,6 +1,7 @@
 {
   "name": "cosmic",
   "summary": "COSMIC Desktop",
+  "description": "Warning: Provided as an alpha preview",
   "depends": [
     "base"
   ],

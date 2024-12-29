@@ -168,7 +168,7 @@ fn ask_desktop<'a>(desktops: &'a [&Group]) -> color_eyre::Result<&'a selections:
     let displayable = desktops
         .iter()
         .enumerate()
-        .map(|(i, d)| (i, &d.summary, ""))
+        .map(|(i, d)| (i, &d.summary, &d.description))
         .collect::<Vec<_>>();
     let index = cliclack::select("Pick a desktop environment to use")
         .items(displayable.as_slice())

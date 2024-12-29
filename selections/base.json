@@ -1,6 +1,7 @@
 {
   "name": "base",
   "summary": "Base system",
+  "description": "The base system for all Serpent OS installations.",
   "required": [
     "bash-completion",
     "binary(bash)",
