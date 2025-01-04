@@ -46,7 +46,7 @@ pub struct Entry<'a> {
 }
 
 impl From<&Entry<'_>> for Territory {
-    fn from(value: &Entry) -> Self {
+    fn from(value: &Entry<'_>) -> Self {
         if let Some(display) = value.official_name {
             Self {
                 code: value.code3.into(),
@@ -100,7 +100,7 @@ mod tests {
             ]
         }
           "#;
-        let loaded = serde_json::from_str::<Document>(TEST_DATA).expect("Failed to decode ISO-3166 JSON");
+        let loaded = serde_json::from_str::<Document<'_>>(TEST_DATA).expect("Failed to decode ISO-3166 JSON");
 
         let ie = loaded
             .entries

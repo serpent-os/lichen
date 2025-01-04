@@ -135,7 +135,7 @@ impl Installer {
     }
 
     /// Generate/load the locale map
-    pub fn locales_for_ids<S: IntoIterator<Item = impl AsRef<str>>>(&self, ids: S) -> Result<Vec<Locale>, Error> {
+    pub fn locales_for_ids<S: IntoIterator<Item = impl AsRef<str>>>(&self, ids: S) -> Result<Vec<Locale<'_>>, Error> {
         let res = ids
             .into_iter()
             .filter_map(|id| self.locale_registry.locale(id))
@@ -157,7 +157,7 @@ impl Installer {
     /// build the model into a set of install steps
     pub fn compile_to_steps<'a>(
         &'a self,
-        model: &'a Model,
+        model: &'a Model<'_>,
         context: &'a impl Context<'a>,
     ) -> Result<(Vec<Cleanup>, Vec<Step<'a>>), Error> {
         let mut s: Vec<Step<'a>> = vec![];
@@ -264,7 +264,7 @@ impl Installer {
         Ok((c, s))
     }
 
-    fn create_vfs_mounts(&self, prefix: &Path) -> (Vec<Step>, Vec<Cleanup>) {
+    fn create_vfs_mounts(&self, prefix: &Path) -> (Vec<Step<'_>>, Vec<Cleanup>) {
         const PARTS: &[(&str, &str); 5] = &[
             ("/dev", "dev"),
             ("/dev/shm", "dev/shm"),

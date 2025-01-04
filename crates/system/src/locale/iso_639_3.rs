@@ -126,7 +126,7 @@ mod tests {
         }
         "#;
 
-        let loaded = serde_json::from_str::<Document>(TEST_DATA).expect("Failed to decode ISO-639-3 data");
+        let loaded = serde_json::from_str::<Document<'_>>(TEST_DATA).expect("Failed to decode ISO-639-3 data");
         let ga = loaded
             .entries
             .iter()

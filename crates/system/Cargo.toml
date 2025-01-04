@@ -10,3 +10,6 @@ serde_json.workspace = true
 serde.workspace = true
 superblock.workspace = true
 fs-err.workspace = true
+
+[lints]
+workspace = true
