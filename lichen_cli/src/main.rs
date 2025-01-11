@@ -122,9 +122,13 @@ fn ask_rootfs(parts: &[SystemPartition]) -> color_eyre::Result<&SystemPartition>
 
 fn ask_filesystem() -> color_eyre::Result<String> {
     let variants = [
-        ("xfs", "XFS", "For reliability (journaling)"),
-        ("f2fs", "F2FS", "For flash storage (speed)"),
-        ("ext4", "Ext4", "Not recommended due to small hardlink limit"),
+        ("xfs", "XFS", "Recommended (fast with moss, reliable)"),
+        ("f2fs", "F2FS", "Not Recommended (slow with moss)"),
+        (
+            "ext4",
+            "EXT4",
+            "Not Recommended (slow with moss, limited number of rollbacks supported)",
+        ),
     ];
     let index = cliclack::select("Pick a filesystem for your rootfs")
         .items(&variants)
