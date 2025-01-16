@@ -99,7 +99,10 @@ fn ask_esp(parts: &[BootPartition]) -> color_eyre::Result<&BootPartition> {
         .enumerate()
         .map(|(i, p)| (i, p.to_string(), ""))
         .collect::<Vec<_>>();
-    ensure!(!parts_disp.is_empty(), "No disk with an available EFI system partition found. Exiting.");
+    ensure!(
+        !parts_disp.is_empty(),
+        "No disk with an available EFI system partition found. Exiting."
+    );
     let index = cliclack::select("Pick EFI system partition (ESP) + Linux extended boot partition (XBOOTLDR)")
         .items(parts_disp.as_slice())
         .initial_value(0)
@@ -114,7 +117,10 @@ fn ask_rootfs(parts: &[SystemPartition]) -> color_eyre::Result<&SystemPartition>
         .enumerate()
         .map(|(i, p)| (i, p.to_string(), ""))
         .collect::<Vec<_>>();
-    ensure!(! parts_disp.is_empty(), "No disk with an available Linux partition for the system install root found. Exiting.");
+    ensure!(
+        !parts_disp.is_empty(),
+        "No disk with an available Linux partition for the system install root found. Exiting."
+    );
     let index = cliclack::select("Pick a suitably sized partition for the system install root (>20GiB)")
         .items(parts_disp.as_slice())
         .initial_value(0)
@@ -124,9 +130,17 @@ fn ask_rootfs(parts: &[SystemPartition]) -> color_eyre::Result<&SystemPartition>
 
 fn ask_filesystem() -> color_eyre::Result<String> {
     let variants = [
-        ("xfs", "xfs", "Recommended (fast with moss hardlink rollbacks)"),
-        ("f2fs", "f2fs", "Not Recommended (slower with moss hardlink rollbacks)"),
-        ("ext4", "ext4", "Not Recommended (slower, limited moss hardlink rollback capacity)"),
+        ("xfs", "xfs", "Recommended (fast w/ moss hardlink rollbacks)"),
+        (
+            "f2fs",
+            "f2fs",
+            "Not Recommended (surprisingly slow w/ moss hardlink rollbacks)",
+        ),
+        (
+            "ext4",
+            "ext4",
+            "Not Recommended (slow, limited moss hardlink rollback capacity)",
+        ),
     ];
     let index = cliclack::select("Pick a suitable filesystem for the system install root ('/')")
         .items(&variants)
@@ -227,7 +241,7 @@ fn main() -> color_eyre::Result<()> {
     //       to the correct fs if this hasn't already been done.
 
     cliclack::log::warning(
-"The installer currently does not attempt to detect if there is a file system
+        "The installer currently does not attempt to detect if there is a file system
 on detected ESP (and XBOOTLDR) partitions.\n
 Please ensure that the EFI system partition (ESP) and the Linux extended boot
 (XBOOTLDR) partition are both formatted as FAT32.\n
@@ -238,18 +252,18 @@ It may be a good idea to check this in gparted now:\n
   should have the flag 'bls_boot' in gparted
   - This corresponds to type 142 in 'fdisk'.\n
 If changes were made to any partitions, please exit the installer now by
-pressing CTRL+C, and then restart it."
+pressing CTRL+C, and then restart it.",
     )?;
     let esp = ask_esp(boots)?;
 
     // TODO: Some users are surprised to learn that they can add a separate /home partition on their own
     //       - so let's point it out to them for now?
     cliclack::log::warning(
-"Adding, formatting, and mounting a separate /home partition is not handled
+        "Adding, formatting, and mounting a separate /home partition is not handled
 by this installer yet, but it is possible to create and format a separate
 /home partition in gparted, and then enable it in the new Serpent OS
 '/etc/fstab' file, once the installer finishes. Remember to move the new
-/home/${USER} directory created by the installer to the new /home partition."
+/home/${USER} directory created by the installer to the new /home partition.",
     )?;
     let mut rootfs = ask_rootfs(parts)?.clone();
     rootfs.mountpoint = Some("/".into());
@@ -259,7 +273,7 @@ by this installer yet, but it is possible to create and format a separate
     let selected_locale = ask_locale(&locales)?;
     let timezone = ask_timezone()?;
     cliclack::log::warning(
-"Note that the keyboard layout for the current virtual terminal is controlled
+        "Note that the keyboard layout for the current virtual terminal is controlled
 via the GNOME Settings application.
 
 If a new keyboard layout is added there, please be aware that it may be
@@ -267,7 +281,7 @@ necessary to exit the installer, open a new virtual terminal, and restart the
 installer in the new virtual terminal.
 
 Otherwise, the desired keyboard layout may not be active when entering user
-passwords in the following steps."
+passwords in the following steps.",
     )?;
     let rootpw = ask_password()?;
     let user_account = create_user()?;
