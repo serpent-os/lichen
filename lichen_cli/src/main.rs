@@ -12,10 +12,11 @@ use std::{
     time::Duration,
 };
 
-use color_eyre::eyre::{bail, ensure};
+use color_eyre::eyre::ensure;
 use console::{set_colors_enabled, style};
 use crossterm::style::Stylize;
 use indicatif::ProgressStyle;
+use indoc::indoc;
 use installer::{
     selections::{self, Group},
     steps::Context,
@@ -200,9 +201,37 @@ fn main() -> color_eyre::Result<()> {
     set_colors_enabled(true);
 
     let euid = unsafe { geteuid() };
-    if euid != 0 {
-        bail!("lichen must be run as root. Re-run with sudo")
-    }
+    ensure!(euid == 0, "lichen must be run as root. Re-run with sudo.");
+
+    let partition_detection_warning = indoc! {"
+        The installer currently does not attempt to detect if there is a file system
+        on detected ESP (and XBOOTLDR) partitions.
+
+        Please ensure that the EFI system partition (ESP) and the Linux extended boot
+        (XBOOTLDR) partition are both formatted as FAT32.
+
+        It may be a good idea to check this in gparted (or fdisk) now:
+        - The EFI system partition (>=256MiB) should have the flag 'esp' in gparted
+          - This corresponds to type 1 in fdisk.
+        - The Linux extended boot partition (storing kernels and initrds, 4GiB)
+          should have the flag 'bls_boot' in gparted
+          - This corresponds to type 142 in fdisk.
+
+        NOTE: Users planning to re-install Serpent OS later on, may want to reserve
+              space for a separate /home partition (not handled by this installer).
+
+        If changes need to be made to partitions, please do so now before continuing.
+    "};
+    cliclack::log::warning(format!(
+        "{} This is an alpha quality Serpent OS installer.\n\n{}",
+        style("Warning:").bold(),
+        partition_detection_warning
+    ))?;
+
+    let should_continue = cliclack::confirm("Are you ready to have lichen detect your partitions?").interact()?;
+    ensure!(should_continue, "User chose to abort before detecting partitions.");
+
+    cliclack::intro(style("Install Serpent OS").bold())?;
 
     // Test selection management, force GNOME
     let selections = selections::Manager::new().with_groups([
@@ -230,41 +259,11 @@ fn main() -> color_eyre::Result<()> {
 
     sp.clear();
 
-    cliclack::intro(style("Install Serpent OS").bold())?;
-    cliclack::log::warning(format!(
-        "{} - this is an alpha quality installer.",
-        style("Be warned!").bold()
-    ))?;
-
     // TODO: The smart move would be to actually probe the partitions for a valid FS here,
     //       because we will want to optionally set the partition type and format them
     //       to the correct fs if this hasn't already been done.
-
-    cliclack::log::warning(
-        "The installer currently does not attempt to detect if there is a file system
-on detected ESP (and XBOOTLDR) partitions.\n
-Please ensure that the EFI system partition (ESP) and the Linux extended boot
-(XBOOTLDR) partition are both formatted as FAT32.\n
-It may be a good idea to check this in gparted now:\n
-- The EFI system partition (>=256MiB) should have the flag 'esp' in gparted
-  - This corresponds to type 1 in 'fdisk'.
-- The Linux extended boot partition (storing kernels and initrds, 4GiB)
-  should have the flag 'bls_boot' in gparted
-  - This corresponds to type 142 in 'fdisk'.\n
-If changes were made to any partitions, please exit the installer now by
-pressing CTRL+C, and then restart it.",
-    )?;
     let esp = ask_esp(boots)?;
 
-    // TODO: Some users are surprised to learn that they can add a separate /home partition on their own
-    //       - so let's point it out to them for now?
-    cliclack::log::warning(
-        "Adding, formatting, and mounting a separate /home partition is not handled
-by this installer yet, but it is possible to create and format a separate
-/home partition in gparted, and then enable it in the new Serpent OS
-'/etc/fstab' file, once the installer finishes. Remember to move the new
-/home/${USER} directory created by the installer to the new /home partition.",
-    )?;
     let mut rootfs = ask_rootfs(parts)?.clone();
     rootfs.mountpoint = Some("/".into());
     let fs = ask_filesystem()?;
@@ -272,17 +271,18 @@ by this installer yet, but it is possible to create and format a separate
     let selected_desktop = ask_desktop(&desktops)?;
     let selected_locale = ask_locale(&locales)?;
     let timezone = ask_timezone()?;
-    cliclack::log::warning(
-        "Note that the keyboard layout for the current virtual terminal is controlled
-via the GNOME Settings application.
+    let keyboard_layout_warning = indoc! {"
+        Note that the keyboard layout for the current virtual terminal is controlled
+        via the GNOME Settings application.
 
-If a new keyboard layout is added there, please be aware that it may be
-necessary to exit the installer, open a new virtual terminal, and restart the
-installer in the new virtual terminal.
+        If a new keyboard layout is added there, please be aware that it may be
+        necessary to exit the installer, open a new virtual terminal, and restart the
+        installer in the new virtual terminal.
 
-Otherwise, the desired keyboard layout may not be active when entering user
-passwords in the following steps.",
-    )?;
+        Otherwise, the desired keyboard layout may not be active when entering user
+        passwords in the following steps.
+    "};
+    cliclack::log::warning(keyboard_layout_warning)?;
     let rootpw = ask_password()?;
     let user_account = create_user()?;
 
@@ -366,12 +366,22 @@ passwords in the following steps.",
         total.inc(1);
         cleanup.execute(&context)?;
     }
+    let home_note = indoc!(
+        "
+        NOTE: If you reserved space for a separate /home partition above, now would
+              be a good time to format it with your filesystem of choice, and to
+              ensure that it is enabled in the /etc/fstab file in the new install.
 
-    multi.clear()?;
-    println!(
+              Remember to copy/move the new /home/${USER} directory created by the
+              installer in the / partition to the new /home partition.
+        "
+    );
+    let installer_success = format!(
         "🎉 🥳 Succesfully installed {}! Reboot now to start using it!",
         style("Serpent OS").bold()
     );
+    multi.clear()?;
+    println!("\n{}\n{}\n", home_note, installer_success);
 
     Ok(())
 }
