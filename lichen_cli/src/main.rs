@@ -180,7 +180,7 @@ fn create_user() -> color_eyre::Result<Account> {
         .with_shell("/usr/bin/bash"))
 }
 
-fn ask_desktop<'a>(desktops: &'a [&Group]) -> color_eyre::Result<&'a selections::Group> {
+fn ask_desktop<'a>(desktops: &'a [&Group]) -> color_eyre::Result<&'a Group> {
     let displayable = desktops
         .iter()
         .enumerate()
@@ -206,12 +206,12 @@ fn main() -> color_eyre::Result<()> {
 
     // Test selection management, force GNOME
     let selections = selections::Manager::new().with_groups([
-        selections::Group::from_str(include_str!("../../selections/base.json"))?,
-        selections::Group::from_str(include_str!("../../selections/cosmic.json"))?,
-        selections::Group::from_str(include_str!("../../selections/develop.json"))?,
-        selections::Group::from_str(include_str!("../../selections/gnome.json"))?,
-        selections::Group::from_str(include_str!("../../selections/kernel-common.json"))?,
-        selections::Group::from_str(include_str!("../../selections/kernel-desktop.json"))?,
+        Group::from_str(include_str!("../../selections/base.json"))?,
+        Group::from_str(include_str!("../../selections/cosmic.json"))?,
+        Group::from_str(include_str!("../../selections/develop.json"))?,
+        Group::from_str(include_str!("../../selections/gnome.json"))?,
+        Group::from_str(include_str!("../../selections/kernel-common.json"))?,
+        Group::from_str(include_str!("../../selections/kernel-desktop.json"))?,
     ]);
 
     let desktops = selections

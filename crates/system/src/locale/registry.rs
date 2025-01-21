@@ -55,7 +55,7 @@ impl Registry {
         // Load the territories in
         let territories = format!("{}/iso_3166-1.json", ISO_CODES_BASE);
         let contents = fs::read_to_string(territories)?;
-        let parser = serde_json::from_str::<iso_3166::Document>(&contents)?;
+        let parser = serde_json::from_str::<iso_3166::Document<'_>>(&contents)?;
 
         Ok(parser.entries.iter().map(|e| e.into()).collect::<Vec<_>>())
     }
@@ -64,7 +64,7 @@ impl Registry {
     fn load_languages_2() -> Result<Vec<Language>, Error> {
         let languages = format!("{}/iso_639-2.json", ISO_CODES_BASE);
         let contents = fs::read_to_string(languages)?;
-        let parser = serde_json::from_str::<iso_639_2::Document>(&contents)?;
+        let parser = serde_json::from_str::<iso_639_2::Document<'_>>(&contents)?;
 
         Ok(parser.entries.iter().map(|e| e.into()).collect::<Vec<_>>())
     }
@@ -73,7 +73,7 @@ impl Registry {
     fn load_languages_3() -> Result<Vec<Language>, Error> {
         let languages = format!("{}/iso_639-3.json", ISO_CODES_BASE);
         let contents = fs::read_to_string(languages)?;
-        let parser = serde_json::from_str::<iso_639_3::Document>(&contents)?;
+        let parser = serde_json::from_str::<iso_639_3::Document<'_>>(&contents)?;
 
         Ok(parser.entries.iter().map(|e| e.into()).collect::<Vec<_>>())
     }

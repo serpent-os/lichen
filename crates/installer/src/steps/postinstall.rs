@@ -224,7 +224,7 @@ impl Default for EmitFstab {
 }
 
 impl TryFrom<&SystemPartition> for FstabEntry {
-    type Error = self::Error;
+    type Error = Error;
     fn try_from(value: &SystemPartition) -> Result<Self, Error> {
         // Honestly, this is a bit ext4 centric, no ssd care given
         let s = Self::Device {

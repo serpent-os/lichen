@@ -27,70 +27,70 @@ pub enum Error {
 
 #[derive(Debug)]
 pub enum Step<'a> {
-    AddRepo(Box<packaging::AddRepo>),
-    Bind(Box<partitions::BindMount>),
-    CreateUser(Box<postinstall::CreateAccount<'a>>),
-    Format(Box<partitions::FormatPartition<'a>>),
-    Install(Box<packaging::InstallPackages>),
-    Mount(Box<partitions::MountPartition<'a>>),
-    SetPassword(Box<postinstall::SetPassword<'a>>),
-    SetLocale(Box<postinstall::SetLocale<'a>>),
-    SetMachineID(Box<postinstall::SetMachineID>),
-    SetTimezone(Box<postinstall::SetTimezone<'a>>),
-    WriteFstab(Box<postinstall::EmitFstab>),
+    AddRepo(Box<AddRepo>),
+    Bind(Box<BindMount>),
+    CreateUser(Box<CreateAccount<'a>>),
+    Format(Box<FormatPartition<'a>>),
+    Install(Box<InstallPackages>),
+    Mount(Box<MountPartition<'a>>),
+    SetPassword(Box<SetPassword<'a>>),
+    SetLocale(Box<SetLocale<'a>>),
+    SetMachineID(Box<SetMachineID>),
+    SetTimezone(Box<SetTimezone<'a>>),
+    WriteFstab(Box<EmitFstab>),
 }
 
 impl<'a> Step<'a> {
     /// Create new repo step
-    pub fn add_repo(r: packaging::AddRepo) -> Self {
+    pub fn add_repo(r: AddRepo) -> Self {
         Self::AddRepo(Box::new(r))
     }
 
-    pub fn create_user(u: postinstall::CreateAccount<'a>) -> Self {
+    pub fn create_user(u: CreateAccount<'a>) -> Self {
         Self::CreateUser(Box::new(u))
     }
 
-    pub fn install_packages(p: packaging::InstallPackages) -> Self {
+    pub fn install_packages(p: InstallPackages) -> Self {
         Self::Install(Box::new(p))
     }
 
     /// Create new FormatPartition step
-    pub fn format(f: partitions::FormatPartition<'a>) -> Self {
+    pub fn format(f: FormatPartition<'a>) -> Self {
         Self::Format(Box::new(f))
     }
 
     /// Create new MountPartition step
-    pub fn mount(m: partitions::MountPartition<'a>) -> Self {
+    pub fn mount(m: MountPartition<'a>) -> Self {
         Self::Mount(Box::new(m))
     }
 
     /// Create new bind mount
-    pub fn bind_mount(b: partitions::BindMount) -> Self {
+    pub fn bind_mount(b: BindMount) -> Self {
         Self::Bind(Box::new(b))
     }
 
     /// Set system locale
-    pub fn set_locale(l: postinstall::SetLocale<'a>) -> Self {
+    pub fn set_locale(l: SetLocale<'a>) -> Self {
         Self::SetLocale(Box::new(l))
     }
 
     /// Set system timezone
-    pub fn set_timezone(t: postinstall::SetTimezone<'a>) -> Self {
+    pub fn set_timezone(t: SetTimezone<'a>) -> Self {
         Self::SetTimezone(Box::new(t))
     }
 
     /// Set an account password
-    pub fn set_password(a: postinstall::SetPassword<'a>) -> Self {
+    pub fn set_password(a: SetPassword<'a>) -> Self {
         Self::SetPassword(Box::new(a))
     }
 
     /// Construct a dbus/systemd machine id
     pub fn set_machine_id() -> Self {
-        Self::SetMachineID(Box::new(postinstall::SetMachineID {}))
+        Self::SetMachineID(Box::new(SetMachineID {}))
     }
 
     // Emit the given fstab
-    pub fn emit_fstab(f: postinstall::EmitFstab) -> Self {
+    pub fn emit_fstab(f: EmitFstab) -> Self {
         Self::WriteFstab(Box::new(f))
     }
 

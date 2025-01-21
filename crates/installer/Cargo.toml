@@ -13,3 +13,6 @@ system = { path = "../system" }
 thiserror.workspace = true
 topology.workspace = true
 fs-err.workspace = true
+
+[lints]
+workspace = true
